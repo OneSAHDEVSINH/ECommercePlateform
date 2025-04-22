@@ -55,7 +55,7 @@ namespace ECommercePlateform.Server.Models
         [Range(0.01, 9999999999.99, ErrorMessage = "Minimum Value must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Minimum Value cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         public decimal MinimumValue { get; set; }
 
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid value.")]
@@ -65,7 +65,7 @@ namespace ECommercePlateform.Server.Models
         [Range(0.01, 9999999999.99, ErrorMessage = "Maximum Value must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Maximum Value cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         public decimal MaximumValue { get; set; }
 
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Only numbers are allowed.")]
@@ -75,7 +75,7 @@ namespace ECommercePlateform.Server.Models
         [Range(0, int.MaxValue, ErrorMessage = "Minimum Quantity must be a non-negative integer.")]
         [StringLength(100, ErrorMessage = "Minimum Quantity cannot be longer than 100 characters.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         public int MinimumQuantity { get; set; }
 
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Only numbers are allowed.")]
@@ -85,7 +85,7 @@ namespace ECommercePlateform.Server.Models
         [Range(0, int.MaxValue, ErrorMessage = "Maximum Quantity must be a non-negative integer.")]
         [StringLength(100, ErrorMessage = "Maximum Quantity cannot be longer than 100 characters.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         public int MaximumQuantity { get; set; }
 
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Only numbers are allowed.")]
@@ -95,23 +95,21 @@ namespace ECommercePlateform.Server.Models
         [Range(0, int.MaxValue, ErrorMessage = "Validity Period must be a non-negative integer.")]
         [StringLength(100, ErrorMessage = "Validity Period cannot be longer than 100 characters.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         public int ValidityPeriod { get; set; } // Validity period in days
 
         [Display(Name = "Validity Start Date:")]
         [Required(ErrorMessage = "Enter Validity Start Date!")]
         [StringLength(100, ErrorMessage = "Validity Start Date cannot be longer than 100 characters.")]
-        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [DataType(DataType.DateTime)]
-        [DefaultValue("01-01-2000")]
         public DateTime ValidityStartDate { get; set; } // Validity start date
 
         [Display(Name = "Validity End Date:")]
         [DataType(DataType.DateTime)]
         [StringLength(100, ErrorMessage = "Validity End Date cannot be longer than 100 characters.")]
-        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:dd-MM-yyyy}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Validity End Date!")]
-        [DefaultValue("01-01-2000")]
         public DateTime ValidityEndDate { get; set; } // Validity end date
 
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Only numbers are allowed.")]
@@ -121,8 +119,8 @@ namespace ECommercePlateform.Server.Models
         [Required(ErrorMessage = "Enter Total Use Count!")]
         [Range(0, int.MaxValue, ErrorMessage = "Total Use Count must be a non-negative integer.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
-        public int TotalUseCount { get; set; } // Total number of times the coupen can be used
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
+        public int TotalUseCount { get; set; } = 0;// Total number of times the coupen can be used
 
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Only numbers are allowed.")]
         [Display(Name = "Remaining Use Count:")]
@@ -131,8 +129,8 @@ namespace ECommercePlateform.Server.Models
         [Required(ErrorMessage = "Enter Remaining Use Count!")]
         [Range(0, int.MaxValue, ErrorMessage = "Remaining Use Count must be a non-negative integer.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
-        public int RemainingUseCount { get; set; } // Remaining number of times the coupen can be used
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
+        public int RemainingUseCount { get; set; } = 0; // Remaining number of times the coupen can be used
 
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Only numbers are allowed.")]
         [Display(Name = "Total Limited Use Count:")]
@@ -141,8 +139,8 @@ namespace ECommercePlateform.Server.Models
         [Required(ErrorMessage = "Enter Total Limited Use Count!")]
         [Range(0, int.MaxValue, ErrorMessage = "Total Limited Use Count must be a non-negative integer.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
-        public int TotalLimitedUseCount { get; set; } // Total number of times the coupen can be used
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
+        public int TotalLimitedUseCount { get; set; } = 0;// Total number of times the coupen can be used
 
         public bool IsUsed { get; set; } // Indicates if the coupen has been used
         public bool IsExpired { get; set; } // Indicates if the coupen has expired

@@ -18,7 +18,7 @@ namespace ECommercePlateform.Server.Models
         public Guid UserId { get; set; }
 
         public virtual User? User { get; set; } // Navigation property to the User entity
-        
+
         [Display(Name = "Rating:")]
         [DataType(DataType.Text)]
         [RegularExpression(@"^[1-5]$", ErrorMessage = "Rating must be between 1 and 5.")]
@@ -26,8 +26,8 @@ namespace ECommercePlateform.Server.Models
         [Required(ErrorMessage = "Enter Rating!")]
         [StringLength(1, ErrorMessage = "Rating cannot be longer than 1 character.")]
         [DefaultValue(1)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
-        public int Rating { get; set; } // Rating given by the user
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
+        public int Rating { get; set; } = 1; // Rating given by the user
 
         [Display(Name = "Review:")]
         [DataType(DataType.MultilineText)]

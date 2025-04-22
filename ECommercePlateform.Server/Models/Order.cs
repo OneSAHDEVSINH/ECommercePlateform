@@ -41,59 +41,59 @@ namespace ECommercePlateform.Server.Models
         [Range(0, 9999999999, ErrorMessage = "Total Items must be between 0 and 9999999999.")]
         [StringLength(10, ErrorMessage = "Total Items cannot be longer than 10 characters.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [RegularExpression(@"^\d+$", ErrorMessage = "Total Items must be a non-negative integer.")]
-        public int TotalItems { get; set; } // Total number of items in the order
+        public int TotalItems { get; set; } = 0;// Total number of items in the order
 
         [DisplayName("Sub Total:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Sub Total!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Sub Total must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Sub Total cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid sub total.")]
-        public decimal SubTotal { get; set; } // Subtotal amount for the order, before any discounts or taxes
+        public decimal SubTotal { get; set; } = 0.0m; // Subtotal amount for the order, before any discounts or taxes
 
         [DisplayName("Discount Amount:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Discount Amount!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Discount Amount must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Discount Amount cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid discount amount.")]
-        public decimal DiscountAmount { get; set; } // Amount of discount applied to the order
+        public decimal DiscountAmount { get; set; } = 0.0m; // Amount of discount applied to the order
 
         [DisplayName("Tax Amount:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Tax Amount!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Tax Amount must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Tax Amount cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid tax amount.")]
-        public decimal TaxAmount { get; set; } // Amount of tax applied to the order
+        public decimal TaxAmount { get; set; } = 0.0m; // Amount of tax applied to the order
 
         [DisplayName("Shipping Amount:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Shipping Amount!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Shipping Amount must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Shipping Amount cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid shipping amount.")]
-        public decimal ShippingAmount { get; set; } // Amount charged for shipping the order
+        public decimal ShippingAmount { get; set; } = 0.0m; // Amount charged for shipping the order
 
         [Display(Name = "Total Amount:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Total Amount!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Total Amount must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Total Amount cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid total amount.")]
-        public decimal TotalAmount { get; set; } // Total price of the order
+        public decimal TotalAmount { get; set; } = 0.0m; // Total price of the order
 
         [Display(Name = "Free Delivery Above Type:")]
         [Required(ErrorMessage = "Select Free Delivery Above Type!")]

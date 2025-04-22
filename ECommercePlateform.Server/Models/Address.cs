@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Numerics;
 
@@ -57,6 +58,9 @@ namespace ECommercePlateform.Server.Models
         [Required]
         [DataType(DataType.Text)]
         [Display(Name = "Address Type:")]
+        [DisplayFormat(ConvertEmptyStringToNull = true)]
+        [StringLength(100, ErrorMessage = "Address Type cannot be longer than 100 characters.")]
+        [DefaultValue("Home")]
         public required Enum.AddressType AddressType { get; set; } = Enum.AddressType.Home; // e.g., Home, Work, etc.
 
         public bool IsDefault { get; set; } // Indicates if this is the default address for the user

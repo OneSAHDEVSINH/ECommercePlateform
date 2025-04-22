@@ -18,19 +18,19 @@ namespace ECommercePlateform.Server.Models
         [Range(0, 9999999999, ErrorMessage = "Total Items must be between 0 and 9999999999.")]
         [StringLength(10, ErrorMessage = "Total Items cannot be longer than 10 characters.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [RegularExpression(@"^\d+$", ErrorMessage = "Total Items must be a non-negative integer.")]
-        public int TotalItems { get; set; } // Total number of items in the cart
+        public int TotalItems { get; set; } = 0; // Total number of items in the cart
 
         [Display(Name = "Total Amount:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Total Amount!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Total Amount must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Total Amount cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid total amount.")]
-        public decimal TotalAmount { get; set; } // Total price of the items in the cart
+        public decimal TotalAmount { get; set; } = 0.0m; // Total price of the items in the cart
 
         [Required]
         [DataType(DataType.DateTime)]

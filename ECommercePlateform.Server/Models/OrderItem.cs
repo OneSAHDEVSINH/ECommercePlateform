@@ -46,27 +46,27 @@ namespace ECommercePlateform.Server.Models
         [Required(ErrorMessage = "Enter Quantity!")]
         [StringLength(10, ErrorMessage = "Quantity cannot be longer than 10 characters.")]
         [DefaultValue(1)]
-        public int Quantity { get; set; } // Quantity of the product in the order
+        public int Quantity { get; set; } = 1; // Quantity of the product in the order
 
         [Display(Name = "Unit Price:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Unit Price!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Unit Price must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Unit Price cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid unit price.")]
-        public decimal UnitPrice { get; set; } // Unit price of the product
+        public decimal UnitPrice { get; set; } = 0.0m; // Unit price of the product
 
         [Display(Name = "Total Price:")]
         [DataType(DataType.Currency)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Total Price!")]
         [Range(0.01, 9999999999.99, ErrorMessage = "Total Price must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Total Price cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid total price.")]
-        public decimal TotalPrice { get; set; } // Total price of the product in the order
+        public decimal TotalPrice { get; set; } = 0.0m; // Total price of the product in the order
 
         [Required]
         [DataType(DataType.DateTime)]

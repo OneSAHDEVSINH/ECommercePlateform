@@ -21,7 +21,7 @@ namespace ECommercePlateform.Server.Models
         [DisplayFormat(ConvertEmptyStringToNull = true)]
         [Required(ErrorMessage = "Enter Discription!")]
         [StringLength(500, ErrorMessage = "Discription cannot be longer than 500 characters.")]
-        public required string Description { get; set; } = string.Empty; // Description of the product
+        public string? Description { get; set; } = string.Empty; // Description of the product
 
         [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid price.")]
         [DataType(DataType.Currency)]
@@ -30,12 +30,12 @@ namespace ECommercePlateform.Server.Models
         [Range(0.01, 9999999999.99, ErrorMessage = "Base Price must be between 0.01 and 9999999999.99.")]
         [StringLength(20, ErrorMessage = "Base Price cannot be longer than 20 characters.")]
         [DefaultValue(0.0)]
-        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         public required decimal BasePrice { get; set; } = 0.0m; // Base price of the product
 
         [Display(Name = "Product Image:")]
         [DataType(DataType.Upload)]
-        [FileExtensions(Extensions = "jpg,jpeg,gif", ErrorMessage = "Only JPEG and GIF images are allowed.")]
+        [FileExtensions(Extensions = "jpg,jpeg,gif,png,svg,jfif", ErrorMessage = "Only JPEG and GIF images are allowed.")]
         public byte[]? Image { get; set; }
 
         [Display(Name = "Product Image URL:")]
@@ -52,7 +52,7 @@ namespace ECommercePlateform.Server.Models
         [DataType(DataType.Text)]
         [StringLength(10, ErrorMessage = "Stock cannot be longer than 10 characters.")]
         [DefaultValue(0)]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
         public required int TotalStockQuantity { get; set; } = 0; // Stock quantity of the product
 
         [Display(Name = "SKU:")]
@@ -60,17 +60,15 @@ namespace ECommercePlateform.Server.Models
         [DisplayFormat(ConvertEmptyStringToNull = true)]
         [StringLength(50, ErrorMessage = "SKU cannot be longer than 50 characters.")]
         [RegularExpression(@"^[A-Za-z0-9-]+$", ErrorMessage = "Only alphanumeric characters and hyphens are allowed.")]
-        [Required(ErrorMessage = "Enter SKU!")]
-        public required string SKU { get; set; } // Stock Keeping Unit
+        public string? SKU { get; set; } // Stock Keeping Unit
 
         [Display(Name = "Tags:")]
         [DataType(DataType.Text)]
         [StringLength(100, ErrorMessage = "Tags cannot be longer than 100 characters.")]
         [RegularExpression(@"^[A-Za-z0-9\s,]+$", ErrorMessage = "Only alphanumeric characters and spaces are allowed.")]
-        [Required(ErrorMessage = "Enter Tags!")]
         [DefaultValue("General")]
-        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true)]
-        public required string Tags { get; set; } = string.Empty;
+        [DisplayFormat(DataFormatString = "{0:F0}", ApplyFormatInEditMode = true, ConvertEmptyStringToNull = true)]
+        public string? Tags { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.DateTime)]
