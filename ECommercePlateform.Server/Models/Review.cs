@@ -8,11 +8,15 @@ namespace ECommercePlateform.Server.Models
     {
         [Key]
         public Guid Id { get; set; }
+
         [ForeignKey("Product")]
         public Guid ProductId { get; set; }
+
         public virtual Product? Product { get; set; } // Navigation property to the Product entity
+
         [ForeignKey("User")]
         public Guid UserId { get; set; }
+
         public virtual User? User { get; set; } // Navigation property to the User entity
         
         [Display(Name = "Rating:")]

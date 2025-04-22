@@ -25,7 +25,7 @@ namespace ECommercePlateform.Server.Models
 
         [Display(Name = "Profile Image:")]
         [DataType(DataType.Upload)]
-        [FileExtensions(Extensions = "jpg,jpeg,gif", ErrorMessage = "Only JPEG and GIF images are allowed.")]
+        [FileExtensions(Extensions = "jpg,jpeg,gif,png,svg,jfif", ErrorMessage = "Only JPEG and GIF images are allowed.")]
         public byte[]? Avatar { get; set; }
 
         [Display(Name = "Gender:")]

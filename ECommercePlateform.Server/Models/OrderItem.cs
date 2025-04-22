@@ -1,9 +1,73 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommercePlateform.Server.Models
 {
     public class OrderItem
     {
+        [Key]
+        public Guid Id { get; set; }
+
+        [ForeignKey("Order")]
+        public Guid OrderId { get; set; }
+
+        public virtual Order? Order { get; set; } // Navigation property to the Order entity
+
+        [ForeignKey("Product")]
+        public Guid ProductId { get; set; }
+
+        public virtual Product? Product { get; set; } // Navigation property to the Product entity
+
+        [ForeignKey("ProductVarient")]
+        public Guid ProductVarientId { get; set; }
+
+        public virtual ProductVarient? ProductVarient { get; set; } // Navigation property to the ProductVarient entity
+
+        [Display(Name = "Product Name:")]
+        [DataType(DataType.Text)]
+        [DisplayFormat(ConvertEmptyStringToNull = true)]
+        [Required(ErrorMessage = "Enter Product Name!")]
+        [StringLength(100, ErrorMessage = "Product Name cannot be longer than 100 characters.")]
+        [RegularExpression(@"^[A-Za-z0-9\s.,-]+$", ErrorMessage = "Only text and numbers are allowed.")]
+        public required string ProductName { get; set; } // Name of the product in the order
+
+        [Display(Name = "SKU:")]
+        [DataType(DataType.Text)]
+        [DisplayFormat(ConvertEmptyStringToNull = true)]
+        [StringLength(50, ErrorMessage = "SKU cannot be longer than 50 characters.")]
+        [RegularExpression(@"^[A-Za-z0-9\s.,-]+$", ErrorMessage = "Only text and numbers are allowed.")]
+        public string? SKU { get; set; } // Stock Keeping Unit of the product in the order
+
+        [Display(Name = "Quantity:")]
+        [DataType(DataType.Text)]
+        [RegularExpression(@"^\d+$", ErrorMessage = "Quantity must be a non-negative integer.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be a positive integer.")]
+        [Required(ErrorMessage = "Enter Quantity!")]
+        [StringLength(10, ErrorMessage = "Quantity cannot be longer than 10 characters.")]
+        [DefaultValue(1)]
+        public int Quantity { get; set; } // Quantity of the product in the order
+
+        [Display(Name = "Unit Price:")]
+        [DataType(DataType.Currency)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [Required(ErrorMessage = "Enter Unit Price!")]
+        [Range(0.01, 9999999999.99, ErrorMessage = "Unit Price must be between 0.01 and 9999999999.99.")]
+        [StringLength(20, ErrorMessage = "Unit Price cannot be longer than 20 characters.")]
+        [DefaultValue(0.0)]
+        [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid unit price.")]
+        public decimal UnitPrice { get; set; } // Unit price of the product
+
+        [Display(Name = "Total Price:")]
+        [DataType(DataType.Currency)]
+        [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
+        [Required(ErrorMessage = "Enter Total Price!")]
+        [Range(0.01, 9999999999.99, ErrorMessage = "Total Price must be between 0.01 and 9999999999.99.")]
+        [StringLength(20, ErrorMessage = "Total Price cannot be longer than 20 characters.")]
+        [DefaultValue(0.0)]
+        [RegularExpression(@"/([0-9]*[\.]{0,1}[0-9]{0,2})/", ErrorMessage = "Enter valid total price.")]
+        public decimal TotalPrice { get; set; } // Total price of the product in the order
+
         [Required]
         [DataType(DataType.DateTime)]
         public required DateTime CreatedOn { get; set; } = DateTime.Now;

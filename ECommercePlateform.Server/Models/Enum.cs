@@ -119,5 +119,10 @@
             Expired,
             Upcoming
         }
+        public enum  SettingsType
+        {
+            Percentage,
+            FixedAmount
+        }
     }
 }
