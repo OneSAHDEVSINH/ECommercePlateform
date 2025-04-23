@@ -32,6 +32,7 @@ namespace ECommercePlateform.Server.Data
             base.OnModelCreating(modelBuilder);
 
             // Configure entity relationships
+
             // User entity configurations
             modelBuilder.Entity<User>(entity =>
             {
@@ -42,7 +43,6 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.Password).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(15);
 
-                // Configure one-to-many relationships
                 entity.HasMany(u => u.Addresses)
                     .WithOne(a => a.User)
                     .HasForeignKey(a => a.UserId)
