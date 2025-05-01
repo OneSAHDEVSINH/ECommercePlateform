@@ -31,6 +31,9 @@ namespace ECommercePlateform.Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Seed default admin user
+            SeedDefaultAdmin(modelBuilder);
+
             // Configure entity relationships
 
             // User entity configurations
@@ -346,6 +349,35 @@ namespace ECommercePlateform.Server.Data
             modelBuilder.Entity<State>().HasIndex(s => new { s.Code, s.CountryId }).IsUnique();
             modelBuilder.Entity<State>().HasIndex(s => new { s.Name, s.CountryId }).IsUnique();
             modelBuilder.Entity<City>().HasIndex(c => new { c.Name, c.StateId }).IsUnique();
+        }
+
+        private void SeedDefaultAdmin(ModelBuilder modelBuilder)
+        {
+            // Create a default admin user
+            var adminId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F"); // Fixed GUID for admin
+
+            modelBuilder.Entity<User>().HasData(
+                new User
+                {
+                    Id = adminId,
+                    FirstName = "Admin",
+                    LastName = "User",
+                    Email = "admin@admin.com",
+                    Password = "Admin@123", // In production, use a hashed password
+                    ConfirmPassword = "Admin@123",
+                    PhoneNumber = "1234567890",
+                    DateOfBirth = new DateOnly(1990, 1, 1),
+                    Gender = Models.Enum.Gender.Male,
+                    Bio = "System Administrator",
+                    Role = Models.Enum.UserRole.Admin,
+                    CreatedOn = DateTime.Now,
+                    ModifiedOn = DateTime.Now,
+                    CreatedBy = "System",
+                    ModifiedBy = "System",
+                    IsActive = true,
+                    IsDeleted = false
+                }
+            );
         }
     }
 }

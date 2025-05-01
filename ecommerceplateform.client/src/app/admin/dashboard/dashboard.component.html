@@ -1,0 +1,25 @@
+<div class="admin-dashboard">
+  <header class="dashboard-header">
+    <div class="logo">
+      <h1>Admin Dashboard</h1>
+    </div>
+    <div class="user-actions">
+      <button class="logout-btn" (click)="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="dashboard-content">
+    <nav class="sidebar">
+      <ul class="menu">
+        <li><a routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a></li>
+        <li><a routerLink="/admin/country" routerLinkActive="active">Countries</a></li>
+        <li><a routerLink="/admin/state" routerLinkActive="active">States</a></li>
+        <li><a routerLink="/admin/city" routerLinkActive="active">Cities</a></li>
+      </ul>
+    </nav>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div> 

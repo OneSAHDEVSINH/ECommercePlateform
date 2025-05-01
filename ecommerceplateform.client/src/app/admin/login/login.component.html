@@ -12,7 +12,7 @@
         <input type="text"
                id="username"
                formControlName="username"
-               placeholder="Enter your username" />
+               placeholder="Enter your username"
                [ngClass]="{'is-invalid': loginForm.get('username')?.invalid && loginForm.get('username')?.touched}">
         <div class="error-message" *ngIf="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
           Username is required
@@ -24,7 +24,7 @@
         <input type="password"
                id="password"
                formControlName="password"
-               placeholder="Enter your password" />
+               placeholder="Enter your password"
                [ngClass]="{'is-invalid': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}">
         <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
         
@@ -37,7 +37,7 @@
         {{ errorMessage }}
       </div>
 
-      <button type="submit" name="Submit" class="btn btn-primary"> Login
+      <button type="submit"
               [disabled]="loginForm.invalid || isSubmitting"
               class="login-button">
         <span *ngIf="isSubmitting">Logging in...</span>
