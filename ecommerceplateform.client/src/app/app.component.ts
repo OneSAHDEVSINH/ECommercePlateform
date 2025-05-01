@@ -1,16 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  standalone: false,
-  styleUrl: './app.component.css',
-  //imports: [RouterOutlet],
+  standalone: true,
+  imports: [RouterOutlet],
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-
-  title = 'demo.client';
-
+  title = 'ecommerceplateform.client';
 }
