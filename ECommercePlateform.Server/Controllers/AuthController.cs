@@ -35,7 +35,7 @@ namespace ECommercePlateform.Server.Controllers
                 return BadRequest(new { message = "Username and password are required" });
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Username && u.Password == request.Password && u.Role == Enum.UserRole.Admin);
+                .FirstOrDefaultAsync(u => u.Email == request.Username && u.Password == request.Password && u.Role == Models.Enum.UserRole.Admin);
 
             if (user == null)
                 return Unauthorized(new { message = "Invalid username or password" });
@@ -57,7 +57,7 @@ namespace ECommercePlateform.Server.Controllers
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "YourTemporarySecretKeyForDevelopment12345");
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345");
             
             var tokenDescriptor = new SecurityTokenDescriptor
             {

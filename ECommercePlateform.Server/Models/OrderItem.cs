@@ -96,7 +96,7 @@ namespace ECommercePlateform.Server.Models
         public virtual ICollection<Country>? Countries { get; set; } // Navigation property for related countries
         public virtual ICollection<Coupen>? Coupens { get; set; } // Navigation property for related coupens
         public virtual ICollection<Order>? Orders { get; set; } // Navigation property for related orders
-        public virtual ICollection<OrderItem>? OrderItems { get; set; } // Navigation property for related order items
+        //public virtual ICollection<OrderItem>? OrderItems { get; set; } // Navigation property for related order items
         public virtual ICollection<Product>? Products { get; set; } // Navigation property for related products
         public virtual ICollection<ProductVarient>? ProductVarients { get; set; } // Navigation property for related product varients
         public virtual ICollection<Review>? Reviews { get; set; } // Navigation property for related reviews

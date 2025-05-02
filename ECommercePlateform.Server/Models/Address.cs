@@ -85,8 +85,17 @@ namespace ECommercePlateform.Server.Models
         [Required]
         public required bool IsDeleted { get; set; }
 
+        // Add backing field for Addresses collection
+        //private ICollection<Address>? _addresses;
+        //public virtual ICollection<Address>? Addresses
+        //{
+        //    get => _addresses ?? new List<Address>();
+        //    set => _addresses = value;
+        //}
+
         // Navigation properties for related entities
-        public virtual ICollection<Address>? Addresses { get; set; } // Navigation property for related addresses
+
+        //public virtual ICollection<Address>? Addresses { get; set; } // Navigation property for related addresses
         public virtual ICollection<Cart>? Carts { get; set; } // Navigation property for related carts
         public virtual ICollection<CartItem>? CartItems { get; set; } // Navigation property for related cart items
         public virtual ICollection<City>? Cities { get; set; } // Navigation property for related cities

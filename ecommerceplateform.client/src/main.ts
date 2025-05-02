@@ -1,9 +1,29 @@
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import '@angular/compiler';
 import { AppModule } from './app/app.module';
+import { AppComponent } from './app/app.component';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
 
-platformBrowserDynamic().bootstrapModule(AppModule)
-  .catch(err => console.error(err));
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+// import { bootstrapApplication, provideClientHydration } from '@angular/platform-browser';
+// import { AppComponent } from './app/app.component';
+// import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+// import { provideRouter } from '@angular/router';
+// import { provideAnimations } from '@angular/platform-browser/animations';
+// import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+// import '@angular/compiler';
+// import { routes } from './app/app.routes';
+
+// const appConfig: ApplicationConfig = {
+//   providers: [
+    
+//   ]
+// };
+
+// bootstrapApplication(AppComponent, appConfig)
+//   .catch(err => console.error(err));
 
 
 

@@ -12,6 +12,7 @@ import { Country, CountryService } from '../../services/country.service';
   templateUrl: './city.component.html',
   styleUrl: './city.component.scss'
 })
+
 export class CityComponent implements OnInit {
   cities: City[] = [];
   states: State[] = [];

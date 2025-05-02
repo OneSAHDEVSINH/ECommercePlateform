@@ -48,7 +48,7 @@ namespace ECommercePlateform.Server.Models
         public virtual ICollection<Cart>? Carts { get; set; } // Navigation property for related carts
         public virtual ICollection<CartItem>? CartItems { get; set; } // Navigation property for related cart items
         public virtual ICollection<City>? Cities { get; set; } // Navigation property for related cities
-        public virtual ICollection<Country>? Countries { get; set; } // Navigation property for related countries
+        //public virtual ICollection<Country>? Countries { get; set; } // Navigation property for related countries
         public virtual ICollection<Coupen>? Coupens { get; set; } // Navigation property for related coupens
         public virtual ICollection<Order>? Orders { get; set; } // Navigation property for related orders
         public virtual ICollection<OrderItem>? OrderItems { get; set; } // Navigation property for related order items

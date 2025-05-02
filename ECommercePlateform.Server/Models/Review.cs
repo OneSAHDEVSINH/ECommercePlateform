@@ -78,7 +78,7 @@ namespace ECommercePlateform.Server.Models
         public virtual ICollection<OrderItem>? OrderItems { get; set; } // Navigation property for related order items
         public virtual ICollection<Product>? Products { get; set; } // Navigation property for related products
         public virtual ICollection<ProductVarient>? ProductVarients { get; set; } // Navigation property for related product varients
-        public virtual ICollection<Review>? Reviews { get; set; } // Navigation property for related reviews
+        //public virtual ICollection<Review>? Reviews { get; set; } // Navigation property for related reviews
         public virtual ICollection<Setting>? Settings { get; set; } // Navigation property for related settings
         public virtual ICollection<ShippingAddress>? ShippingAddresses { get; set; } // Navigation property for related shipping addresses
         public virtual ICollection<State>? States { get; set; } // Navigation property for related states

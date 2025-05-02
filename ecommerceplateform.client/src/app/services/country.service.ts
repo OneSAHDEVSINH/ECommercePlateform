@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environment';
 import { AuthService } from './auth.service';
 
 export interface Country {
@@ -15,7 +14,7 @@ export interface Country {
   providedIn: 'root'
 })
 export class CountryService {
-  private apiUrl = `${environment.apiUrl}/country`;
+  private apiUrl = `/country`;
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 

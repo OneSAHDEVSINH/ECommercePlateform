@@ -10,6 +10,7 @@ import { Country, CountryService } from '../../services/country.service';
   templateUrl: './country.component.html',
   styleUrl: './country.component.scss'
 })
+
 export class CountryComponent implements OnInit {
   countries: Country[] = [];
   countryForm: FormGroup;

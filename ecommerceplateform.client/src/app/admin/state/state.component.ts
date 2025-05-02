@@ -11,6 +11,7 @@ import { Country, CountryService } from '../../services/country.service';
   templateUrl: './state.component.html',
   styleUrl: './state.component.scss'
 })
+
 export class StateComponent implements OnInit {
   states: State[] = [];
   countries: Country[] = [];
@@ -41,7 +42,7 @@ export class StateComponent implements OnInit {
 
   loadCountries(): void {
     this.countryService.getCountries().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.countries = data;
       },
       error: () => {
@@ -53,7 +54,7 @@ export class StateComponent implements OnInit {
   loadStates(): void {
     this.isLoading = true;
     this.stateService.getStates().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.states = data;
         this.isLoading = false;
       },

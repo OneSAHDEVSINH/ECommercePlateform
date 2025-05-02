@@ -28,7 +28,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+    //To ignore databse warning datateti,e now admin seed from here. use anly one either from here or from AppDbContext.
+    //.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
