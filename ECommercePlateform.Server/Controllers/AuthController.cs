@@ -24,18 +24,18 @@ namespace ECommercePlateform.Server.Controllers
 
         public class LoginRequest
         {
-            public string? Username { get; set; }
+            public string? Email { get; set; }
             public string? Password { get; set; }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (request.Username == null || request.Password == null)
+            if (request.Email == null || request.Password == null)
                 return BadRequest(new { message = "Username and password are required" });
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Username && u.Password == request.Password && u.Role == Models.Enum.UserRole.Admin);
+                .FirstOrDefaultAsync(u => u.Email == request.Email && u.Password == request.Password && u.Role == Models.Enum.UserRole.Admin);
 
             if (user == null)
                 return Unauthorized(new { message = "Invalid username or password" });
@@ -47,9 +47,15 @@ namespace ECommercePlateform.Server.Controllers
                 token,
                 user = new
                 {
-                    id = user.Id,
-                    username = user.Email,
-                    role = user.Role.ToString()
+                    //id = user.Id,
+                    //username = user.Email,
+                    //role = user.Role.ToString()
+                    id = user.Id.ToString(),
+                    firstName = user.FirstName,
+                    lastName = user.LastName,
+                    email = user.Email,
+                    role = user.Role.ToString(),
+                    isActive = user.IsActive
                 }
             });
         }

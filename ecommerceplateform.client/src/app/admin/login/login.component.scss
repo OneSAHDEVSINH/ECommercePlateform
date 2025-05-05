@@ -1,37 +1,261 @@
-/* src/app/admin/login/login.component.scss */
+// Variables
+@use "sass:color";
+@use "sass:math";
+
+$classic-bg: #f5f5f5;
+$classic-form-bg: white;
+$classic-accent: #4a90e2;
+$classic-text: #333;
+$classic-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+$modern-bg: #1a1a2e;
+$modern-form-bg: #16213e;
+$modern-accent: #7579e7;
+$modern-text: #eaeaea;
+$modern-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+// Mixins
+@mixin theme-transition {
+  transition: 
+    background-color 0.5s ease,
+    color 0.5s ease,
+    border-color 0.5s ease,
+    box-shadow 0.5s ease;
+}
+
+// Common styles
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  @include theme-transition;
 }
 
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+// Classic Theme Styling
+.login-container.classic {
+  background-color: $classic-bg;
+  color: $classic-text;
 
-.login-header {
-  margin-bottom: 2rem;
-  text-align: center;
+  .login-form-container {
+    background-color: $classic-form-bg;
+    box-shadow: $classic-box-shadow;
+  }
 
-  h1 {
-    margin-bottom: 0.5rem;
+  .form-control {
+    border: 1px solid #ddd;
+    color: $classic-text;
+    background-color: white;
+
+    &:focus {
+      border-color: $classic-accent;
+    }
+  }
+
+  .btn-login {
+    background-color: $classic-accent;
+    
+    &:hover:not(:disabled) {
+      background-color: color.adjust($classic-accent, $lightness: -10%);
+    }
+    
+    &:disabled {
+      background-color: color.adjust($classic-accent, $lightness: 20%);
+    }
+  }
+
+  .input-group {
+    border: 1px solid #ddd;
+    
+    &:focus-within {
+      border-color: $classic-accent;
+    }
+  }
+
+  .input-icon, .password-toggle {
+    color: #888;
+  }
+
+  .theme-toggle-btn {
+    background-color: rgba(255, 255, 255, 0.8);
     color: #333;
+  }
+}
+
+// Modern Theme Styling
+.login-container.modern {
+  background-color: $modern-bg;
+  color: $modern-text;
+
+  .login-form-container {
+    background-color: $modern-form-bg;
+    box-shadow: $modern-box-shadow;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .login-header {
+    h2 {
+      color: $modern-text;
+    }
+    
+    p {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  .form-control {
+    border: none;
+    color: $modern-text;
+    background-color: rgba(255, 255, 255, 0.05);
+    
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  label {
+    color: $modern-text;
+  }
+
+  .btn-login {
+    background-color: $modern-accent;
+    box-shadow: 0 4px 15px rgba($modern-accent, 0.4);
+    
+    &:hover:not(:disabled) {
+      background-color: color.adjust($modern-accent, $lightness: 5%);
+      box-shadow: 0 6px 20px rgba($modern-accent, 0.6);
+    }
+    
+    &:disabled {
+      background-color: color.adjust($modern-accent, $saturation: -50%);
+    }
+  }
+
+  .input-group {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05);
+    
+    &:focus-within {
+      border-color: $modern-accent;
+    }
+  }
+
+  .input-icon {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .password-toggle {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .help-text {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .theme-toggle-btn {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: $modern-text;
+  }
+
+  .error-message {
+    color: #ff6b6b;
+  }
+
+  .alert-danger {
+    background-color: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.3);
+    color: #ff6b6b;
+  }
+}
+
+// Theme Toggle
+.theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.theme-toggle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Form Container
+.login-form-container {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 12px;
+  padding: 2.5rem;
+  @include theme-transition;
+}
+
+// Logo
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(45deg, $classic-accent, color.adjust($classic-accent, $lightness: -15%));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  
+  .modern & {
+    background: linear-gradient(45deg, $modern-accent, color.adjust($modern-accent, $lightness: 15%));
+    box-shadow: 0 4px 15px rgba($modern-accent, 0.4);
+  }
+}
+
+.logo-icon {
+  font-size: 2rem;
+}
+
+// Header
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    font-weight: 600;
   }
 
   p {
-    color: #666;
+    font-size: 0.9rem;
   }
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+// Form Elements
+.login-form {
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
 
   label {
     display: block;
@@ -39,58 +263,147 @@
     font-weight: 500;
   }
 
-  input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: border-color 0.2s;
+  .input-group {
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    overflow: hidden;
+    @include theme-transition;
+  }
 
+  .input-icon {
+    padding: 0 12px;
+    font-size: 1.1rem;
+  }
+
+  .form-control {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    font-size: 1rem;
+    border-radius: 0;
+    @include theme-transition;
+    
     &:focus {
       outline: none;
-      border-color: #4a90e2;
     }
+  }
 
-    &.is-invalid {
-      border-color: #dc3545;
+  .password-toggle {
+    background: none;
+    border: none;
+    padding: 0 12px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    @include theme-transition;
+    
+    &:hover {
+      opacity: 0.8;
     }
+  }
+
+  .error-message {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+
+  .alert-danger {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    @include theme-transition;
+  }
+
+  .btn-login {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  .form-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
   }
 }
 
-.error-message {
-  margin-top: 0.25rem;
-  color: #dc3545;
-  font-size: 0.875rem;
+// Loading spinner
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
 }
 
-.error-alert {
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  background-color: #f8d7da;
-  color: #721c24;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.login-button {
+// Animations for modern theme
+.animated-background {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  padding: 0.75rem;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
 
-  &:hover {
-    background-color: #3a7bc8;
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(117, 121, 231, 0.3);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  animation: float 15s infinite linear;
+  
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) {
+      width: math.random(100) + 50px;
+      height: math.random(100) + 50px;
+      left: math.random(100) * 1%;
+      top: math.random(100) * 1%;
+      animation-delay: math.random(10) * -1s;
+      animation-duration: (math.random(20) + 15) + s;
+      opacity: math.random(50) * 0.01 + 0.1;
+      filter: blur(math.random(10) + 5px);
+    }
   }
+}
 
-  &:disabled {
-    background-color: #a0c3e8;
-    cursor: not-allowed;
+// Keyframes
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(100px, 100px) rotate(90deg);
+  }
+  50% {
+    transform: translate(0px, 200px) rotate(180deg);
+  }
+  75% {
+    transform: translate(-100px, 100px) rotate(270deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
   }
 }

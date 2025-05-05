@@ -8,7 +8,7 @@ namespace ECommercePlateform.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class CountryController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -43,10 +43,17 @@ namespace ECommercePlateform.Server.Controllers
 
         // POST: api/Country
         [HttpPost]
-        public async Task<ActionResult<Country>> CreateCountry(Country country)
+        public async Task<ActionResult<Country>> CreateCountry([FromBody]Country country)
         {
             if (!ModelState.IsValid)
             {
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"Model error: {error.ErrorMessage}");
+                    }
+                }
                 return BadRequest(ModelState);
             }
 
@@ -66,15 +73,31 @@ namespace ECommercePlateform.Server.Controllers
 
         // PUT: api/Country/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCountry(Guid id, Country country)
+        public async Task<IActionResult> UpdateCountry(Guid id, [FromBody]Country country)
         {
+            // Add detailed logging for debugging
+            Console.WriteLine($"Received PUT request for country ID: {id}");
+
+            if (country == null)
+            {
+                return BadRequest("Request body null");
+            }
+
             if (id != country.Id)
             {
-                return BadRequest();
+                Console.WriteLine($"ID mismatch: Path ID={id}, Country ID={country.Id}");
+                return BadRequest("ID mismatch");
             }
 
             if (!ModelState.IsValid)
             {
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"Model error: {error.ErrorMessage}");
+                    }
+                }
                 return BadRequest(ModelState);
             }
 
@@ -87,10 +110,11 @@ namespace ECommercePlateform.Server.Controllers
             // Update only allowed fields
             existingCountry.Name = country.Name;
             existingCountry.Code = country.Code;
-            existingCountry.IsActive = country.IsActive;
             existingCountry.ModifiedOn = DateTime.Now;
             existingCountry.ModifiedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
-
+            existingCountry.IsActive = country.IsActive;
+            existingCountry.IsDeleted = country.IsDeleted;
+            
             try
             {
                 await _context.SaveChangesAsync();
@@ -121,6 +145,7 @@ namespace ECommercePlateform.Server.Controllers
             }
 
             // Soft delete
+            country.IsActive = false;
             country.IsDeleted = true;
             country.ModifiedOn = DateTime.Now;
             country.ModifiedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";

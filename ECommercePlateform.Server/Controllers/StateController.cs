@@ -8,7 +8,7 @@ namespace ECommercePlateform.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class StateController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -154,6 +154,7 @@ namespace ECommercePlateform.Server.Controllers
             }
 
             // Soft delete
+            state.IsActive = false;
             state.IsDeleted = true;
             state.ModifiedOn = DateTime.Now;
             state.ModifiedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";

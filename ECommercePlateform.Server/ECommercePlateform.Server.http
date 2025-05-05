@@ -1,6 +1,52 @@
-@ECommercePlateform.Server_HostAddress = http://localhost:5187
+@ECommercePlateform.Server_HostAddress = https://localhost:44362
 
-GET {{ECommercePlateform.Server_HostAddress}}/weatherforecast/
-Accept: application/json
+GET {{ECommercePlateform.Server_HostAddress}}/api/country
+
+###
+
+POST {{ECommercePlateform.Server_HostAddress}}/api/country
+Content-Type: application/json
+
+{
+  "code": "IN",
+  "name": "India",
+  "createdBy": "e65a3a8a-2407-4965-9b71-b9a1d8e2c34f",
+  "modifiedBy": "e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"
+}
+
+###
+
+GET {{ECommercePlateform.Server_HostAddress}}/api/country
+
+###
+
+POST {{ECommercePlateform.Server_HostAddress}}/api/country
+Content-Type: application/json
+
+{
+  "id": "98c69c88-1470-4220-8198-57c2d4fcb2d8",
+    "name": "China",
+    "code": "CN",
+    "createdOn": "2025-05-02T03:18:00",
+    "createdBy": "Admin",
+    "modifiedOn": "2025-05-02T03:18:00",
+    "modifiedBy": "Admin",
+    "isActive": true,
+    "isDeleted": false,
+    "addresses": null,
+    "carts": null,
+    "cartItems": null,
+    "cities": null,
+    "coupens": null,
+    "orders": null,
+    "orderItems": null,
+    "products": null,
+    "productVarients": null,
+    "reviews": null,
+    "settings": null,
+    "shippingAddresses": null,
+    "states": null,
+    "users": null
+}
 
 ###

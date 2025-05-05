@@ -1,53 +1,118 @@
-// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
-
-interface AuthResponse {
-  token: string;
-  user: {
-    id: string;
-    username: string;
-    role: string;
-  };
-}
+import { Observable, BehaviorSubject, tap, of } from 'rxjs';
+import { LoginRequest, LoginResponse, User, UserRole } from '../models/user.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = `/auth`;
-  private currentUserSubject = new BehaviorSubject<any>(null);
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
+  private apiUrl = environment.apiUrl;
+  //private apiUrl = '/Auth';
+  //private apiUrl = 'https://localhost:44362/Auth';
+
+  
+  // Development mode flag - REMOVE IN PRODUCTION
+  private devMode = false;
+  
   constructor(private http: HttpClient) {
-    this.loadUserFromStorage();
-  }
-
-  private loadUserFromStorage(): void {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-
-    if (token && user) {
-      this.currentUserSubject.next(JSON.parse(user));
+    // Check if user is already logged in on initialization
+    this.loadCurrentUser();
+    
+    // Auto-login for development - REMOVE IN PRODUCTION
+    if (this.devMode && !this.currentUserSubject.value) {
+      this.simulateLogin();
     }
   }
 
-  login(username: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
+  // Development only - REMOVE IN PRODUCTION
+  private simulateLogin(): void {
+    const mockUser: User = {
+      id: '1',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      role: UserRole.Admin,
+      isActive: true
+    };
+    
+    localStorage.setItem('token', 'fake-jwt-token');
+    localStorage.setItem('currentUser', JSON.stringify(mockUser));
+    this.currentUserSubject.next(mockUser);
+    console.warn('DEV MODE: Auto-login enabled. Remove before production!');
+  }
+
+  login(credentials: LoginRequest): Observable<LoginResponse> {
+    // For development - REMOVE IN PRODUCTION
+    if (this.devMode) {
+      const mockUser: User = {
+        id: '1',
+        firstName: 'Admin',
+        lastName: 'User',
+        email: credentials.email,
+        role: UserRole.Admin,
+        isActive: true
+      };
+      
+      const response: LoginResponse = {
+        token: 'fake-jwt-token',
+        user: mockUser
+      };
+      
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('currentUser', JSON.stringify(response.user));
+      this.currentUserSubject.next(response.user);
+      
+      return of(response);
+    }
+
+    // Real implementation for production
+    return this.http.post<LoginResponse>(`${this.apiUrl}/Auth/login`, credentials)
       .pipe(
         tap(response => {
+          console.log('Raw API response:', response); // for debugging
+
+          // Store token in local storage
           localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
+
+          // Create a properly formatted user object
+          const user: User = {
+            id: response.user.id,
+            firstName: response.user.firstName || response.user.firstName || '',
+            lastName: response.user.lastName || response.user.lastName || '',
+            email: response.user.email || response.user.email || response.user.email || '',
+            role: response.user.role || response.user.role,
+            isActive: response.user.isActive || response.user.isActive || true
+          };
+          
+          // Store user data
+          localStorage.setItem('currentUser', JSON.stringify(response.user));
+          
+          // Update current user subject
           this.currentUserSubject.next(response.user);
         })
       );
   }
 
   logout(): void {
+    // Remove token and user data from local storage
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('currentUser');
+    
+    // Update current user subject
     this.currentUserSubject.next(null);
+  }
+
+  private loadCurrentUser(): void {
+    const userJson = localStorage.getItem('currentUser');
+    if (userJson) {
+      const user = JSON.parse(userJson) as User;
+      this.currentUserSubject.next(user);
+    }
   }
 
   getToken(): string | null {
@@ -56,5 +121,10 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  isAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    return !!user && user.role === UserRole.Admin;
   }
 }

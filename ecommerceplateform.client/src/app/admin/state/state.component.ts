@@ -1,68 +1,104 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { State, StateService } from '../../services/state.service';
-import { Country, CountryService } from '../../services/country.service';
+import { RouterModule } from '@angular/router';
+import { State } from '../../models/state.model';
+import { Country } from '../../models/country.model';
+import { StateService } from '../../services/state.service';
+import { CountryService } from '../../services/country.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-state',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './state.component.html',
-  styleUrl: './state.component.scss'
+  styleUrls: ['./state.component.scss'],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule]
 })
-
 export class StateComponent implements OnInit {
   states: State[] = [];
   countries: Country[] = [];
-  stateForm: FormGroup;
-  isEditing = false;
+  stateForm!: FormGroup;
+  isEditMode: boolean = false;
   currentStateId: string | null = null;
-  isLoading = false;
-  errorMessage = '';
-  successMessage = '';
+  loading: boolean = false;
+  message: { type: 'success' | 'error', text: string } | null = null;
+  private currentUser: any = null;
 
   constructor(
     private stateService: StateService,
     private countryService: CountryService,
+    private authService: AuthService,
     private fb: FormBuilder
-  ) {
-    this.stateForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
-      code: ['', [Validators.required, Validators.maxLength(10)]],
-      countryId: ['', [Validators.required]],
-      isActive: [true]
+  ) { }
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadCountries();
+    this.loadStates();
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
     });
   }
 
-  ngOnInit(): void {
-    this.loadCountries();
-    this.loadStates();
+  private initForm(): void {
+    this.stateForm = this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      code: ['', [Validators.required, Validators.maxLength(10)]],
+      countryId: ['', [Validators.required]]
+    });
   }
 
   loadCountries(): void {
     this.countryService.getCountries().subscribe({
-      next: (data: any) => {
-        this.countries = data;
+      next: (countries) => {
+        this.countries = countries;
       },
-      error: () => {
-        this.errorMessage = 'Failed to load countries. Please try again.';
+      error: (error) => {
+        console.error('Error loading countries:', error);
+        this.message = { type: 'error', text: 'Failed to load countries' };
       }
     });
   }
 
   loadStates(): void {
-    this.isLoading = true;
+    this.loading = true;
     this.stateService.getStates().subscribe({
-      next: (data: any) => {
-        this.states = data;
-        this.isLoading = false;
+      next: (states) => {
+        this.states = states;
+        this.loading = false;
       },
-      error: () => {
-        this.errorMessage = 'Failed to load states. Please try again.';
-        this.isLoading = false;
+      error: (error) => {
+        console.error('Error loading states:', error);
+        this.message = { type: 'error', text: 'Failed to load states' };
+        this.loading = false;
       }
     });
+  }
+
+  filterStatesByCountry(countryId: string): void {
+    if (!countryId || countryId === 'all') {
+      this.loadStates();
+      return;
+    }
+
+    this.loading = true;
+    this.stateService.getStatesByCountry(countryId).subscribe({
+      next: (states) => {
+        this.states = states;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading states by country:', error);
+        this.message = { type: 'error', text: 'Failed to load states for the selected country' };
+        this.loading = false;
+      }
+    });
+  }
+
+  onCountryFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.filterStatesByCountry(select.value);
   }
 
   onSubmit(): void {
@@ -70,64 +106,79 @@ export class StateComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
-    const state: State = this.stateForm.value;
+    const stateData: State = {
+      ...this.stateForm.value,
+      createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
+      modifiedBy: this.getUserIdentifier(),
+      isActive: true,
+      isDeleted: false
+    };
 
-    if (this.isEditing && this.currentStateId) {
-      this.stateService.updateState(this.currentStateId, state).subscribe({
+    this.loading = true;
+    
+    if (this.isEditMode && this.currentStateId) {
+      this.stateService.updateState(this.currentStateId, stateData).subscribe({
         next: () => {
-          this.successMessage = 'State updated successfully!';
+          this.message = { type: 'success', text: 'State updated successfully' };
           this.loadStates();
           this.resetForm();
-          this.isLoading = false;
+          this.loading = false;
         },
-        error: () => {
-          this.errorMessage = 'Failed to update state. Please try again.';
-          this.isLoading = false;
+        error: (error) => {
+          console.error('Error updating state:', error);
+          this.message = { type: 'error', text: 'Failed to update state' };
+          this.loading = false;
         }
       });
     } else {
-      this.stateService.createState(state).subscribe({
+      this.stateService.createState(stateData).subscribe({
         next: () => {
-          this.successMessage = 'State created successfully!';
+          this.message = { type: 'success', text: 'State created successfully' };
           this.loadStates();
           this.resetForm();
-          this.isLoading = false;
+          this.loading = false;
         },
-        error: () => {
-          this.errorMessage = 'Failed to create state. Please try again.';
-          this.isLoading = false;
+        error: (error) => {
+          console.error('Error creating state:', error);
+          this.message = { type: 'error', text: 'Failed to create state' };
+          this.loading = false;
         }
       });
     }
   }
 
   editState(state: State): void {
-    this.isEditing = true;
-    this.currentStateId = state.id as string;
+    this.isEditMode = true;
+    this.currentStateId = state.id || null;
     this.stateForm.patchValue({
       name: state.name,
       code: state.code,
-      countryId: state.countryId,
-      isActive: state.isActive
+      countryId: state.countryId
     });
   }
 
   deleteState(id: string): void {
     if (confirm('Are you sure you want to delete this state?')) {
-      this.isLoading = true;
+      this.loading = true;
       this.stateService.deleteState(id).subscribe({
         next: () => {
-          this.successMessage = 'State deleted successfully!';
+          this.message = { type: 'success', text: 'State deleted successfully' };
           this.loadStates();
-          this.isLoading = false;
+          this.loading = false;
         },
-        error: () => {
-          this.errorMessage = 'Failed to delete state. Please try again.';
-          this.isLoading = false;
+        error: (error) => {
+          console.error('Error deleting state:', error);
+          this.message = { type: 'error', text: 'Failed to delete state' };
+          this.loading = false;
         }
       });
     }
+  }
+
+  resetForm(): void {
+    this.stateForm.reset();
+    this.isEditMode = false;
+    this.currentStateId = null;
   }
 
   getCountryName(countryId: string): string {
@@ -135,19 +186,8 @@ export class StateComponent implements OnInit {
     return country ? country.name : 'Unknown';
   }
 
-  resetForm(): void {
-    this.stateForm.reset({
-      name: '',
-      code: '',
-      countryId: '',
-      isActive: true
-    });
-    this.isEditing = false;
-    this.currentStateId = null;
+  // Helper method to get user identifier for creation/modification tracking
+  private getUserIdentifier(): string {
+    return this.currentUser ? this.currentUser.id || this.currentUser.email : 'system';
   }
-
-  clearMessages(): void {
-    this.errorMessage = '';
-    this.successMessage = '';
-  }
-} 
+}

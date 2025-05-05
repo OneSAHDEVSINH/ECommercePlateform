@@ -1,106 +1,148 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { City, CityService } from '../../services/city.service';
-import { State, StateService } from '../../services/state.service';
-import { Country, CountryService } from '../../services/country.service';
+import { RouterModule } from '@angular/router';
+import { City } from '../../models/city.model';
+import { State } from '../../models/state.model';
+import { Country } from '../../models/country.model';
+import { CityService } from '../../services/city.service';
+import { StateService } from '../../services/state.service';
+import { CountryService } from '../../services/country.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-city',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './city.component.html',
-  styleUrl: './city.component.scss'
+  styleUrls: ['./city.component.scss'],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule]
 })
-
 export class CityComponent implements OnInit {
   cities: City[] = [];
   states: State[] = [];
   countries: Country[] = [];
-  cityForm: FormGroup;
-  isEditing = false;
+  cityForm!: FormGroup;
+  isEditMode: boolean = false;
   currentCityId: string | null = null;
-  isLoading = false;
-  errorMessage = '';
-  successMessage = '';
-  selectedCountryId: string | null = null;
+  loading: boolean = false;
+  selectedCountryId: string = '';
+  message: { type: 'success' | 'error', text: string } | null = null;
+  private currentUser: any = null;
 
   constructor(
     private cityService: CityService,
     private stateService: StateService,
     private countryService: CountryService,
+    private authService: AuthService,
     private fb: FormBuilder
-  ) {
-    this.cityForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
-      stateId: ['', [Validators.required]],
-      isActive: [true]
+  ) { }
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadCountries();
+    this.loadStates();
+    this.loadCities();
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
     });
   }
 
-  ngOnInit(): void {
-    this.loadCountries();
-    this.loadCities();
+  private initForm(): void {
+    this.cityForm = this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      stateId: ['', [Validators.required]]
+    });
   }
 
   loadCountries(): void {
     this.countryService.getCountries().subscribe({
-      next: (data) => {
-        this.countries = data;
+      next: (countries) => {
+        this.countries = countries;
       },
-      error: () => {
-        this.errorMessage = 'Failed to load countries. Please try again.';
+      error: (error) => {
+        console.error('Error loading countries:', error);
+        this.message = { type: 'error', text: 'Failed to load countries' };
       }
     });
   }
 
-  loadStates(countryId?: string): void {
+  loadStates(countryId: string = ''): void {
     if (countryId) {
       this.stateService.getStatesByCountry(countryId).subscribe({
-        next: (data) => {
-          this.states = data;
+        next: (states) => {
+          this.states = states;
+          // Reset state selection in form when country changes
+          this.cityForm.get('stateId')?.setValue('');
         },
-        error: () => {
-          this.errorMessage = 'Failed to load states. Please try again.';
+        error: (error) => {
+          console.error('Error loading states by country:', error);
+          this.message = { type: 'error', text: 'Failed to load states for the selected country' };
         }
       });
     } else {
       this.stateService.getStates().subscribe({
-        next: (data) => {
-          this.states = data;
+        next: (states) => {
+          this.states = states;
         },
-        error: () => {
-          this.errorMessage = 'Failed to load states. Please try again.';
+        error: (error) => {
+          console.error('Error loading states:', error);
+          this.message = { type: 'error', text: 'Failed to load states' };
         }
       });
     }
   }
 
   loadCities(): void {
-    this.isLoading = true;
+    this.loading = true;
     this.cityService.getCities().subscribe({
-      next: (data) => {
-        this.cities = data;
-        this.isLoading = false;
+      next: (cities) => {
+        this.cities = cities;
+        this.loading = false;
       },
-      error: () => {
-        this.errorMessage = 'Failed to load cities. Please try again.';
-        this.isLoading = false;
+      error: (error) => {
+        console.error('Error loading cities:', error);
+        this.message = { type: 'error', text: 'Failed to load cities' };
+        this.loading = false;
       }
     });
+  }
+
+  filterCitiesByState(stateId: string): void {
+    if (!stateId || stateId === 'all') {
+      this.loadCities();
+      return;
+    }
+
+    this.loading = true;
+    this.cityService.getCitiesByState(stateId).subscribe({
+      next: (cities) => {
+        this.cities = cities;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading cities by state:', error);
+        this.message = { type: 'error', text: 'Failed to load cities for the selected state' };
+        this.loading = false;
+      }
+    });
+  }
+
+  onStateFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.filterCitiesByState(select.value);
   }
 
   onCountryChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     const countryId = select.value;
-    this.selectedCountryId = countryId || null;
-    
+    this.selectedCountryId = countryId;
     if (countryId) {
       this.loadStates(countryId);
-      this.cityForm.patchValue({ stateId: '' });
+      this.cityForm.get('stateId')?.enable(); // Enable the state dropdown
     } else {
       this.states = [];
-      this.cityForm.patchValue({ stateId: '' });
+      this.cityForm.get('stateId')?.setValue('');
+      this.cityForm.get('stateId')?.disable(); // Disable the state dropdown
     }
   }
 
@@ -109,70 +151,87 @@ export class CityComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
-    const city: City = this.cityForm.value;
+    const cityData: City = {
+      ...this.cityForm.value,
+      createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
+      modifiedBy: this.getUserIdentifier(),
+      isActive: true,
+      isDeleted: false
+    };
 
-    if (this.isEditing && this.currentCityId) {
-      this.cityService.updateCity(this.currentCityId, city).subscribe({
+    this.loading = true;
+    
+    if (this.isEditMode && this.currentCityId) {
+      this.cityService.updateCity(this.currentCityId, cityData).subscribe({
         next: () => {
-          this.successMessage = 'City updated successfully!';
+          this.message = { type: 'success', text: 'City updated successfully' };
           this.loadCities();
           this.resetForm();
-          this.isLoading = false;
+          this.loading = false;
         },
-        error: () => {
-          this.errorMessage = 'Failed to update city. Please try again.';
-          this.isLoading = false;
+        error: (error) => {
+          console.error('Error updating city:', error);
+          this.message = { type: 'error', text: 'Failed to update city' };
+          this.loading = false;
         }
       });
     } else {
-      this.cityService.createCity(city).subscribe({
+      this.cityService.createCity(cityData).subscribe({
         next: () => {
-          this.successMessage = 'City created successfully!';
+          this.message = { type: 'success', text: 'City created successfully' };
           this.loadCities();
           this.resetForm();
-          this.isLoading = false;
+          this.loading = false;
         },
-        error: () => {
-          this.errorMessage = 'Failed to create city. Please try again.';
-          this.isLoading = false;
+        error: (error) => {
+          console.error('Error creating city:', error);
+          this.message = { type: 'error', text: 'Failed to create city' };
+          this.loading = false;
         }
       });
     }
   }
 
   editCity(city: City): void {
-    this.isEditing = true;
-    this.currentCityId = city.id as string;
+    this.isEditMode = true;
+    this.currentCityId = city.id || null;
     
-    // First load the state's country
-    if (city.state && city.state.countryId) {
-      this.selectedCountryId = city.state.countryId;
-      this.loadStates(city.state.countryId);
+    // Find the state to get the associated country
+    const state = this.states.find(s => s.id === city.stateId);
+    if (state) {
+      this.selectedCountryId = state.countryId;
+      this.loadStates(state.countryId);
     }
     
     this.cityForm.patchValue({
       name: city.name,
-      stateId: city.stateId,
-      isActive: city.isActive
+      stateId: city.stateId
     });
   }
 
   deleteCity(id: string): void {
     if (confirm('Are you sure you want to delete this city?')) {
-      this.isLoading = true;
+      this.loading = true;
       this.cityService.deleteCity(id).subscribe({
         next: () => {
-          this.successMessage = 'City deleted successfully!';
+          this.message = { type: 'success', text: 'City deleted successfully' };
           this.loadCities();
-          this.isLoading = false;
+          this.loading = false;
         },
-        error: () => {
-          this.errorMessage = 'Failed to delete city. Please try again.';
-          this.isLoading = false;
+        error: (error) => {
+          console.error('Error deleting city:', error);
+          this.message = { type: 'error', text: 'Failed to delete city' };
+          this.loading = false;
         }
       });
     }
+  }
+
+  resetForm(): void {
+    this.cityForm.reset();
+    this.isEditMode = false;
+    this.currentCityId = null;
+    this.selectedCountryId = '';
   }
 
   getStateName(stateId: string): string {
@@ -182,25 +241,14 @@ export class CityComponent implements OnInit {
 
   getCountryForState(stateId: string): string {
     const state = this.states.find(s => s.id === stateId);
-    if (state && state.country) {
-      return state.country.name;
-    }
-    return 'Unknown';
+    if (!state) return 'Unknown';
+    
+    const country = this.countries.find(c => c.id === state.countryId);
+    return country ? country.name : 'Unknown';
   }
 
-  resetForm(): void {
-    this.cityForm.reset({
-      name: '',
-      stateId: '',
-      isActive: true
-    });
-    this.isEditing = false;
-    this.currentCityId = null;
-    this.selectedCountryId = null;
+  // Helper method to get user identifier for creation/modification tracking
+  private getUserIdentifier(): string {
+    return this.currentUser ? this.currentUser.id || this.currentUser.email : 'system';
   }
-
-  clearMessages(): void {
-    this.errorMessage = '';
-    this.successMessage = '';
-  }
-} 
+}
