@@ -8,7 +8,7 @@ namespace ECommercePlateform.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class CityController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -63,10 +63,17 @@ namespace ECommercePlateform.Server.Controllers
 
         // POST: api/City
         [HttpPost]
-        public async Task<ActionResult<City>> CreateCity(City city)
+        public async Task<ActionResult<City>> CreateCity([FromBody]City city)
         {
             if (!ModelState.IsValid)
             {
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"Model error: {error.ErrorMessage}");
+                    }
+                }
                 return BadRequest(ModelState);
             }
 
@@ -93,15 +100,33 @@ namespace ECommercePlateform.Server.Controllers
 
         // PUT: api/City/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCity(Guid id, City city)
+        public async Task<IActionResult> UpdateCity(Guid id, [FromBody]City city)
         {
+            // Add detailed logging for debugging
+            Console.WriteLine($"Received PUT request for state ID: {id}");
+
+            if (city == null)
+            {
+                return BadRequest("Request body null");
+            }
+
+            Console.WriteLine($"Country object: {city.Id}, {city.Name}, {city.CreatedBy}, {city.ModifiedBy}, {city.ModifiedOn}, {city.IsActive}, {city.IsDeleted}");
+
             if (id != city.Id)
             {
-                return BadRequest();
+                Console.WriteLine($"ID mismatch: Path ID={id}, City ID={city.Id}");
+                return BadRequest("ID mismatch");
             }
 
             if (!ModelState.IsValid)
             {
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"Model error: {error.ErrorMessage}");
+                    }
+                }
                 return BadRequest(ModelState);
             }
 
@@ -139,6 +164,22 @@ namespace ECommercePlateform.Server.Controllers
                 {
                     throw;
                 }
+            }
+            catch (DbUpdateException ex)
+            {
+                // Log more details about the exception
+                Console.WriteLine($"DbUpdateException: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, "A database error occurred while updating the country. The country name and code must be unique.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating student: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
             return NoContent();

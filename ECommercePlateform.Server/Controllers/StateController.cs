@@ -8,7 +8,7 @@ namespace ECommercePlateform.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class StateController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -61,10 +61,27 @@ namespace ECommercePlateform.Server.Controllers
 
         // POST: api/State
         [HttpPost]
-        public async Task<ActionResult<State>> CreateState(State state)
+        public async Task<ActionResult<State>> CreateState([FromBody]State state)
         {
             if (!ModelState.IsValid)
             {
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"Model error: {error.ErrorMessage}");
+                    }
+                }
+                return BadRequest(ModelState);
+            }
+
+            // Check if a country with the same name and code exists
+            var existingState = await _context.States
+                .FirstOrDefaultAsync(s => s.Name == state.Name && s.Code == state.Code && !s.IsDeleted);
+
+            if (existingState != null)
+            {
+                ModelState.AddModelError("", $"A country with name '{state.Name}' and code '{state.Code}' already exists");
                 return BadRequest(ModelState);
             }
 
@@ -91,15 +108,33 @@ namespace ECommercePlateform.Server.Controllers
 
         // PUT: api/State/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateState(Guid id, State state)
+        public async Task<IActionResult> UpdateState(Guid id, [FromBody]State state)
         {
+            // Add detailed logging for debugging
+            Console.WriteLine($"Received PUT request for state ID: {id}");
+
+            if (state == null)
+            {
+                return BadRequest("Request body null");
+            }
+
+            Console.WriteLine($"Country object: {state.Id}, {state.Name}, {state.Code}, {state.CreatedBy}, {state.ModifiedBy}, {state.ModifiedOn}, {state.IsActive}, {state.IsDeleted}");
+
             if (id != state.Id)
             {
-                return BadRequest();
+                Console.WriteLine($"ID mismatch: Path ID={id}, State ID={state.Id}");
+                return BadRequest("ID mismatch");
             }
 
             if (!ModelState.IsValid)
             {
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"Model error: {error.ErrorMessage}");
+                    }
+                }
                 return BadRequest(ModelState);
             }
 
@@ -114,6 +149,16 @@ namespace ECommercePlateform.Server.Controllers
             if (country == null || country.IsDeleted)
             {
                 return BadRequest("Invalid Country ID");
+            }
+
+            // Check if there is another country with the same name and code
+            var duplicateState = await _context.States
+                .FirstOrDefaultAsync(s => s.Id != id && s.Name == state.Name && s.Code == state.Code && !s.IsDeleted);
+
+            if (duplicateState != null)
+            {
+                ModelState.AddModelError("", $"Another country with name '{country.Name}' and code '{country.Code}' already exists");
+                return BadRequest(ModelState);
             }
 
             // Update only allowed fields
@@ -138,6 +183,22 @@ namespace ECommercePlateform.Server.Controllers
                 {
                     throw;
                 }
+            }
+            catch (DbUpdateException ex)
+            {
+                // Log more details about the exception
+                Console.WriteLine($"DbUpdateException: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, "A database error occurred while updating the country. The country name and code must be unique.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating student: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
             return NoContent();

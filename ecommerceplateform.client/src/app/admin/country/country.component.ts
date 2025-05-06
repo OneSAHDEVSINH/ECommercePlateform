@@ -59,19 +59,20 @@ export class CountryComponent implements OnInit {
   }
 
   onSubmit(): void {
+
     if (this.countryForm.invalid) {
       return;
     }
 
     const countryData: Country = {
-      //...this.countryForm.value,
+      ...this.countryForm.value,
       //createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
       //modifiedBy: this.getUserIdentifier(),
       //isActive: true,
       //isDeleted: false
       id: this.isEditMode && this.currentCountryId ? this.currentCountryId : undefined,
-      name: this.countryForm.value.name,
-      code: this.countryForm.value.code,
+      //name: this.countryForm.value.name,
+      //code: this.countryForm.value.code,
       createdOn: new Date(),
       createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
       //createdBy: "System",
@@ -83,7 +84,9 @@ export class CountryComponent implements OnInit {
     };
 
     this.loading = true;
-    
+
+    console.log('Country data being sent:', JSON.stringify(countryData));
+
     if (this.isEditMode && this.currentCountryId) {
       this.countryService.updateCountry(this.currentCountryId, countryData).subscribe({
         next: () => {
@@ -94,8 +97,10 @@ export class CountryComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error updating country:', error);
+          // And in the updateCountry method's error handler
           if (error.error) {
             console.error('Server validation errors:', error.error);
+            console.error('Request payload:', countryData);
           }
           this.message = { type: 'error', text: 'Failed to update country' };
           this.loading = false;

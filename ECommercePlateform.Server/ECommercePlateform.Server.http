@@ -50,3 +50,28 @@ Content-Type: application/json
 }
 
 ###
+
+POST {{ECommercePlateform.Server_HostAddress}}/api/countries
+Content-Type: application/json
+
+{
+  //Country
+}
+
+###
+
+PUT {{ECommercePlateform.Server_HostAddress}}/api/countries/{id}
+Content-Type: application/json
+
+{
+  "id": "f53b68b9-93ac-44a8-a035-53a016e63ad0",
+  "name": "United States",
+  "code": "US",
+  "createdOn": "2025-05-06T05:42:17.759Z",
+  "modifiedOn": "2025-05-06T05:42:17.759Z",
+  "modifiedBy": "e65a3a8a-2407-4965-9b71-b9a1d8e2c34f",
+  "isActive": true,
+  "isDeleted": false
+}
+
+###

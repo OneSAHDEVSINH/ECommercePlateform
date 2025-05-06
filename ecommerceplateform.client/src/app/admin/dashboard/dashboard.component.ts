@@ -24,7 +24,7 @@ export class DashboardComponent implements OnInit {
       if (user) {
         const firstName = user.firstName || user['firstName'] || '';
         const lastName = user.lastName || user['lastName'] || '';
-        this.userName = `${firstName} ${lastName}`.trim() || user.email || 'Admin';
+        this.userName = `${firstName} ${lastName}`.trim() || user.email;
         console.log('User name set to:', this.userName);
       }
     });

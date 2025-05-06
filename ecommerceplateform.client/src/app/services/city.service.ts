@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { City } from '../models/city.model';
 import { environment } from '../../environments/environment';
@@ -10,6 +10,9 @@ import { environment } from '../../environments/environment';
 export class CityService {
   private apiUrl = `${environment.apiUrl}/city`;
   //private apiUrl = '/city';
+  private headers = new HttpHeaders({
+    'Content-Type': 'application/json'
+  });
   constructor(private http: HttpClient) { }
 
   getCities(): Observable<City[]> {
@@ -17,7 +20,7 @@ export class CityService {
   }
 
   getCitiesByState(stateId: string): Observable<City[]> {
-    return this.http.get<City[]>(`${this.apiUrl}/state/${stateId}`);
+    return this.http.get<City[]>(`${this.apiUrl}/ByState/${stateId}`);
   }
 
   getCity(id: string): Observable<City> {

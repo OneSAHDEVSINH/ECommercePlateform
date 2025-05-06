@@ -153,7 +153,10 @@ export class CityComponent implements OnInit {
 
     const cityData: City = {
       ...this.cityForm.value,
+      id: this.isEditMode && this.currentCityId ? this.currentCityId : undefined,
+      createdOn: new Date(),
       createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
+      modifiedOn: new Date(),
       modifiedBy: this.getUserIdentifier(),
       isActive: true,
       isDeleted: false
@@ -205,7 +208,11 @@ export class CityComponent implements OnInit {
     
     this.cityForm.patchValue({
       name: city.name,
-      stateId: city.stateId
+      stateId: city.stateId,
+      modifiedOn: new Date(),
+      modifiedBy: this.getUserIdentifier(),
+      isActive: true,
+      isDeleted: false
     });
   }
 

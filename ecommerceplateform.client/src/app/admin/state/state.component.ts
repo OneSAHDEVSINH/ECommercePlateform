@@ -108,6 +108,7 @@ export class StateComponent implements OnInit {
 
     const stateData: State = {
       ...this.stateForm.value,
+      id: this.isEditMode && this.currentStateId ? this.currentStateId : undefined,
       createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
       modifiedBy: this.getUserIdentifier(),
       isActive: true,
@@ -153,7 +154,11 @@ export class StateComponent implements OnInit {
     this.stateForm.patchValue({
       name: state.name,
       code: state.code,
-      countryId: state.countryId
+      countryId: state.countryId,
+      modifiedOn: new Date(),
+      modifiedBy: this.getUserIdentifier(),
+      isActive: true,
+      isDeleted: false
     });
   }
 

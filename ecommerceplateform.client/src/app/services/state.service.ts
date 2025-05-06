@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { State } from '../models/state.model';
 import { environment } from '../../environments/environment';
@@ -10,6 +10,9 @@ import { environment } from '../../environments/environment';
 export class StateService {
   private apiUrl = `${environment.apiUrl}/state`;
   //private apiUrl = '/state';
+  private headers = new HttpHeaders({
+    'Content-Type': 'application/json'
+  });
   constructor(private http: HttpClient) { }
 
   getStates(): Observable<State[]> {
@@ -17,7 +20,7 @@ export class StateService {
   }
 
   getStatesByCountry(countryId: string): Observable<State[]> {
-    return this.http.get<State[]>(`${this.apiUrl}/country/${countryId}`);
+    return this.http.get<State[]>(`${this.apiUrl}/ByCountry/${countryId}`);
   }
 
   getState(id: string): Observable<State> {

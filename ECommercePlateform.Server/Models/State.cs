@@ -10,43 +10,37 @@ namespace ECommercePlateform.Server.Models
 
         [RegularExpression(@"^[A-Za-z\s]+$", ErrorMessage = "Only text is allowed.")]
         [DataType(DataType.Text)]
-        [Display(Name = "Country Name:")]
+        [Display(Name = "State Name:")]
         [DisplayFormat(ConvertEmptyStringToNull = true)]
-        [Required(ErrorMessage = "Enter Country Name!")]
-        [StringLength(100, ErrorMessage = "Country Name cannot be longer than 100 characters.")]
+        [Required(ErrorMessage = "Enter State Name!")]
+        [StringLength(100, ErrorMessage = "State Name cannot be longer than 100 characters.")]
         public required string Name { get; set; }
 
         [RegularExpression(@"^[A-Za-z\s]+$", ErrorMessage = "Only text is allowed.")]
         [DataType(DataType.Text)]
-        [Display(Name = "Country Code:")]
+        [Display(Name = "State Code:")]
         [DisplayFormat(ConvertEmptyStringToNull = true)]
-        [Required(ErrorMessage = "Enter Country Code!")]
-        [StringLength(10, ErrorMessage = "Country Code cannot be longer than 10 characters.")]
+        [Required(ErrorMessage = "Enter State Code!")]
+        [StringLength(10, ErrorMessage = "State Code cannot be longer than 10 characters.")]
         public required string Code { get; set; }
         
         [ForeignKey("Country")]
         public Guid CountryId { get; set; }
         public virtual Country? Country { get; set; } // Navigation property to the Country entity
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string ModifiedBy { get; set; }
+        public string? ModifiedBy { get; set; }
 
-        [Required]
-        public required bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
-        [Required]
-        public required bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; }
 
         // Navigation properties for related entities
         public virtual ICollection<Address>? Addresses { get; set; } // Navigation property for related addresses

@@ -73,25 +73,19 @@ namespace ECommercePlateform.Server.Models
         [Required]
         public required Enum.UserRole Role { get; set; } = Enum.UserRole.Customer;
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string ModifiedBy { get; set; }
+        public string? ModifiedBy { get; set; }
 
-        [Required]
-        public required bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
-        [Required]
-        public required bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; }
 
         // Navigation properties for related entities
         public virtual ICollection<Address>? Addresses { get; set; } // Navigation property for related addresses

@@ -8,7 +8,7 @@ namespace ECommercePlateform.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class CountryController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -57,6 +57,16 @@ namespace ECommercePlateform.Server.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Check if a country with the same name and code exists
+            var existingCountry = await _context.Countries
+                .FirstOrDefaultAsync(c => c.Name == country.Name && c.Code == country.Code && !c.IsDeleted);
+
+            if (existingCountry != null)
+            {
+                ModelState.AddModelError("", $"A country with name '{country.Name}' and code '{country.Code}' already exists");
+                return BadRequest(ModelState);
+            }
+
             country.Id = Guid.NewGuid();
             country.CreatedOn = DateTime.Now;
             country.ModifiedOn = DateTime.Now;
@@ -83,6 +93,8 @@ namespace ECommercePlateform.Server.Controllers
                 return BadRequest("Request body null");
             }
 
+            Console.WriteLine($"Country object: {country.Id}, {country.Name}, {country.Code}, {country.CreatedBy}, {country.ModifiedBy}, {country.ModifiedOn}, {country.IsActive}, {country.IsDeleted}");
+
             if (id != country.Id)
             {
                 Console.WriteLine($"ID mismatch: Path ID={id}, Country ID={country.Id}");
@@ -107,6 +119,16 @@ namespace ECommercePlateform.Server.Controllers
                 return NotFound();
             }
 
+            // Check if there is another country with the same name and code
+            var duplicateCountry = await _context.Countries
+                .FirstOrDefaultAsync(c => c.Id != id && c.Name == country.Name && c.Code == country.Code && !c.IsDeleted);
+
+            if (duplicateCountry != null)
+            {
+                ModelState.AddModelError("", $"Another country with name '{country.Name}' and code '{country.Code}' already exists");
+                return BadRequest(ModelState);
+            }
+
             // Update only allowed fields
             existingCountry.Name = country.Name;
             existingCountry.Code = country.Code;
@@ -121,6 +143,7 @@ namespace ECommercePlateform.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
+
                 if (!CountryExists(id))
                 {
                     return NotFound();
@@ -129,6 +152,22 @@ namespace ECommercePlateform.Server.Controllers
                 {
                     throw;
                 }
+            }
+            catch (DbUpdateException ex)
+            {
+                // Log more details about the exception
+                Console.WriteLine($"DbUpdateException: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, "A database error occurred while updating the country. The country name and code must be unique.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating student: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
             return NoContent();
