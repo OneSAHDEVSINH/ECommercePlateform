@@ -116,6 +116,11 @@ export class CountryComponent implements OnInit {
       this.countryService.createCountry(countryData).subscribe({
         next: () => {
           this.message = { type: 'success', text: 'Country created successfully' };
+
+          setTimeout(() => {
+            this.message = null;
+          }, 3000);
+
           this.loadCountries();
           this.resetForm();
           this.loading = false;
