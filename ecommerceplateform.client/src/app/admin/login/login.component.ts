@@ -1,10 +1,20 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService, ThemeType } from '../../services/theme.service';
-import { trigger, transition, style, animate, state } from '@angular/animations';
+import {
+  trigger,
+  transition,
+  style,
+  animate,
+  state,
+  keyframes,
+  query,
+  stagger,
+  animateChild
+} from '@angular/animations';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
 
@@ -18,35 +28,64 @@ import { Subscription } from 'rxjs';
     trigger('fadeIn', [
       state('void', style({ opacity: 0, transform: 'translateY(20px)' })),
       transition(':enter', [
-        animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
+        animate('0.6s {{delay}}ms cubic-bezier(0.35, 0, 0.25, 1)',
+          style({ opacity: 1, transform: 'translateY(0)' }))
+      ], { params: { delay: 0 } })
     ]),
     trigger('formControls', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateX(-20px)' }),
-        animate('0.5s 0.3s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
-      ])
+        animate('0.5s {{delay}}ms cubic-bezier(0.35, 0, 0.25, 1)',
+          style({ opacity: 1, transform: 'translateX(0)' }))
+      ], { params: { delay: 100 } })
     ]),
     trigger('buttonPulse', [
       state('initial', style({ transform: 'scale(1)' })),
-      state('pulse', style({ transform: 'scale(1.05)' })),
-      transition('initial <=> pulse', animate('0.3s ease-in-out'))
+      state('pulse', style({ transform: 'scale(1.03)' })),
+      transition('initial <=> pulse', animate('0.5s cubic-bezier(0.35, 0, 0.25, 1)'))
+    ]),
+    trigger('slideInFromTop', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-20px)' }),
+        animate('0.6s {{delay}}ms cubic-bezier(0.35, 0, 0.25, 1)',
+          style({ opacity: 1, transform: 'translateY(0)' }))
+      ], { params: { delay: 0 } })
+    ]),
+    trigger('pulseAnimation', [
+      state('active', style({ transform: 'scale(1)' })),
+      transition('* => active', [
+        animate('2s ease-in-out', keyframes([
+          style({ transform: 'scale(1)', offset: 0 }),
+          style({ transform: 'scale(1.05)', offset: 0.5 }),
+          style({ transform: 'scale(1)', offset: 1 })
+        ]))
+      ]),
+    ]),
+    trigger('rotateAnimation', [
+      state('classic', style({ transform: 'rotate(0deg)' })),
+      state('modern', style({ transform: 'rotate(360deg)' })),
+      transition('classic <=> modern', [
+        animate('0.5s cubic-bezier(0.35, 0, 0.25, 1)')
+      ])
     ])
   ]
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm!: FormGroup;
-  //errorMessage: string = '';
-  errorMessage: Message | null = null;
+  errorMessage: string | null = null;
   loading: boolean = false;
   returnUrl: string = '/admin/dashboard';
   currentTheme: ThemeType = 'classic';
   buttonState: string = 'initial';
   showPassword: boolean = false;
-  particles: number[] = Array(10).fill(0).map((_, i) => i);
+  particles: number[] = Array(15).fill(0).map((_, i) => i);
+  geometricShapes: number[] = Array(8).fill(0).map((_, i) => i);
   message: Message | null = null;
+  emailFocused: boolean = false;
+  passwordFocused: boolean = false;
   private messageSubscription!: Subscription;
   private buttonAnimInterval: any;
+  private themeSubscription!: Subscription;
 
   constructor(
     private formBuilder: FormBuilder,
