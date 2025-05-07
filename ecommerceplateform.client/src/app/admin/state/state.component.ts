@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -7,6 +7,8 @@ import { Country } from '../../models/country.model';
 import { StateService } from '../../services/state.service';
 import { CountryService } from '../../services/country.service';
 import { AuthService } from '../../services/auth.service';
+import { MessageService, Message } from '../../services/message.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-state',
@@ -22,13 +24,15 @@ export class StateComponent implements OnInit {
   isEditMode: boolean = false;
   currentStateId: string | null = null;
   loading: boolean = false;
-  message: { type: 'success' | 'error', text: string } | null = null;
+  message: Message | null = null;
   private currentUser: any = null;
+  private messageSubscription!: Subscription;
 
   constructor(
     private stateService: StateService,
     private countryService: CountryService,
     private authService: AuthService,
+    private messageService: MessageService,
     private fb: FormBuilder
   ) { }
 
@@ -39,6 +43,18 @@ export class StateComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
+    // Subscribe to message changes
+    this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
   }
 
   private initForm(): void {
@@ -56,7 +72,7 @@ export class StateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-        this.message = { type: 'error', text: 'Failed to load countries' };
+        this.messageService.showMessage({ type: 'error', text: 'Failed to load countries' });
       }
     });
   }
@@ -70,7 +86,7 @@ export class StateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading states:', error);
-        this.message = { type: 'error', text: 'Failed to load states' };
+        this.messageService.showMessage({ type: 'error', text: 'Failed to load states' });
         this.loading = false;
       }
     });
@@ -90,7 +106,7 @@ export class StateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading states by country:', error);
-        this.message = { type: 'error', text: 'Failed to load states for the selected country' };
+        this.messageService.showMessage({ type: 'error', text: 'Failed to load states for the selected country' });
         this.loading = false;
       }
     });
@@ -120,28 +136,28 @@ export class StateComponent implements OnInit {
     if (this.isEditMode && this.currentStateId) {
       this.stateService.updateState(this.currentStateId, stateData).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'State updated successfully' };
+          this.messageService.showMessage({ type: 'success', text: 'State updated successfully' });
           this.loadStates();
           this.resetForm();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error updating state:', error);
-          this.message = { type: 'error', text: 'Failed to update state' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to update state' });
           this.loading = false;
         }
       });
     } else {
       this.stateService.createState(stateData).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'State created successfully' };
+          this.messageService.showMessage({ type: 'success', text: 'State created successfully' });
           this.loadStates();
           this.resetForm();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error creating state:', error);
-          this.message = { type: 'error', text: 'Failed to create state' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to create state' });
           this.loading = false;
         }
       });
@@ -167,13 +183,13 @@ export class StateComponent implements OnInit {
       this.loading = true;
       this.stateService.deleteState(id).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'State deleted successfully' };
+          this.messageService.showMessage({ type: 'success', text: 'State deleted successfully' });
           this.loadStates();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error deleting state:', error);
-          this.message = { type: 'error', text: 'Failed to delete state' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to delete state' });
           this.loading = false;
         }
       });

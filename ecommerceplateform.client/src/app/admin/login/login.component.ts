@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService, ThemeType } from '../../services/theme.service';
 import { trigger, transition, style, animate, state } from '@angular/animations';
+import { MessageService, Message } from '../../services/message.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -32,25 +34,44 @@ import { trigger, transition, style, animate, state } from '@angular/animations'
     ])
   ]
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm!: FormGroup;
-  errorMessage: string = '';
+  //errorMessage: string = '';
+  errorMessage: Message | null = null;
   loading: boolean = false;
   returnUrl: string = '/admin/dashboard';
   currentTheme: ThemeType = 'classic';
   buttonState: string = 'initial';
   showPassword: boolean = false;
   particles: number[] = Array(10).fill(0).map((_, i) => i);
+  message: Message | null = null;
+  private messageSubscription!: Subscription;
+  private buttonAnimInterval: any;
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private messageService: MessageService,
     private themeService: ThemeService,
     private router: Router,
     private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
+
+    // Subscribe to message changes
+    this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+
+    // If there's a message, also update errorMessage for any UI elements that use it directly
+    //if (this.message && this.message.type === 'error') {
+    //  this.errorMessage = this.message.text;
+    //} else if (!this.message) {
+    //  this.errorMessage = '';
+    //}
+  
+
     // Initialize the form
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -71,9 +92,21 @@ export class LoginComponent implements OnInit {
     });
 
     // Animate login button on interval
-    setInterval(() => {
+    this.buttonAnimInterval = setInterval(() => {
       this.buttonState = this.buttonState === 'initial' ? 'pulse' : 'initial';
     }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
+
+    // Clear any intervals
+    if (this.buttonAnimInterval) {
+      clearInterval(this.buttonAnimInterval);
+    }
   }
 
   // Convenience getter for easy access to form fields
@@ -86,7 +119,7 @@ export class LoginComponent implements OnInit {
     }
 
     this.loading = true;
-    this.errorMessage = '';
+    //this.errorMessage = '';
 
     this.authService.login({
       email: this.f['email'].value,
@@ -96,7 +129,22 @@ export class LoginComponent implements OnInit {
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
+        const errorText = error.error?.message || 'An error occurred during login';
+
+        this.errorMessage = errorText; // Keep this if you need the errorMessage property elsewhere
+
+        // Only use messageService to display the error
+        this.messageService.showMessage({
+          type: 'error',
+          text: errorText
+        }, 2500); // Show error for longer - 5 seconds
+        
         this.errorMessage = error.error?.message || 'An error occurred during login';
+
+        setTimeout(() => {
+          this.errorMessage = null;
+        }, 2500);
+
         this.loading = false;
       }
     });

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { Message } from '../../services/message.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,7 +13,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class DashboardComponent implements OnInit {
   userName: string = '';
-
+  
   constructor(
     private authService: AuthService,
     private router: Router

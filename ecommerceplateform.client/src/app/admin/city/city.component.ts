@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -9,6 +9,8 @@ import { CityService } from '../../services/city.service';
 import { StateService } from '../../services/state.service';
 import { CountryService } from '../../services/country.service';
 import { AuthService } from '../../services/auth.service';
+import { MessageService, Message } from '../../services/message.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-city',
@@ -17,7 +19,7 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule]
 })
-export class CityComponent implements OnInit {
+export class CityComponent implements OnInit, OnDestroy {
   cities: City[] = [];
   states: State[] = [];
   countries: Country[] = [];
@@ -26,14 +28,16 @@ export class CityComponent implements OnInit {
   currentCityId: string | null = null;
   loading: boolean = false;
   selectedCountryId: string = '';
-  message: { type: 'success' | 'error', text: string } | null = null;
+  message: Message | null = null;
   private currentUser: any = null;
+  private messageSubscription!: Subscription;
 
   constructor(
     private cityService: CityService,
     private stateService: StateService,
     private countryService: CountryService,
     private authService: AuthService,
+    private messageService: MessageService,
     private fb: FormBuilder
   ) { }
 
@@ -45,6 +49,18 @@ export class CityComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
+    // Subscribe to message changes
+    this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
   }
 
   private initForm(): void {
@@ -54,6 +70,7 @@ export class CityComponent implements OnInit {
     });
   }
 
+
   loadCountries(): void {
     this.countryService.getCountries().subscribe({
       next: (countries) => {
@@ -61,7 +78,7 @@ export class CityComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-        this.message = { type: 'error', text: 'Failed to load countries' };
+        this.messageService.showMessage({ type: 'error', text: 'Failed to load countries' });
       }
     });
   }
@@ -76,7 +93,7 @@ export class CityComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error loading states by country:', error);
-          this.message = { type: 'error', text: 'Failed to load states for the selected country' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to load states for the selected country' });
         }
       });
     } else {
@@ -86,7 +103,7 @@ export class CityComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error loading states:', error);
-          this.message = { type: 'error', text: 'Failed to load states' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to load states' });
         }
       });
     }
@@ -101,7 +118,7 @@ export class CityComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading cities:', error);
-        this.message = { type: 'error', text: 'Failed to load cities' };
+        this.messageService.showMessage({ type: 'error', text: 'Failed to load cities' });
         this.loading = false;
       }
     });
@@ -121,7 +138,7 @@ export class CityComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading cities by state:', error);
-        this.message = { type: 'error', text: 'Failed to load cities for the selected state' };
+        this.messageService.showMessage({ type: 'error', text: 'Failed to load cities for the selected state' });
         this.loading = false;
       }
     });
@@ -167,28 +184,28 @@ export class CityComponent implements OnInit {
     if (this.isEditMode && this.currentCityId) {
       this.cityService.updateCity(this.currentCityId, cityData).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'City updated successfully' };
+          this.messageService.showMessage({ type: 'success', text: 'City updated successfully' });
           this.loadCities();
           this.resetForm();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error updating city:', error);
-          this.message = { type: 'error', text: 'Failed to update city' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to update city' });
           this.loading = false;
         }
       });
     } else {
       this.cityService.createCity(cityData).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'City created successfully' };
+          this.messageService.showMessage({ type: 'success', text: 'City created successfully' });
           this.loadCities();
           this.resetForm();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error creating city:', error);
-          this.message = { type: 'error', text: 'Failed to create city' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to create city' });
           this.loading = false;
         }
       });
@@ -221,13 +238,13 @@ export class CityComponent implements OnInit {
       this.loading = true;
       this.cityService.deleteCity(id).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'City deleted successfully' };
+          this.messageService.showMessage({ type: 'success', text: 'City deleted successfully' });
           this.loadCities();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error deleting city:', error);
-          this.message = { type: 'error', text: 'Failed to delete city' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to delete city' });
           this.loading = false;
         }
       });

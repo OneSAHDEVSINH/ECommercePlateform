@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Country } from '../../models/country.model';
 import { CountryService } from '../../services/country.service';
 import { AuthService } from '../../services/auth.service';
+import { MessageService, Message } from '../../services/message.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-country',
@@ -13,18 +15,20 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule]
 })
-export class CountryComponent implements OnInit {
+export class CountryComponent implements OnInit, OnDestroy {
   countries: Country[] = [];
   countryForm!: FormGroup;
   isEditMode: boolean = false;
   currentCountryId: string | null = null;
   loading: boolean = false;
-  message: { type: 'success' | 'error', text: string } | null = null;
+  message: Message | null = null;
   private currentUser: any = null;
+  private messageSubscription!: Subscription;
 
   constructor(
     private countryService: CountryService,
     private authService: AuthService,
+    private messageService: MessageService,
     private fb: FormBuilder
   ) { }
 
@@ -34,6 +38,18 @@ export class CountryComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
+    // Subscribe to message changes
+    this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
   }
 
   private initForm(): void {
@@ -52,7 +68,7 @@ export class CountryComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-        this.message = { type: 'error', text: 'Failed to load countries' };
+        this.messageService.showMessage({ type: 'error', text: 'Failed to load countries' });
         this.loading = false;
       }
     });
@@ -90,13 +106,7 @@ export class CountryComponent implements OnInit {
     if (this.isEditMode && this.currentCountryId) {
       this.countryService.updateCountry(this.currentCountryId, countryData).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'Country updated successfully' };
-
-          // Set the message to disappear after 5 seconds (5000 milliseconds)
-          setTimeout(() => {
-            this.message = null;
-          }, 3000);
-
+          this.messageService.showMessage({ type: 'success', text: 'Country updated successfully' });
           this.loadCountries();
           this.resetForm();
           this.loading = false;
@@ -108,19 +118,14 @@ export class CountryComponent implements OnInit {
             console.error('Server validation errors:', error.error);
             console.error('Request payload:', countryData);
           }
-          this.message = { type: 'error', text: 'Failed to update country' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to update country' });
           this.loading = false;
         }
       });
     } else {
       this.countryService.createCountry(countryData).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'Country created successfully' };
-
-          setTimeout(() => {
-            this.message = null;
-          }, 3000);
-
+          this.messageService.showMessage({ type: 'success', text: 'Country created successfully' });
           this.loadCountries();
           this.resetForm();
           this.loading = false;
@@ -131,7 +136,7 @@ export class CountryComponent implements OnInit {
           if (error.error) {
             console.error('Server validation errors:', error.error);
           }
-          this.message = { type: 'error', text: 'Failed to create country' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to create country' });
           this.loading = false;
         }
       });
@@ -158,13 +163,13 @@ export class CountryComponent implements OnInit {
       this.loading = true;
       this.countryService.deleteCountry(id).subscribe({
         next: () => {
-          this.message = { type: 'success', text: 'Country deleted successfully' };
+          this.messageService.showMessage({ type: 'success', text: 'Country deleted successfully' });
           this.loadCountries();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error deleting country:', error);
-          this.message = { type: 'error', text: 'Failed to delete country' };
+          this.messageService.showMessage({ type: 'error', text: 'Failed to delete country' });
           this.loading = false;
         }
       });
