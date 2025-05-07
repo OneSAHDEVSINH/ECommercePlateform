@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { FaviconService } from './services/favicon.service';
 
 @Component({
   selector: 'app-root',
@@ -8,5 +9,6 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'ecommercefinal';
+  constructor(private faviconService: FaviconService) { }
+  title = 'E-Commerce Plateform 💲';
 }

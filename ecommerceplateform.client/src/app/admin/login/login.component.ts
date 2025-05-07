@@ -94,7 +94,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Animate login button on interval
     this.buttonAnimInterval = setInterval(() => {
       this.buttonState = this.buttonState === 'initial' ? 'pulse' : 'initial';
-    }, 3000);
+    }, 500);
   }
 
   ngOnDestroy(): void {
