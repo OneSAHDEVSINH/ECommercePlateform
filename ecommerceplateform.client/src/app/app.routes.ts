@@ -8,25 +8,29 @@ import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'admin/login', pathMatch: 'full' },
-  { path: 'admin/login', component: LoginComponent },
+  { path: 'admin/login', component: LoginComponent, title: 'Admin Login' },
   { 
     path: 'admin/dashboard', 
-    component: DashboardComponent, 
+    component: DashboardComponent,
+    title: 'Admin Dashboard',
     canActivate: [authGuard] 
   },
   { 
     path: 'admin/countries', 
-    component: CountryComponent, 
+    component: CountryComponent,
+    title: 'Country Component',
     canActivate: [authGuard] 
   },
   { 
     path: 'admin/states', 
-    component: StateComponent, 
+    component: StateComponent,
+    title: 'State Component',
     canActivate: [authGuard] 
   },
   { 
     path: 'admin/cities', 
-    component: CityComponent, 
+    component: CityComponent,
+    title: 'City Component',
     canActivate: [authGuard] 
   }
 ];
