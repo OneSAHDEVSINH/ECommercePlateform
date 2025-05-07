@@ -91,6 +91,12 @@ export class CountryComponent implements OnInit {
       this.countryService.updateCountry(this.currentCountryId, countryData).subscribe({
         next: () => {
           this.message = { type: 'success', text: 'Country updated successfully' };
+
+          // Set the message to disappear after 5 seconds (5000 milliseconds)
+          setTimeout(() => {
+            this.message = null;
+          }, 3000);
+
           this.loadCountries();
           this.resetForm();
           this.loading = false;
