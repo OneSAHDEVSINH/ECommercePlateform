@@ -35,7 +35,7 @@ namespace ECommercePlateform.Server.Controllers
                 return BadRequest(new { message = "Username and password are required" });
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Username && u.Password == request.Password && u.Role == Enum.UserRole.Admin);
+                .FirstOrDefaultAsync(u => u.Email == request.Username && u.Password == request.Password && u.Role == Models.Enum.UserRole.Admin);
 
             if (user == null)
                 return Unauthorized(new { message = "Invalid username or password" });

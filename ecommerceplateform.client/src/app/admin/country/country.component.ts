@@ -47,7 +47,7 @@ export class CountryComponent implements OnInit {
       }
     });
   }
-
+  
   onSubmit(): void {
     if (this.countryForm.invalid) {
       return;
@@ -73,6 +73,9 @@ export class CountryComponent implements OnInit {
       this.countryService.createCountry(country).subscribe({
         next: (newCountry) => {
           this.successMessage = 'Country created successfully!';
+          //setTimeout(() => {
+          //  this.successMessage = ''; // Clear the message
+          //}, 3000);
           this.loadCountries();
           this.resetForm();
           this.isLoading = false;
