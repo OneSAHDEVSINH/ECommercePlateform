@@ -5,6 +5,7 @@ import { CountryComponent } from './admin/country/country.component';
 import { StateComponent } from './admin/state/state.component';
 import { CityComponent } from './admin/city/city.component';
 import { authGuard } from './guards/auth.guard';
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'admin/login', pathMatch: 'full' },
@@ -32,5 +33,6 @@ export const routes: Routes = [
     component: CityComponent,
     title: 'City Component',
     canActivate: [authGuard] 
-  }
+  },
+  { path: '**', component: PageNotFoundComponent, pathMatch: 'full', title: '404 - Page not found' }
 ];
