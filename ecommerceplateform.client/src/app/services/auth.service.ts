@@ -17,7 +17,7 @@ export class AuthService {
 
   
   // Development mode flag - REMOVE IN PRODUCTION
-  private devMode = true;
+  private devMode = false;
   
   constructor(private http: HttpClient) {
     // Check if user is already logged in on initialization
