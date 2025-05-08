@@ -7,13 +7,14 @@ import { CountryService } from '../../services/country.service';
 import { AuthService } from '../../services/auth.service';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
+import { NavbarComponent } from "../navbar/navbar.component";
 
 @Component({
   selector: 'app-country',
   templateUrl: './country.component.html',
   styleUrls: ['./country.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, NavbarComponent]
 })
 export class CountryComponent implements OnInit, OnDestroy {
   countries: Country[] = [];

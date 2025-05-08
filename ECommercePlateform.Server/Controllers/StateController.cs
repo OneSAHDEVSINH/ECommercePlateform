@@ -75,16 +75,6 @@ namespace ECommercePlateform.Server.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Check if a country with the same name and code exists
-            var existingState = await _context.States
-                .FirstOrDefaultAsync(s => s.Name == state.Name && s.Code == state.Code && !s.IsDeleted);
-
-            if (existingState != null)
-            {
-                ModelState.AddModelError("", $"A country with name '{state.Name}' and code '{state.Code}' already exists");
-                return BadRequest(ModelState);
-            }
-
             // Validate if country exists
             var country = await _context.Countries.FindAsync(state.CountryId);
             if (country == null || country.IsDeleted)
@@ -92,18 +82,46 @@ namespace ECommercePlateform.Server.Controllers
                 return BadRequest("Invalid Country ID");
             }
 
-            state.Id = Guid.NewGuid();
-            state.CreatedOn = DateTime.Now;
-            state.ModifiedOn = DateTime.Now;
-            state.CreatedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
-            state.ModifiedBy = state.CreatedBy;
-            state.IsActive = true;
-            state.IsDeleted = false;
+            // Check if a state with the same name and code exists
+            var existingState = await _context.States
+                .FirstOrDefaultAsync(s => s.Name == state.Name && s.Code == state.Code);
 
-            _context.States.Add(state);
-            await _context.SaveChangesAsync();
+            if (existingState != null && existingState.IsDeleted)
+            {
+                existingState.Name = state.Name;
+                existingState.Code = state.Code;
+                existingState.ModifiedOn = DateTime.Now;
+                existingState.ModifiedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+                existingState.IsActive = true;
+                existingState.IsDeleted = false;
 
-            return CreatedAtAction(nameof(GetState), new { id = state.Id }, state);
+                // Use existing state instead of adding a new one
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetState), new { id = existingState.Id }, existingState);
+
+            }
+            else if (existingState != null && !existingState.IsDeleted)
+            {
+                // If state exists and is not deleted, return a conflict response
+                ModelState.AddModelError("", $"A state with name '{state.Name}' and code '{state.Code}' already exists");
+                return Conflict(ModelState);
+            }
+            else
+            {
+                state.Id = Guid.NewGuid();
+                state.CreatedOn = DateTime.Now;
+                state.ModifiedOn = DateTime.Now;
+                state.CreatedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+                state.ModifiedBy = state.CreatedBy;
+                state.IsActive = true;
+                state.IsDeleted = false;
+
+                _context.States.Add(state);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetState), new { id = state.Id }, state);
+            }
         }
 
         // PUT: api/State/5

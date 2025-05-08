@@ -1,46 +1,12 @@
 <div class="admin-container">
-  <!-- Sidebar navigation -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h3>Admin Panel</h3>
-    </div>
-    
-    <nav class="sidebar-nav">
-      <ul>
-        <li>
-          <a routerLink="/admin/dashboard" routerLinkActive="active">
-            <i class="icon">📊</i>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="/admin/countries" routerLinkActive="active">
-            <i class="icon">🌎</i>
-            <span>Countries</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="/admin/states" routerLinkActive="active">
-            <i class="icon">🏭</i>
-            <span>States</span>
-          </a>
-        </li>
-        <li>
-          <a routerLink="/admin/cities" routerLinkActive="active">
-            <i class="icon">🏙️</i>
-            <span>Cities</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </aside>
 
+  <app-navbar></app-navbar>
   <!-- Main content area -->
   <main class="main-content">
     <!-- Top navigation bar -->
     <header class="topbar">
       <div class="topbar-title">
-        <h2>Admin Dashboard</h2>
+        <h2>Admin Dashboard ⚒️</h2>
       </div>
       <div class="topbar-actions">
         <span class="user-name">Welcome 😀, {{ userName || 'Admin' }}</span>
@@ -51,7 +17,7 @@
     <!-- Content area -->
     <div class="content">
       <div class="dashboard-welcome">
-        <h2>Welcome to the Admin Dashboard</h2>
+        <h2>Welcome 👋, to the Admin Dashboard</h2>
         <p>Select a section from the sidebar to manage your data</p>
       </div>
       

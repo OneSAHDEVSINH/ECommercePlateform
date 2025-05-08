@@ -3,13 +3,15 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { Message } from '../../services/message.service';
+import { CountryComponent } from '../country/country.component';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule, NavbarComponent]
 })
 export class DashboardComponent implements OnInit {
   userName: string = '';
