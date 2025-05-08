@@ -50,7 +50,7 @@ export class CityComponent implements OnInit, OnDestroy {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
-
+    //this.cityForm.get('stateId')?.disable(); // Disable the state dropdown
     // Subscribe to message changes
     this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
       this.message = message;

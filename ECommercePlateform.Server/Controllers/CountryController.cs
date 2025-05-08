@@ -59,26 +59,45 @@ namespace ECommercePlateform.Server.Controllers
 
             // Check if a country with the same name and code exists
             var existingCountry = await _context.Countries
-                .FirstOrDefaultAsync(c => c.Name == country.Name && c.Code == country.Code && !c.IsDeleted);
+                .FirstOrDefaultAsync(c => c.Name == country.Name && c.Code == country.Code);
 
-            if (existingCountry != null)
+            if (existingCountry != null && existingCountry.IsDeleted)
             {
-                ModelState.AddModelError("", $"A country with name '{country.Name}' and code '{country.Code}' already exists");
-                return BadRequest(ModelState);
+                // Un-delete the existing country and update its properties
+                existingCountry.Name = country.Name;
+                existingCountry.Code = country.Code;
+                existingCountry.ModifiedOn = DateTime.Now;
+                existingCountry.ModifiedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+                existingCountry.IsActive = true;
+                existingCountry.IsDeleted = false;
+
+                // Use existing country instead of adding a new one
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetCountry), new { id = existingCountry.Id }, existingCountry);
             }
+            else if (existingCountry != null && !existingCountry.IsDeleted)
+            {
+                // If country exists and is not deleted, return a conflict response
+                ModelState.AddModelError("", $"A country with name '{country.Name}' and code '{country.Code}' already exists");
+                return Conflict(ModelState);
+            }
+            else
+            {
+                // Create a new country
+                country.Id = Guid.NewGuid();
+                country.CreatedOn = DateTime.Now;
+                country.ModifiedOn = DateTime.Now;
+                country.CreatedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+                country.ModifiedBy = country.CreatedBy;
+                country.IsActive = true;
+                country.IsDeleted = false;
 
-            country.Id = Guid.NewGuid();
-            country.CreatedOn = DateTime.Now;
-            country.ModifiedOn = DateTime.Now;
-            country.CreatedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
-            country.ModifiedBy = country.CreatedBy;
-            country.IsActive = true;
-            country.IsDeleted = false;
+                _context.Countries.Add(country);
+                await _context.SaveChangesAsync();
 
-            _context.Countries.Add(country);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetCountry), new { id = country.Id }, country);
+                return CreatedAtAction(nameof(GetCountry), new { id = country.Id }, country);
+            }
         }
 
         // PUT: api/Country/5

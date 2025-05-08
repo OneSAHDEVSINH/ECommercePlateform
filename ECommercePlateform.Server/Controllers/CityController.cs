@@ -84,18 +84,45 @@ namespace ECommercePlateform.Server.Controllers
                 return BadRequest("Invalid State ID");
             }
 
-            city.Id = Guid.NewGuid();
-            city.CreatedOn = DateTime.Now;
-            city.ModifiedOn = DateTime.Now;
-            city.CreatedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
-            city.ModifiedBy = city.CreatedBy;
-            city.IsActive = true;
-            city.IsDeleted = false;
+            // Check if a state with the same name and code exists
+            var existingCity = await _context.Cities
+                .FirstOrDefaultAsync(c => c.Name == city.Name);
 
-            _context.Cities.Add(city);
-            await _context.SaveChangesAsync();
+            if (existingCity != null && existingCity.IsDeleted)
+            {
+                existingCity.Name = city.Name;
+                existingCity.ModifiedOn = DateTime.Now;
+                existingCity.ModifiedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+                existingCity.IsActive = true;
+                existingCity.IsDeleted = false;
 
-            return CreatedAtAction(nameof(GetCity), new { id = city.Id }, city);
+                // Use existing state instead of adding a new one
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetCity), new { id = existingCity.Id }, existingCity);
+
+            }
+            else if (existingCity != null && !existingCity.IsDeleted)
+            {
+                // If state exists and is not deleted, return a conflict response
+                ModelState.AddModelError("", $"A state with name '{state.Name}' and code '{state.Code}' already exists");
+                return Conflict(ModelState);
+            }
+            else
+            {
+                city.Id = Guid.NewGuid();
+                city.CreatedOn = DateTime.Now;
+                city.ModifiedOn = DateTime.Now;
+                city.CreatedBy = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+                city.ModifiedBy = city.CreatedBy;
+                city.IsActive = true;
+                city.IsDeleted = false;
+
+                _context.Cities.Add(city);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetCity), new { id = city.Id }, city);
+            }
         }
 
         // PUT: api/City/5
