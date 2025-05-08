@@ -9,13 +9,14 @@ import { CountryService } from '../../services/country.service';
 import { AuthService } from '../../services/auth.service';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-state',
   templateUrl: './state.component.html',
   styleUrls: ['./state.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent]
 })
 export class StateComponent implements OnInit {
   states: State[] = [];

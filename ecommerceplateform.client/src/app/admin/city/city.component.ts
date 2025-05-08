@@ -11,13 +11,14 @@ import { CountryService } from '../../services/country.service';
 import { AuthService } from '../../services/auth.service';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
+import { NavbarComponent } from "../navbar/navbar.component";
 
 @Component({
   selector: 'app-city',
   templateUrl: './city.component.html',
   styleUrls: ['./city.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent, NavbarComponent]
 })
 export class CityComponent implements OnInit, OnDestroy {
   cities: City[] = [];
