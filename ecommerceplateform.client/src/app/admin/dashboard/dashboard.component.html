@@ -13,7 +13,10 @@
         <h2>Admin Dashboard ⚒️</h2>
       </div>
       <div class="topbar-actions">
-        <span class="user-name">Welcome 😀, {{ userName || 'Admin' }}</span>
+        <span class="user-name">
+          Welcome 😀,
+          <span class="show-name">{{ userName || 'Admin' }}</span>
+        </span>
         <button class="btn-logout" (click)="logout()">Logout</button>
       </div>
     </header>

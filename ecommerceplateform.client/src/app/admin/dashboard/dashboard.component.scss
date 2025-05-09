@@ -30,21 +30,32 @@
 .topbar-actions {
   display: flex;
   align-items: center;
-  
+
   .user-name {
     margin-right: 15px;
     color: #333;
+    text-align: center;
+  }
+
+  .show-name {
+    color: cadetblue;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    display: flex;
+    font-weight: bold;
+    font-style: italic;
+    font-size: large;
+    text-decoration: underline;
   }
   
   .btn-logout {
     background-color: #e74c3c;
     color: white;
-    border: none;
+    border: double;
     padding: 8px 15px;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
-    
+
     &:hover {
       background-color: #c0392b;
     }
@@ -111,7 +122,7 @@
     
     .stat-link {
       display: inline-block;
-      //color: #3498db;
+      color: azure;
       text-decoration: none;
       
       &:hover {
