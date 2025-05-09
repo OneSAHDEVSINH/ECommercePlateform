@@ -98,7 +98,7 @@ namespace ECommercePlateform.Server.Controllers
 
                 // Use existing state instead of adding a new one
                 await _context.SaveChangesAsync();
-
+                Console.WriteLine($"City with ID {existingCity.Id} was restored and updated.");
                 return CreatedAtAction(nameof(GetCity), new { id = existingCity.Id }, existingCity);
 
             }

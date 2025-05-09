@@ -73,7 +73,7 @@ namespace ECommercePlateform.Server.Controllers
 
                 // Use existing country instead of adding a new one
                 await _context.SaveChangesAsync();
-
+                Console.WriteLine($"Country reactivated: {existingCountry.Id}, {existingCountry.Name}, {existingCountry.Code}, {existingCountry.CreatedBy}, {existingCountry.ModifiedBy}, {existingCountry.ModifiedOn}, {existingCountry.IsActive}, {existingCountry.IsDeleted}");
                 return CreatedAtAction(nameof(GetCountry), new { id = existingCountry.Id }, existingCountry);
             }
             else if (existingCountry != null && !existingCountry.IsDeleted)

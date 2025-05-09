@@ -1,0 +1,10 @@
+<head>
+  <meta name="description" content="Messages">
+</head>
+
+<div *ngIf="message" class="message-container" [ngClass]="message.type">
+  <div class="message-content">
+    <span class="message-text">{{ message.text }}</span>
+    <button class="close-btn" (click)="closeMessage()">×</button>
+  </div>
+</div>
