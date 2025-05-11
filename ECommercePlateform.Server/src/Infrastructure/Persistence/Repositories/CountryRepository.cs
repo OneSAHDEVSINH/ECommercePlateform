@@ -1,0 +1,32 @@
+using ECommercePlateform.Server.Core.Application.Interfaces;
+using ECommercePlateform.Server.Core.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ECommercePlateform.Server.Infrastructure.Persistence.Repositories
+{
+    public class CountryRepository : GenericRepository<Country>, ICountryRepository
+    {
+        public CountryRepository(AppDbContext context) : base(context)
+        {
+        }
+
+        public async Task<IReadOnlyList<Country>> GetActiveCountriesAsync()
+        {
+            return await _context.Countries
+                .Where(c => c.IsActive && !c.IsDeleted)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
+
+        public async Task<Country> GetCountryWithStatesAsync(Guid id)
+        {
+            return await _context.Countries
+                .Include(c => c.States.Where(s => s.IsActive && !s.IsDeleted))
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+    }
+} 
