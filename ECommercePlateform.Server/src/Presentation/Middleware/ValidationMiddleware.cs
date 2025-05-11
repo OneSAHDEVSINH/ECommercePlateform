@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -18,44 +17,61 @@ namespace ECommercePlateform.Server.Presentation.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            // Continue down the pipeline
-            await _next(context);
-
-            // If we have a validation problem (status code 400) and it's from ModelState validation, format the response
-            if (context.Response.StatusCode == (int)HttpStatusCode.BadRequest)
+            // Store the original body stream position
+            var originalBodyStream = context.Response.Body;
+            
+            try
             {
-                // Check if this is a validation error response
-                var endpoint = context.GetEndpoint();
-                if (endpoint?.Metadata?.GetMetadata<ApiControllerAttribute>() != null)
+                // Continue down the pipeline
+                await _next(context);
+
+                // If we have a validation problem (status code 400), format the response
+                if (context.Response.StatusCode == (int)HttpStatusCode.BadRequest)
                 {
-                    // This is an API controller, we can handle validation errors
-                    var problemDetailsFeature = context.Features.Get<Microsoft.AspNetCore.Mvc.Infrastructure.IStatusCodeHttpResult>();
-                    if (problemDetailsFeature != null)
+                    // Check if this is an API controller
+                    var endpoint = context.GetEndpoint();
+                    if (endpoint?.Metadata?.GetMetadata<ApiControllerAttribute>() != null)
                     {
-                        // Check if this is a validation problem
-                        var validationProblem = problemDetailsFeature as ValidationProblemDetails;
-                        if (validationProblem != null)
+                        // Try to read the response body (which might contain validation errors)
+                        if (context.Items.TryGetValue("ValidationErrors", out var validationErrors) && validationErrors != null)
                         {
-                            // Format the validation error in a consistent way
-                            var errors = validationProblem.Errors
-                                .SelectMany(e => e.Value.Select(error => new { Field = e.Key, Message = error }))
-                                .ToList();
-
-                            var response = new
+                            var errors = validationErrors as Dictionary<string, string[]>;
+                            
+                            if (errors != null && errors.Count > 0)
                             {
-                                StatusCode = context.Response.StatusCode,
-                                Message = "Validation Failed",
-                                Errors = errors
-                            };
+                                var formattedErrors = errors
+                                    .SelectMany(e => e.Value.Select(error => new { Field = e.Key, Message = error }))
+                                    .ToList();
 
-                            context.Response.ContentType = "application/json";
-                            var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                            var json = JsonSerializer.Serialize(response, jsonOptions);
-                            await context.Response.WriteAsync(json);
+                                var response = new
+                                {
+                                    StatusCode = context.Response.StatusCode,
+                                    Message = "Validation Failed",
+                                    Errors = formattedErrors
+                                };
+
+                                context.Response.ContentType = "application/json";
+                                var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                                var json = JsonSerializer.Serialize(response, jsonOptions);
+                                await context.Response.WriteAsync(json);
+                            }
                         }
                     }
                 }
             }
+            finally
+            {
+                // Ensure any cleanup happens if necessary
+            }
+        }
+    }
+
+    // Extension method to register the middleware
+    public static class ValidationMiddlewareExtensions
+    {
+        public static IApplicationBuilder UseCustomValidationMiddleware(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<ValidationMiddleware>();
         }
     }
 } 

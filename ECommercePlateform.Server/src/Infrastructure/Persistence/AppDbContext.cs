@@ -32,6 +32,9 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence
             // Seed default admin user
             SeedDefaultAdmin(modelBuilder);
 
+            // Apply entity configurations from assembly
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
             // Apply entity configurations
             ApplyEntityConfigurations(modelBuilder);
         }
