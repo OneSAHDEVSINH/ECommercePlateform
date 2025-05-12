@@ -29,7 +29,7 @@ namespace ECommercePlateform.Server.Presentation.Middleware
                 if (endpoint?.Metadata?.GetMetadata<ApiControllerAttribute>() != null)
                 {
                     // This is an API controller, we can handle validation errors
-                    var problemDetailsFeature = context.Features.Get<Microsoft.AspNetCore.Mvc.Infrastructure.IStatusCodeHttpResult>();
+                    var problemDetailsFeature = context.Features.Get<IProblemDetailsService>(); // Updated to use IProblemDetailsService
                     if (problemDetailsFeature != null)
                     {
                         // Check if this is a validation problem

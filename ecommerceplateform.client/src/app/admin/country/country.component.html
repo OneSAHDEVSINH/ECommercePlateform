@@ -81,8 +81,6 @@
             <tr>
               <th>Name</th>
               <th>Code</th>
-              <th>Created By</th>
-              <th>Modified By</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -90,8 +88,6 @@
             <tr *ngFor="let country of countries">
               <td>{{ country.name }}</td>
               <td>{{ country.code }}</td>
-              <td>{{ country.createdBy }}</td>
-              <td>{{ country.modifiedBy }}</td>
               <td class="actions">
                 <button class="btn-edit" (click)="editCountry(country)">Edit</button>
                 <button class="btn-delete" (click)="deleteCountry(country.id!)">Delete</button>
