@@ -1,3 +1,4 @@
+using ECommercePlateform.Server.src.Core.Application.Interfaces;
 using System;
 using System.Threading.Tasks;
 
@@ -8,6 +9,8 @@ namespace ECommercePlateform.Server.Core.Application.Interfaces
         ICountryRepository Countries { get; }
         IUserRepository Users { get; }
         IProductRepository Products { get; }
+        IStateRepository States { get; }
+        ICityRepository Cities { get; }
         // Add more repositories as properties
 
         Task<int> CompleteAsync();

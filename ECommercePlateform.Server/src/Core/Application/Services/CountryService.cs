@@ -2,6 +2,7 @@ using AutoMapper;
 using ECommercePlateform.Server.Core.Application.DTOs;
 using ECommercePlateform.Server.Core.Application.Interfaces;
 using ECommercePlateform.Server.Core.Domain.Entities;
+using ECommercePlateform.Server.src.Core.Application.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,13 @@ namespace ECommercePlateform.Server.Core.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public CountryService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CountryService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<CountryDto> CreateCountryAsync(CreateCountryDto createCountryDto)
@@ -25,7 +28,13 @@ namespace ECommercePlateform.Server.Core.Application.Services
             var country = _mapper.Map<Country>(createCountryDto);
             country.CreatedOn = DateTime.Now;
             country.IsActive = true;
-
+            // Set the creator information
+            if (_currentUserService.IsAuthenticated)
+            {
+                // You can use either the email or user ID as the CreatedBy value
+                country.CreatedBy = _currentUserService.UserId ?? _currentUserService.Email;
+                country.ModifiedBy = country.CreatedBy;
+            }
             var result = await _unitOfWork.Countries.AddAsync(country);
             await _unitOfWork.CompleteAsync();
             
@@ -74,6 +83,12 @@ namespace ECommercePlateform.Server.Core.Application.Services
 
             _mapper.Map(updateCountryDto, country);
             country.ModifiedOn = DateTime.Now;
+
+            // Set the modifier information
+            if (_currentUserService.IsAuthenticated)
+            {
+                country.ModifiedBy = _currentUserService.UserId ?? _currentUserService.Email;
+            }
 
             await _unitOfWork.Countries.UpdateAsync(country);
             await _unitOfWork.CompleteAsync();

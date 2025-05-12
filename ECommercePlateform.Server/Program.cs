@@ -1,9 +1,18 @@
+using ECommercePlateform.Server.Core.Application.Interfaces;
+using ECommercePlateform.Server.Core.Application.Mappings;
+using ECommercePlateform.Server.Core.Application.Services;
 using ECommercePlateform.Server.Data;
+using ECommercePlateform.Server.Infrastructure.Persistence.Repositories;
+using ECommercePlateform.Server.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using ECommercePlateform.Server.Presentation.Middleware;
+using ECommercePlateform.Server.src.Core.Application.Interfaces;
+using ECommercePlateform.Server.src.Core.Application.Services;
+using ECommercePlateform.Server.src.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,19 +27,49 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
     options.ClientErrorMapping[StatusCodes.Status404NotFound].Link =
         "https://httpstatuses.com/404";
 });
+
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.WriteIndented = true;
 });
+
+// Register AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Register Unit of Work
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Register repositories
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IStateRepository, StateRepository>();
+builder.Services.AddScoped<ICityRepository, CityRepository>();  
+
+
+// Register services
+builder.Services.AddScoped<ICountryService, CountryService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IStateService, StateService>(); 
+builder.Services.AddScoped<ICityService, CityService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "JWTToken_Auth_API",
-        Version = "v1"
+        Version = "v1",
+        Description = "A clean architecture based e-commerce API"
     });
+    c.ResolveConflictingActions(
+        apiDescriptions => apiDescriptions.First()
+        );
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -53,6 +92,7 @@ builder.Services.AddSwaggerGen(c => {
     });
 });
 
+//JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -65,7 +105,7 @@ builder.Services.AddAuthentication(options =>
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345")),
         ValidateIssuer = false,
         ValidateAudience = false
     };
@@ -74,7 +114,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddCors();
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContext<ECommercePlateform.Server.Infrastructure.Persistence.AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
     //To ignore databse warning datateti,e now admin seed from here. use anly one either from here or from AppDbContext.
     //.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
@@ -127,7 +167,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        var dbContext = services.GetRequiredService<AppDbContext>();
+        var dbContext = services.GetRequiredService<ECommercePlateform.Server.Infrastructure.Persistence.AppDbContext>();
         dbContext.Database.Migrate(); // This will apply any pending migrations and create the database if it doesn't exist
         Console.WriteLine("Database migrated successfully.");
     }
@@ -138,15 +178,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.
-    UseDefaultFiles();
-app.MapStaticAssets();
-
-app.UseStaticFiles();
-app.UseRouting();
-app.UseCors("AllowAllOrigins");
-// Configure the HTTP request pipeline.
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -155,7 +186,10 @@ if (app.Environment.IsDevelopment())
     app.UseHsts();
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("./v1/swagger.json", "My API V1"); //originally "./swagger/v1/swagger.json"
+    });
 }
 //if (!app.Environment.IsDevelopment())
 //{
@@ -173,6 +207,15 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.MapStaticAssets();
+
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("AllowAllOrigins");
+// Use custom middleware
+app.UseExceptionMiddleware();
+app.UseValidationMiddleware();
 
 app.UseAuthentication();
 app.UseAuthorization();

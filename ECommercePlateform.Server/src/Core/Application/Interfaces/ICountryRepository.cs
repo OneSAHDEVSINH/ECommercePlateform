@@ -9,5 +9,10 @@ namespace ECommercePlateform.Server.Core.Application.Interfaces
     {
         Task<Country> GetCountryWithStatesAsync(Guid id);
         Task<IReadOnlyList<Country>> GetActiveCountriesAsync();
+        Task<bool> IsNameUniqueAsync(string name);
+        Task<bool> IsCodeUniqueAsync(string code);
+        Task<bool> IsNameUniqueAsync(string name, Guid excludeId);
+        Task<bool> IsCodeUniqueAsync(string code, Guid excludeId);
+
     }
 } 

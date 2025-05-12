@@ -202,21 +202,31 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence
 
         private void SeedDefaultAdmin(ModelBuilder modelBuilder)
         {
+            // Create a default admin user
+            var adminId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F"); // Fixed GUID for admin
+
+            // Use a specific fixed date instead of DateTime.Now
+            var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0); // Year, Month, Day, Hour, Minute, Second
+
             modelBuilder.Entity<User>().HasData(
                 new User
                 {
-                    Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    Id = adminId,
                     FirstName = "Admin",
                     LastName = "User",
-                    Email = "admin@example.com",
+                    Email = "admin@admin.com",
                     Password = "Admin@123",
                     PhoneNumber = "1234567890",
-                    Gender = Gender.Male,
                     DateOfBirth = new DateOnly(1990, 1, 1),
+                    Gender = Gender.Male,
+                    Bio = "System Administrator",
                     Role = UserRole.Admin,
+                    CreatedOn = fixedDate,
+                    ModifiedOn = fixedDate,
+                    CreatedBy = "System",
+                    ModifiedBy = "System",
                     IsActive = true,
-                    CreatedOn = DateTime.Now,
-                    ModifiedOn = DateTime.Now
+                    IsDeleted = false
                 }
             );
         }
