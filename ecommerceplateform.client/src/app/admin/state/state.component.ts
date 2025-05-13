@@ -144,7 +144,11 @@ export class StateComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error updating state:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to update state' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to update State';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
@@ -158,7 +162,11 @@ export class StateComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error creating state:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to create state' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to create State';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });

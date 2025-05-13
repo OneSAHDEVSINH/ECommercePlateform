@@ -119,7 +119,12 @@ export class CountryComponent implements OnInit, OnDestroy {
             console.error('Server validation errors:', error.error);
             console.error('Request payload:', countryData);
           }
-          this.messageService.showMessage({ type: 'error', text: 'Failed to update country' });
+          // Extract the most useful error message
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to update country';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
@@ -137,7 +142,12 @@ export class CountryComponent implements OnInit, OnDestroy {
           if (error.error) {
             console.error('Server validation errors:', error.error);
           }
-          this.messageService.showMessage({ type: 'error', text: 'Failed to create country' });
+          // Extract the most useful error message
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to create country';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });

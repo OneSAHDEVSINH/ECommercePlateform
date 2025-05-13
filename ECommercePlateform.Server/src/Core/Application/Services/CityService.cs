@@ -2,6 +2,7 @@
 using ECommercePlateform.Server.Core.Application.DTOs;
 using ECommercePlateform.Server.Core.Application.Interfaces;
 using ECommercePlateform.Server.Core.Domain.Entities;
+using ECommercePlateform.Server.Core.Domain.Exceptions;
 using ECommercePlateform.Server.Models;
 using ECommercePlateform.Server.src.Core.Application.Interfaces;
 using System.Diagnostics.Metrics;
@@ -23,6 +24,13 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
 
         public async Task<CityDto> CreateCityAsync(CreateCityDto createCityDto)
         {
+            // Check for duplicate name in the same state
+            bool isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(createCityDto.Name, createCityDto.StateId);
+            if (!isNameUnique)
+            {
+                throw new DuplicateResourceException($"A city with the name '{createCityDto.Name}' already exists in the selected state.");
+            }
+
             var city = _mapper.Map<Server.Core.Domain.Entities.City>(createCityDto);
             city.CreatedOn = DateTime.Now;
             city.IsActive = true;
@@ -90,6 +98,26 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
             var city = await _unitOfWork.Cities.GetByIdAsync(id);
             if (city == null)
                 throw new KeyNotFoundException($"City with ID {id} not found");
+
+            // Check for duplicates if name is being updated
+            if (updateCityDto.Name != null && updateCityDto.Name != city.Name)
+            {
+                bool isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(updateCityDto.Name, updateCityDto.StateId, id);
+                if (!isNameUnique)
+                {
+                    throw new DuplicateResourceException($"A city with the name '{updateCityDto.Name}' already exists in the selected state.");
+                }
+            }
+
+            // If state is changing, also check uniqueness in the new state
+            if (updateCityDto.StateId != city.StateId)
+            {
+                bool isNameUniqueInNewState = await _unitOfWork.Cities.IsNameUniqueInStateAsync(city.Name, updateCityDto.StateId);
+                if (!isNameUniqueInNewState)
+                {
+                    throw new DuplicateResourceException($"A city with the name '{city.Name}' already exists in the destination state.");
+                }
+            }
 
             _mapper.Map(updateCityDto, city);
             city.ModifiedOn = DateTime.Now;

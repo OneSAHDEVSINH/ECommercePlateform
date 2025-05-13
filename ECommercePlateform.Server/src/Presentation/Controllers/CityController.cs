@@ -1,4 +1,5 @@
 ﻿using ECommercePlateform.Server.Core.Application.DTOs;
+using ECommercePlateform.Server.Core.Domain.Exceptions;
 using ECommercePlateform.Server.src.Core.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,12 +16,14 @@ namespace ECommercePlateform.Server.src.Presentation.Controllers
         {
             _cityService = cityService;
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAllCities()
         {
             var cities = await _cityService.GetAllCitiesAsync();
             return Ok(cities);
         }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCityById(Guid id)
         {
@@ -34,13 +37,23 @@ namespace ECommercePlateform.Server.src.Presentation.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateCity([FromBody] CreateCityDto createCityDto)
         {
-            var city = await _cityService.CreateCityAsync(createCityDto);
-            return CreatedAtAction(nameof(GetCityById), new { id = city.Id }, city);
+            try
+            {
+                var city = await _cityService.CreateCityAsync(createCityDto);
+                return CreatedAtAction(nameof(GetCityById), new { id = city.Id }, city);
+            }
+            catch (DuplicateResourceException ex)
+            {
+                // Return 409 Conflict with the error message
+                return Conflict(new { message = ex.Message });
+            }
         }
+
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateCity(Guid id, [FromBody] UpdateCityDto updateCityDto)
@@ -54,7 +67,13 @@ namespace ECommercePlateform.Server.src.Presentation.Controllers
             {
                 return NotFound(new { message = ex.Message });
             }
+            catch (DuplicateResourceException ex)
+            {
+                // Return 409 Conflict with the error message
+                return Conflict(new { message = ex.Message });
+            }
         }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCity(Guid id)
@@ -69,6 +88,7 @@ namespace ECommercePlateform.Server.src.Presentation.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
         [HttpGet("ByState/{stateId}")]
         public async Task<IActionResult> GetCitiesByState(Guid stateId)
         {

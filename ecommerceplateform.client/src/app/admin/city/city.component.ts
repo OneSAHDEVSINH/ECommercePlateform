@@ -192,7 +192,12 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error updating city:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to update city' });
+          // Extract the most useful error message
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to update City';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
@@ -206,7 +211,11 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error creating city:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to create city' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to create City';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });

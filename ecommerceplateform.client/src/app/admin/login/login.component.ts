@@ -158,14 +158,30 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-    //this.errorMessage = '';
+    this.errorMessage = null;
 
     this.authService.login({
       email: this.f['email'].value,
       password: this.f['password'].value
     }).subscribe({
-      next: () => {
-        this.router.navigate([this.returnUrl]);
+      next: (response) => {
+        // Check if the user is an admin before redirecting
+        if (response.user.role === 'Admin') {
+          this.router.navigate([this.returnUrl]);
+        } else {
+          // Stop loading and show appropriate message for non-admin users
+          this.loading = false;
+          this.messageService.showMessage({
+            type: 'error',
+            text: 'Access denied. This portal is for administrators only.'
+          }, 2500);
+          this.errorMessage = 'Access denied. This portal is for administrators only.';
+          setTimeout(() => {
+            this.errorMessage = null;
+          }, 2500);
+          // Log out the user since they don't have admin access
+          this.authService.logout();
+        }
       },
       error: (error) => {
         const errorText = error.error?.message || 'An error occurred during login';
@@ -176,7 +192,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.messageService.showMessage({
           type: 'error',
           text: errorText
-        }, 2500); // Show error for longer - 5 seconds
+        }, 2500); // Show error for longer - 2.5 seconds
         
         this.errorMessage = error.error?.message || 'An error occurred during login';
 
