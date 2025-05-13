@@ -55,6 +55,7 @@
             <div *ngIf="stateForm.get('name')?.touched && stateForm.get('name')?.errors" class="error-message">
               <div *ngIf="stateForm.get('name')?.errors?.['required']">State name is required</div>
               <div *ngIf="stateForm.get('name')?.errors?.['maxlength']">State name must be less than 100 characters</div>
+              <div *ngIf="stateForm.get('name')?.errors?.['whitespace']">State name cannot contain only whitespace</div>
             </div>
           </div>
           
@@ -70,6 +71,7 @@
             <div *ngIf="stateForm.get('code')?.touched && stateForm.get('code')?.errors" class="error-message">
               <div *ngIf="stateForm.get('code')?.errors?.['required']">State code is required</div>
               <div *ngIf="stateForm.get('code')?.errors?.['maxlength']">State code must be less than 10 characters</div>
+              <div *ngIf="stateForm.get('name')?.errors?.['whitespace']">State code cannot contain only whitespace</div>
             </div>
           </div>
           

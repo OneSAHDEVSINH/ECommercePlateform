@@ -54,14 +54,13 @@ namespace ECommercePlateform.Server.src.Infrastructure.Persistence.Repositories
         public async Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId)
         {
             return !await _context.Cities
-                .AnyAsync(c => c.Name.ToLower() == name.ToLower() && c.StateId == stateId && !c.IsDeleted);
+                .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && c.StateId == stateId && !c.IsDeleted);
         }
 
         public async Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId, Guid excludeId)
         {
             return !await _context.Cities
-                .AnyAsync(c => c.Name.ToLower() == name.ToLower() && c.StateId == stateId && c.Id != excludeId && !c.IsDeleted);
+                .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && c.StateId == stateId && c.Id != excludeId && !c.IsDeleted);
         }
-
     }
 }

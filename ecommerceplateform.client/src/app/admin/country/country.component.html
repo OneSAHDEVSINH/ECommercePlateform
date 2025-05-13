@@ -39,6 +39,7 @@
             <div *ngIf="countryForm.get('name')?.touched && countryForm.get('name')?.errors" class="error-message">
               <div *ngIf="countryForm.get('name')?.errors?.['required']">Country name is required</div>
               <div *ngIf="countryForm.get('name')?.errors?.['maxlength']">Country name must be less than 100 characters</div>
+              <div *ngIf="countryForm.get('name')?.errors?.['whitespace']">Country name cannot contain only whitespace</div>
             </div>
           </div>
           
@@ -54,6 +55,7 @@
             <div *ngIf="countryForm.get('code')?.touched && countryForm.get('code')?.errors" class="error-message">
               <div *ngIf="countryForm.get('code')?.errors?.['required']">Country code is required</div>
               <div *ngIf="countryForm.get('code')?.errors?.['maxlength']">Country code must be less than 10 characters</div>
+              <div *ngIf="countryForm.get('name')?.errors?.['whitespace']">Country code cannot contain only whitespace</div>
             </div>
           </div>
           
