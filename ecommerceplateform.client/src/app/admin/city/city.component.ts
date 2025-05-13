@@ -30,6 +30,7 @@ export class CityComponent implements OnInit, OnDestroy {
   currentCityId: string | null = null;
   loading: boolean = false;
   selectedCountryId: string = '';
+  selectedStateId: string = '';
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
@@ -77,7 +78,8 @@ export class CityComponent implements OnInit, OnDestroy {
   private initForm(): void {
     this.cityForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
-      stateId: ['', [Validators.required]]
+      stateId: ['', [Validators.required]],
+      countrySelect: ['', [Validators.required]]
     });
   }
 
@@ -241,6 +243,7 @@ export class CityComponent implements OnInit, OnDestroy {
     if (state) {
       this.selectedCountryId = state.countryId;
       this.loadStates(state.countryId);
+      this.selectedStateId = city.stateId;
     }
     
     this.cityForm.patchValue({
