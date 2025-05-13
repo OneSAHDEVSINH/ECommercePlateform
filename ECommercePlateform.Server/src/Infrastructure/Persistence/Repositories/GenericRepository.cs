@@ -42,7 +42,10 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence.Repositories
 
         public async Task<T> GetByIdAsync(Guid id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            var entity = await _context.Set<T>().FindAsync(id)
+                ?? throw new InvalidOperationException($"Entity of type {typeof(T).Name} with ID {id} was not found.");
+            _context.Entry(entity).State = EntityState.Detached; // Detach the entity to avoid tracking issues
+            return entity;
         }
 
         public async Task UpdateAsync(T entity)

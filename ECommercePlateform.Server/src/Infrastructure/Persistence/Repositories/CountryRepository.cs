@@ -24,9 +24,12 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence.Repositories
 
         public async Task<Country> GetCountryWithStatesAsync(Guid id)
         {
-            return await _context.Countries
-                .Include(c => c.States.Where(s => s.IsActive && !s.IsDeleted))
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var country = await _context.Countries
+                .Include(c => c.States!.Where(s => s.IsActive && !s.IsDeleted))
+                .FirstOrDefaultAsync(c => c.Id == id)
+                ?? throw new InvalidOperationException($"Country with ID {id} not found.");
+
+            return country;
         }
 
         public async Task<bool> IsNameUniqueAsync(string name)
@@ -38,7 +41,7 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence.Repositories
         public async Task<bool> IsCodeUniqueAsync(string code)
         {
             return !await _context.Countries
-                .AnyAsync(c => c.Code.ToLower().Trim() == code.ToLower().Trim() && !c.IsDeleted);
+                .AnyAsync(c => c.Code!.ToLower().Trim() == code.ToLower().Trim() && !c.IsDeleted);
         }
 
         public async Task<bool> IsNameUniqueAsync(string name, Guid excludeId)
@@ -50,7 +53,7 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence.Repositories
         public async Task<bool> IsCodeUniqueAsync(string code, Guid excludeId)
         {
             return !await _context.Countries
-                .AnyAsync(c => c.Code.ToLower().Trim() == code.ToLower().Trim() && c.Id != excludeId && !c.IsDeleted);
+                .AnyAsync(c => c.Code!.ToLower().Trim() == code.ToLower().Trim() && c.Id != excludeId && !c.IsDeleted);
         }
     }
 } 
