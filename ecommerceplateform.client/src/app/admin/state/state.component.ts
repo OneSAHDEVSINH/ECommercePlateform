@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { State } from '../../models/state.model';
@@ -29,6 +29,15 @@ export class StateComponent implements OnInit {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+
+  noWhitespaceValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      // Check if the value exists and if it contains only whitespace
+      const isWhitespace = control.value && control.value.trim().length === 0;
+      // Return validation error if true, otherwise null
+      return isWhitespace ? { 'whitespace': true } : null;
+    };
+  }
 
   constructor(
     private stateService: StateService,
@@ -145,7 +154,11 @@ export class StateComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error updating state:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to update state' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to update State';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
@@ -159,7 +172,11 @@ export class StateComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error creating state:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to create state' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to create State';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });

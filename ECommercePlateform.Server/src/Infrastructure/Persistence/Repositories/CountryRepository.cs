@@ -28,5 +28,29 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence.Repositories
                 .Include(c => c.States.Where(s => s.IsActive && !s.IsDeleted))
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
+
+        public async Task<bool> IsNameUniqueAsync(string name)
+        {
+            return !await _context.Countries
+                .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && !c.IsDeleted);
+        }
+
+        public async Task<bool> IsCodeUniqueAsync(string code)
+        {
+            return !await _context.Countries
+                .AnyAsync(c => c.Code.ToLower().Trim() == code.ToLower().Trim() && !c.IsDeleted);
+        }
+
+        public async Task<bool> IsNameUniqueAsync(string name, Guid excludeId)
+        {
+            return !await _context.Countries
+                .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && c.Id != excludeId && !c.IsDeleted);
+        }
+
+        public async Task<bool> IsCodeUniqueAsync(string code, Guid excludeId)
+        {
+            return !await _context.Countries
+                .AnyAsync(c => c.Code.ToLower().Trim() == code.ToLower().Trim() && c.Id != excludeId && !c.IsDeleted);
+        }
     }
 } 

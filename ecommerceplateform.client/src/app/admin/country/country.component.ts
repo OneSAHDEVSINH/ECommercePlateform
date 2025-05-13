@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Country } from '../../models/country.model';
@@ -17,6 +17,7 @@ import { CustomValidatorsService } from '../../services/custom-validators.servic
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, NavbarComponent]
 })
+
 export class CountryComponent implements OnInit, OnDestroy {
   countries: Country[] = [];
   countryForm!: FormGroup;
@@ -32,7 +33,8 @@ export class CountryComponent implements OnInit, OnDestroy {
     private countryService: CountryService,
     private authService: AuthService,
     private messageService: MessageService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private nws: NoWhiteSpaceService
   ) { }
 
   ngOnInit(): void {
@@ -121,7 +123,12 @@ export class CountryComponent implements OnInit, OnDestroy {
             console.error('Server validation errors:', error.error);
             console.error('Request payload:', countryData);
           }
-          this.messageService.showMessage({ type: 'error', text: 'Failed to update country' });
+          // Extract the most useful error message
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to update country';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
@@ -139,7 +146,12 @@ export class CountryComponent implements OnInit, OnDestroy {
           if (error.error) {
             console.error('Server validation errors:', error.error);
           }
-          this.messageService.showMessage({ type: 'error', text: 'Failed to create country' });
+          // Extract the most useful error message
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to create country';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });

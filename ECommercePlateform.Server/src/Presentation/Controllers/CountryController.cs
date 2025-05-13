@@ -1,5 +1,6 @@
 using ECommercePlateform.Server.Core.Application.DTOs;
 using ECommercePlateform.Server.Core.Application.Interfaces;
+using ECommercePlateform.Server.Core.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -57,8 +58,16 @@ namespace ECommercePlateform.Server.Presentation.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateCountry([FromBody] CreateCountryDto createCountryDto)
         {
-            var country = await _countryService.CreateCountryAsync(createCountryDto);
-            return CreatedAtAction(nameof(GetCountryById), new { id = country.Id }, country);
+            try
+            {
+                var country = await _countryService.CreateCountryAsync(createCountryDto);
+                return CreatedAtAction(nameof(GetCountryById), new { id = country.Id }, country);
+            }
+            catch (DuplicateResourceException ex)
+            {
+                // Return 409 Conflict with the error message
+                return Conflict(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
@@ -73,6 +82,11 @@ namespace ECommercePlateform.Server.Presentation.Controllers
             catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            catch (DuplicateResourceException ex)
+            {
+                // Return 409 Conflict with the error message
+                return Conflict(new { message = ex.Message });
             }
         }
 

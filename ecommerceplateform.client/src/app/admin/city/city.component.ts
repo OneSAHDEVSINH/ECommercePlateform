@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { City } from '../../models/city.model';
@@ -33,6 +33,15 @@ export class CityComponent implements OnInit, OnDestroy {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+
+  noWhitespaceValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      // Check if the value exists and if it contains only whitespace
+      const isWhitespace = control.value && control.value.trim().length === 0;
+      // Return validation error if true, otherwise null
+      return isWhitespace ? { 'whitespace': true } : null;
+    };
+  }
 
   constructor(
     private cityService: CityService,
@@ -193,7 +202,12 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error updating city:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to update city' });
+          // Extract the most useful error message
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to update City';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
@@ -207,7 +221,11 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error creating city:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to create city' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to create City';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
