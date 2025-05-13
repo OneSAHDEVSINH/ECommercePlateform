@@ -15,7 +15,7 @@ namespace ECommercePlateform.Server.Infrastructure.Persistence.Repositories
         {
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.IsActive && !u.IsDeleted)
-                ?? throw new InvalidOperationException("User not found.");
+                ?? throw new InvalidOperationException("Email or password Invalid");
         }
 
         public async Task<User> FindUserByEmailAsync(string email)
