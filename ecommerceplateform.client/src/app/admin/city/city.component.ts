@@ -12,6 +12,7 @@ import { AuthService } from '../../services/auth.service';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from "../navbar/navbar.component";
+import { CustomValidatorsService } from '../../services/custom-validators.service';
 
 @Component({
   selector: 'app-city',
@@ -66,7 +67,7 @@ export class CityComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.cityForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
+      name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
       stateId: ['', [Validators.required]]
     });
   }

@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { CustomValidatorsService } from '../../services/custom-validators.service';
 
 @Component({
   selector: 'app-state',
@@ -60,8 +61,8 @@ export class StateComponent implements OnInit {
 
   private initForm(): void {
     this.stateForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
-      code: ['', [Validators.required, Validators.maxLength(10)]],
+      name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
+      code: ['', [Validators.required, Validators.maxLength(10), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
       countryId: ['', [Validators.required]]
     });
   }
