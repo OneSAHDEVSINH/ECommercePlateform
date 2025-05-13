@@ -16,22 +16,22 @@ namespace ECommercePlateform.Server.Core.Application.Mappings
 
             // State mappings
             CreateMap<State, StateDto>()
-                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country.Name))
+                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country != null ? src.Country.Name : string.Empty)) 
                 .ForMember(dest => dest.Cities, opt => opt.MapFrom(src => src.Cities));
             CreateMap<CreateStateDto, State>();
             CreateMap<UpdateStateDto, State>();
 
             // City mappings
             CreateMap<City, CityDto>()
-                .ForMember(dest => dest.StateName, opt => opt.MapFrom(src => src.State.Name))
-                .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.State.CountryId))
-                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.State.Country.Name));
+                .ForMember(dest => dest.StateName, opt => opt.MapFrom(src => src.State != null ? src.State.Name : string.Empty)) 
+                .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.State != null ? src.State.CountryId : Guid.Empty)) 
+                .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.State != null && src.State.Country != null ? src.State.Country.Name : string.Empty));
             CreateMap<CreateCityDto, City>();
             CreateMap<UpdateCityDto, City>();
 
             // Product mappings
             CreateMap<Product, ProductDto>()
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty)) 
                 .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants));
             CreateMap<CreateProductDto, Product>();
             CreateMap<UpdateProductDto, Product>();

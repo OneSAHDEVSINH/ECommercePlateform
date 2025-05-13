@@ -20,11 +20,11 @@ namespace ECommercePlateform.Server.src.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<City> GetCityWithStateAndCountryAsync(Guid id)
+        public async Task<City?> GetCityWithStateAndCountryAsync(Guid id)
         {
             return await _context.Cities
-                .Include(c => c.State)
-                    .ThenInclude(s => s.Country)
+                .Include(c => c.State!)
+                    .ThenInclude(s => s.Country!)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
@@ -35,15 +35,19 @@ namespace ECommercePlateform.Server.src.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<City> GetCityByNameAsync(string name)
+        public async Task<City?> GetCityByNameAsync(string name)
         {
             return await _context.Cities
                 .FirstOrDefaultAsync(c => c.Name == name && !c.IsDeleted);
         }
 
-        public Task<City> GetCityByIdAsync(Guid id)
+        public async Task<City> GetCityByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var city = await _context.Cities
+                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted)
+                ?? throw new InvalidOperationException($"City with ID {id} not found.");
+
+            return city;
         }
 
         public Task<IReadOnlyList<City>> GetActiveCountries()
