@@ -30,7 +30,7 @@ export class CityComponent implements OnInit, OnDestroy {
   currentCityId: string | null = null;
   loading: boolean = false;
   selectedCountryId: string = '';
-  selectedStateId: string = '';
+  //stateId: string = '';
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
@@ -78,8 +78,7 @@ export class CityComponent implements OnInit, OnDestroy {
   private initForm(): void {
     this.cityForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
-      stateId: ['', [Validators.required]],
-      countrySelect: ['', [Validators.required]]
+      stateId: ['', [Validators.required]]
     });
   }
 
@@ -234,26 +233,56 @@ export class CityComponent implements OnInit, OnDestroy {
     }
   }
 
+  //editCity(city: City): void {
+  //  this.isEditMode = true;
+  //  this.currentCityId = city.id || null;
+
+  //  // Find the state to get the associated country
+  //  const state = this.states.find(s => s.id === city.stateId);
+  //  if (state) {
+  //    this.selectedCountryId = state.countryId;
+  //    this.loadStates(state.countryId);
+  //    //this.stateId = city.stateId;
+  //  }
+
+  //  this.cityForm.patchValue({
+  //    name: city.name,
+  //    stateId: city.stateId,
+  //    modifiedOn: new Date(),
+  //    modifiedBy: this.getUserIdentifier(),
+  //    isActive: true,
+  //    isDeleted: false
+  //  });
+  //}
+
   editCity(city: City): void {
     this.isEditMode = true;
     this.currentCityId = city.id || null;
-    
+
     // Find the state to get the associated country
     const state = this.states.find(s => s.id === city.stateId);
     if (state) {
       this.selectedCountryId = state.countryId;
-      this.loadStates(state.countryId);
-      this.selectedStateId = city.stateId;
+
+      // Load states for the selected country and then set the stateId
+      this.stateService.getStatesByCountry(state.countryId).subscribe({
+        next: (states) => {
+          this.states = states;
+
+          // Now set the state value after states are loaded
+          this.cityForm.patchValue({
+            name: city.name,
+            stateId: city.stateId
+          });
+        }
+      });
+    } else {
+      // If state not found, patch form with available data
+      this.cityForm.patchValue({
+        name: city.name,
+        stateId: city.stateId
+      });
     }
-    
-    this.cityForm.patchValue({
-      name: city.name,
-      stateId: city.stateId,
-      modifiedOn: new Date(),
-      modifiedBy: this.getUserIdentifier(),
-      isActive: true,
-      isDeleted: false
-    });
   }
 
   deleteCity(id: string): void {

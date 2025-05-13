@@ -38,8 +38,8 @@
               <option value="">Select Country</option>
               <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
             </select>
-            <div *ngIf="cityForm.get('countrySelect')?.touched && cityForm.get('countrySelect')?.errors" class="error-message">
-              <div *ngIf="cityForm.get('countrySelect')?.errors?.['required']">Country is required</div>
+            <div *ngIf="cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors" class="error-message">
+              <div *ngIf="cityForm.get('stateId')?.errors?.['required']">Country is required</div>
             </div>
           </div>
 
@@ -50,17 +50,12 @@
               formControlName="stateId" 
               class="form-control"
               [ngClass]="{'is-invalid': cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors}"
-              [(ngModel)]="selectedCountryId"
-              
             >
               <!--[disabled]="!selectedCountryId || states.length === 0"-->
             
               <option value="">Select State</option>
               <option *ngFor="let state of states" [value]="state.id">{{ state.name }}</option>
             </select>
-            <div *ngIf="cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors" class="error-message">
-              <div *ngIf="cityForm.get('stateId')?.errors?.['required']">State is required</div>
-            </div>
           </div>
 
           <div class="form-group">
