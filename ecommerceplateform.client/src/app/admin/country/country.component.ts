@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from "../navbar/navbar.component";
+import { CustomValidatorsService } from '../../services/custom-validators.service';
 
 @Component({
   selector: 'app-country',
@@ -25,6 +26,7 @@ export class CountryComponent implements OnInit, OnDestroy {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+
 
   constructor(
     private countryService: CountryService,
@@ -55,8 +57,8 @@ export class CountryComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.countryForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
-      code: ['', [Validators.required, Validators.maxLength(10)]]
+      name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
+      code: ['', [Validators.required, Validators.maxLength(10), CustomValidatorsService.noWhitespaceValidator(), , CustomValidatorsService.lettersOnly()]]
     });
   }
 
