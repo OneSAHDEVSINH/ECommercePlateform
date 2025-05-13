@@ -52,6 +52,13 @@ export class AuthInterceptor implements HttpInterceptor {
             type: 'error',
             text: 'Server is unreachable. Please check your connection.'
           });
+        } else if (error.status === 409) {
+          // This is specifically for DuplicateResourceException (HTTP 409 Conflict)
+          const errorMessage = error.error?.message || 'A duplicate item was found.';
+          this.messageService.showMessage({
+            type: 'error',
+            text: errorMessage
+          });
         } else {
           // Extract error message from response if available
           const errorMessage = error.error?.message ||

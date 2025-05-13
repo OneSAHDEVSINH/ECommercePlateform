@@ -2,8 +2,10 @@
 using ECommercePlateform.Server.Core.Application.DTOs;
 using ECommercePlateform.Server.Core.Application.Interfaces;
 using ECommercePlateform.Server.Core.Domain.Entities;
+using ECommercePlateform.Server.Core.Domain.Exceptions;
 using ECommercePlateform.Server.Models;
 using ECommercePlateform.Server.src.Core.Application.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Mono.TextTemplating;
 using System.Diagnostics.Metrics;
 
@@ -28,14 +30,15 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
             bool isNameUnique = await _unitOfWork.States.IsNameUniqueInCountryAsync(createStateDto.Name, createStateDto.CountryId);
             if (!isNameUnique)
             {
-                throw new InvalidOperationException($"A state with the name '{createStateDto.Name}' already exists in the selected country.");
+                throw new DuplicateResourceException($"A state with the name '{createStateDto.Name}' already exists in the selected country.");
             }
 
             bool isCodeUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(createStateDto.Code, createStateDto.CountryId);
             if (!isCodeUnique)
             {
-                throw new InvalidOperationException($"A state with the code '{createStateDto.Code}' already exists in the selected country.");
+                throw new DuplicateResourceException($"A state with the code '{createStateDto.Code}' already exists in the selected country.");
             }
+
             var state = _mapper.Map<Server.Core.Domain.Entities.State>(createStateDto);
             state.CreatedOn = DateTime.Now;
             state.IsActive = true;
@@ -95,8 +98,9 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
                 bool isNameUnique = await _unitOfWork.States.IsNameUniqueInCountryAsync(updateStateDto.Name, updateStateDto.CountryId, id);
                 if (!isNameUnique)
                 {
-                    throw new InvalidOperationException($"A state with the name '{updateStateDto.Name}' already exists in the selected country.");
+                    throw new DuplicateResourceException($"A state with the name '{updateStateDto.Name}' already exists in the selected country.");
                 }
+
             }
 
             if (updateStateDto.Code != null && updateStateDto.Code != state.Code)
@@ -104,7 +108,7 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
                 bool isCodeUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(updateStateDto.Code, updateStateDto.CountryId, id);
                 if (!isCodeUnique)
                 {
-                    throw new InvalidOperationException($"A state with the code '{updateStateDto.Code}' already exists in the selected country.");
+                    throw new DuplicateResourceException($"A state with the code '{updateStateDto.Code}' already exists in the selected country.");
                 }
             }
             _mapper.Map(updateStateDto, state);

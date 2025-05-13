@@ -2,7 +2,9 @@ using AutoMapper;
 using ECommercePlateform.Server.Core.Application.DTOs;
 using ECommercePlateform.Server.Core.Application.Interfaces;
 using ECommercePlateform.Server.Core.Domain.Entities;
+using ECommercePlateform.Server.Core.Domain.Exceptions;
 using ECommercePlateform.Server.src.Core.Application.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +27,21 @@ namespace ECommercePlateform.Server.Core.Application.Services
 
         public async Task<CountryDto> CreateCountryAsync(CreateCountryDto createCountryDto)
         {
+            // Check for duplicate name
+            bool isNameUnique = await _unitOfWork.Countries.IsNameUniqueAsync(createCountryDto.Name);
+            if (!isNameUnique)
+            {
+                throw new DuplicateResourceException($"A country with the name '{createCountryDto.Name}' already exists.");
+                
+            }
+
+            // Check for duplicate code
+            bool isCodeUnique = await _unitOfWork.Countries.IsCodeUniqueAsync(createCountryDto.Code);
+            if (!isCodeUnique)
+            {
+                throw new DuplicateResourceException($"A country with the code '{createCountryDto.Code}' already exists.");
+            }
+
             var country = _mapper.Map<Country>(createCountryDto);
             country.CreatedOn = DateTime.Now;
             country.IsActive = true;
@@ -80,6 +97,25 @@ namespace ECommercePlateform.Server.Core.Application.Services
             var country = await _unitOfWork.Countries.GetByIdAsync(id);
             if (country == null)
                 throw new KeyNotFoundException($"Country with ID {id} not found");
+
+            // Check for duplicates if name or code is being updated
+            if (updateCountryDto.Name != null && updateCountryDto.Name != country.Name)
+            {
+                bool isNameUnique = await _unitOfWork.Countries.IsNameUniqueAsync(updateCountryDto.Name, id);
+                if (!isNameUnique)
+                {
+                    throw new DuplicateResourceException($"A country with the name '{updateCountryDto.Name}' already exists.");
+                }
+            }
+
+            if (updateCountryDto.Code != null && updateCountryDto.Code != country.Code)
+            {
+                bool isCodeUnique = await _unitOfWork.Countries.IsCodeUniqueAsync(updateCountryDto.Code, id);
+                if (!isCodeUnique)
+                {
+                    throw new DuplicateResourceException($"A country with the code '{updateCountryDto.Code}' already exists.");
+                }
+            }
 
             _mapper.Map(updateCountryDto, country);
             country.ModifiedOn = DateTime.Now;

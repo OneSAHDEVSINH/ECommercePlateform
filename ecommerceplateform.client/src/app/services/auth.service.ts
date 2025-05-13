@@ -46,6 +46,21 @@ export class AuthService {
     console.warn('DEV MODE: Auto-login enabled. Remove before production!');
   }
 
+  // helper method
+  getRoleFromString(role: string): UserRole {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        return UserRole.Admin;
+      case 'customer':
+        return UserRole.Customer;
+      case 'vendor':
+      case 'seller':
+        return UserRole.Seller;
+      default:
+        return UserRole.Guest;
+    }
+  }
+
   login(credentials: LoginRequest): Observable<LoginResponse> {
     // For development - REMOVE IN PRODUCTION
     if (this.devMode) {
@@ -70,6 +85,7 @@ export class AuthService {
       return of(response);
     }
 
+
     // Real implementation for production
     return this.http.post<LoginResponse>(`${this.apiUrl}/Auth/login`, credentials)
       .pipe(
@@ -85,7 +101,7 @@ export class AuthService {
             firstName: response.user.firstName || response.user.firstName || '',
             lastName: response.user.lastName || response.user.lastName || '',
             email: response.user.email || response.user.email || response.user.email || '',
-            role: response.user.role || response.user.role,
+            role: this.getRoleFromString(response.user.role) || response.user.role || response.user.role,
             isActive: response.user.isActive || response.user.isActive || true
           };
           
