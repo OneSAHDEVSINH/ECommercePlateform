@@ -23,32 +23,26 @@ namespace ECommercePlateform.Server.Models
         [StringLength(10, ErrorMessage = "Country Code cannot be longer than 10 characters.")]
         public required string Code { get; set; }
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string ModifiedBy { get; set; }
+        public string? ModifiedBy { get; set; }
 
-        [Required]
-        public required bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
-        [Required]
-        public required bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; }
 
         // Navigation properties for related entities
         public virtual ICollection<Address>? Addresses { get; set; } // Navigation property for related addresses
         public virtual ICollection<Cart>? Carts { get; set; } // Navigation property for related carts
         public virtual ICollection<CartItem>? CartItems { get; set; } // Navigation property for related cart items
         public virtual ICollection<City>? Cities { get; set; } // Navigation property for related cities
-        public virtual ICollection<Country>? Countries { get; set; } // Navigation property for related countries
+        //public virtual ICollection<Country>? Countries { get; set; } // Navigation property for related countries
         public virtual ICollection<Coupen>? Coupens { get; set; } // Navigation property for related coupens
         public virtual ICollection<Order>? Orders { get; set; } // Navigation property for related orders
         public virtual ICollection<OrderItem>? OrderItems { get; set; } // Navigation property for related order items

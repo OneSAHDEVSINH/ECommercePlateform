@@ -1,14 +1,17 @@
-import { HttpClient } from '@angular/common/http';
+// src/app/app.component.ts
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { FaviconService } from './services/favicon.service';
+import { MessageComponent } from './shared/message/message.component';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  standalone: true,
   imports: [RouterOutlet],
-  styleUrls: ['./app.component.css']
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.scss',
+  standalone: true
 })
 export class AppComponent {
-  title = 'ecommerceplateform.client';
+  constructor(private faviconService: FaviconService) { }
+  title = 'E-Commerce Plateform 💲';
 }

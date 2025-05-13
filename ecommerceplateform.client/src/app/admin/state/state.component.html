@@ -1,127 +1,137 @@
-<div class="state-container">
-  <h2>State Management</h2>
+<head>
+  <meta name="description" content="Admin State CRUD">
+</head>
+
+<div class="admin-container">
   
-  <div *ngIf="errorMessage" class="alert alert-danger">
-    {{ errorMessage }}
-    <button class="close-btn" (click)="clearMessages()">×</button>
-  </div>
-  
-  <div *ngIf="successMessage" class="alert alert-success">
-    {{ successMessage }}
-    <button class="close-btn" (click)="clearMessages()">×</button>
-  </div>
+<app-navbar></app-navbar>
+  <!-- Main content area -->
+  <main class="main-content">
+    <!-- Top navigation bar -->
+    <header class="topbar">
+      <div class="topbar-title">
+        <h2>Manage States</h2>
+      </div>
+    </header>
 
-  <div class="card">
-    <div class="card-header">
-      <h3>{{ isEditing ? 'Edit State' : 'Add New State' }}</h3>
-    </div>
-    <div class="card-body">
-      <form [formGroup]="stateForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="name">State Name</label>
-          <input 
-            type="text" 
-            id="name" 
-            formControlName="name" 
-            class="form-control" 
-            [ngClass]="{'is-invalid': stateForm.get('name')?.touched && stateForm.get('name')?.invalid}"
-          >
-          <div *ngIf="stateForm.get('name')?.touched && stateForm.get('name')?.hasError('required')" class="invalid-feedback">
-            State name is required
+    <!-- Content area -->
+    <div class="content">
+      <!-- Alert message if any -->
+      <div *ngIf="message" [ngClass]="['alert', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+        {{ message.text }}
+        <button class="alert-close" (click)="message = null">&times;</button>
+      </div>
+
+      <!-- State Form -->
+      <div class="form-container">
+        <h3>{{ isEditMode ? 'Edit State' : 'Add New State' }}</h3>
+        
+        <form [formGroup]="stateForm" (ngSubmit)="onSubmit()" class="data-form">
+          <div class="form-group">
+            <label for="countryId">Country</label>
+            <select 
+              id="countryId" 
+              formControlName="countryId" 
+              class="form-control"
+              [ngClass]="{'is-invalid': stateForm.get('countryId')?.touched && stateForm.get('countryId')?.errors}"
+            >
+              <option value="">Select Country</option>
+              <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+            </select>
+            <div *ngIf="stateForm.get('countryId')?.touched && stateForm.get('countryId')?.errors" class="error-message">
+              <div *ngIf="stateForm.get('countryId')?.errors?.['required']">Country is required</div>
+            </div>
           </div>
-          <div *ngIf="stateForm.get('name')?.touched && stateForm.get('name')?.hasError('maxlength')" class="invalid-feedback">
-            State name cannot exceed 100 characters
+
+          <div class="form-group">
+            <label for="name">State Name</label>
+            <input 
+              type="text" 
+              id="name" 
+              formControlName="name" 
+              class="form-control"
+              [ngClass]="{'is-invalid': stateForm.get('name')?.touched && stateForm.get('name')?.errors}"
+            >
+            <div *ngIf="stateForm.get('name')?.touched && stateForm.get('name')?.errors" class="error-message">
+              <div *ngIf="stateForm.get('name')?.errors?.['required']">State name is required</div>
+              <div *ngIf="stateForm.get('name')?.errors?.['maxlength']">State name must be less than 100 characters</div>
+              <div *ngIf="stateForm.get('name')?.errors?.['whitespace']">State name cannot contain only whitespace</div>
+              <div *ngIf="stateForm.get('name')?.errors?.['lettersOnly']">State name can only contain letters and spaces</div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="code">State Code</label>
+            <input 
+              type="text" 
+              id="code" 
+              formControlName="code" 
+              class="form-control"
+              [ngClass]="{'is-invalid': stateForm.get('code')?.touched && stateForm.get('code')?.errors}"
+            >
+            <div *ngIf="stateForm.get('code')?.touched && stateForm.get('code')?.errors" class="error-message">
+              <div *ngIf="stateForm.get('code')?.errors?.['required']">State code is required</div>
+              <div *ngIf="stateForm.get('code')?.errors?.['maxlength']">State code must be less than 10 characters</div>
+              <div *ngIf="stateForm.get('code')?.errors?.['whitespace']">State code cannot contain only whitespace</div>
+              <div *ngIf="stateForm.get('code')?.errors?.['lettersOnly']">State code can only contain letters and spaces</div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="stateForm.invalid || loading">
+              {{ isEditMode ? 'Update' : 'Add' }} State
+            </button>
+            <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- States list -->
+      <div class="table-container">
+        <div class="table-header">
+          <h3>States List</h3>
+          
+          <div class="filter-controls">
+            <label for="countryFilter">Filter by Country:</label>
+            <select 
+              id="countryFilter" 
+              class="form-control" 
+              (change)="onCountryFilterChange($event)"
+            >
+              <option value="all">All Countries</option>
+              <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+            </select>
           </div>
         </div>
         
-        <div class="form-group">
-          <label for="code">State Code</label>
-          <input 
-            type="text" 
-            id="code" 
-            formControlName="code" 
-            class="form-control" 
-            [ngClass]="{'is-invalid': stateForm.get('code')?.touched && stateForm.get('code')?.invalid}"
-          >
-          <div *ngIf="stateForm.get('code')?.touched && stateForm.get('code')?.hasError('required')" class="invalid-feedback">
-            State code is required
-          </div>
-          <div *ngIf="stateForm.get('code')?.touched && stateForm.get('code')?.hasError('maxlength')" class="invalid-feedback">
-            State code cannot exceed 10 characters
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="countryId">Country</label>
-          <select 
-            id="countryId" 
-            formControlName="countryId" 
-            class="form-control"
-            [ngClass]="{'is-invalid': stateForm.get('countryId')?.touched && stateForm.get('countryId')?.invalid}"
-          >
-            <option value="">Select Country</option>
-            <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
-          </select>
-          <div *ngIf="stateForm.get('countryId')?.touched && stateForm.get('countryId')?.hasError('required')" class="invalid-feedback">
-            Country is required
-          </div>
+        <div *ngIf="loading" class="loading-indicator">Loading...</div>
+        
+        <div *ngIf="states.length === 0 && !loading" class="no-data">
+          No states found. Please add a new state.
         </div>
         
-        <div class="form-check">
-          <input type="checkbox" id="isActive" formControlName="isActive" class="form-check-input">
-          <label class="form-check-label" for="isActive">Active</label>
-        </div>
-        
-        <div class="form-buttons">
-          <button type="submit" class="btn btn-primary" [disabled]="stateForm.invalid || isLoading">
-            {{ isEditing ? 'Update' : 'Create' }}
-          </button>
-          <button type="button" class="btn btn-secondary" (click)="resetForm()" [disabled]="isLoading">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="state-list card">
-    <div class="card-header">
-      <h3>States</h3>
-    </div>
-    <div class="card-body">
-      <div *ngIf="isLoading" class="loading">Loading...</div>
-      
-      <table *ngIf="!isLoading && states.length > 0" class="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Code</th>
-            <th>Country</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let state of states">
-            <td>{{ state.name }}</td>
-            <td>{{ state.code }}</td>
-            <td>{{ getCountryName(state.countryId) }}</td>
-            <td>
-              <span [ngClass]="{'badge-success': state.isActive, 'badge-danger': !state.isActive}" class="status-badge">
-                {{ state.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-info" (click)="editState(state)">Edit</button>
-              <button class="btn btn-sm btn-danger" (click)="deleteState(state.id!)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <div *ngIf="!isLoading && states.length === 0" class="no-data">
-        No states found. Add your first state above.
+        <table *ngIf="states.length > 0" class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Code</th>
+              <th>Country</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let state of states">
+              <td>{{ state.name }}</td>
+              <td>{{ state.code }}</td>
+              <td>{{ getCountryName(state.countryId) }}</td>
+              <td class="actions">
+                <button class="btn-edit" (click)="editState(state)">Edit</button>
+                <button class="btn-delete" (click)="deleteState(state.id!)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
-</div> 
+  </main>
+</div>

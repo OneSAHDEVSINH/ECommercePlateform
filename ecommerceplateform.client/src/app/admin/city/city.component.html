@@ -1,124 +1,136 @@
-<div class="city-container">
-  <h2>City Management</h2>
+<head>
+  <meta name="description" content="Admin City CRUD">
+</head>
+
+<div class="admin-container">
   
-  <div *ngIf="errorMessage" class="alert alert-danger">
-    {{ errorMessage }}
-    <button class="close-btn" (click)="clearMessages()">×</button>
-  </div>
-  
-  <div *ngIf="successMessage" class="alert alert-success">
-    {{ successMessage }}
-    <button class="close-btn" (click)="clearMessages()">×</button>
-  </div>
+<app-navbar></app-navbar>
+  <!-- Main content area -->
+  <main class="main-content">
+    <!-- Top navigation bar -->
+    <header class="topbar">
+      <div class="topbar-title">
+        <h2>Manage Cities</h2>
+      </div>
+    </header>
 
-  <div class="card">
-    <div class="card-header">
-      <h3>{{ isEditing ? 'Edit City' : 'Add New City' }}</h3>
-    </div>
-    <div class="card-body">
-      <form [formGroup]="cityForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="name">City Name</label>
-          <input 
-            type="text" 
-            id="name" 
-            formControlName="name" 
-            class="form-control" 
-            [ngClass]="{'is-invalid': cityForm.get('name')?.touched && cityForm.get('name')?.invalid}"
-          >
-          <div *ngIf="cityForm.get('name')?.touched && cityForm.get('name')?.hasError('required')" class="invalid-feedback">
-            City name is required
+    <!-- Content area -->
+    <div class="content">
+      <!-- Alert message if any -->
+      <div *ngIf="message" [ngClass]="['alert', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+        {{ message.text }}
+        <button class="alert-close" (click)="message = null">&times;</button>
+      </div>
+
+      <!-- City Form -->
+      <div class="form-container">
+        <h3>{{ isEditMode ? 'Edit City' : 'Add New City' }}</h3>
+        
+        <form [formGroup]="cityForm" (ngSubmit)="onSubmit()" class="data-form">
+          <div class="form-group">
+            <label for="countrySelect">Country</label>
+            <select 
+              id="countrySelect" 
+              class="form-control"
+              [ngClass]="{'is-invalid': cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors}"
+              [(ngModel)]="selectedCountryId"
+              [ngModelOptions]="{standalone: true}"
+              (change)="onCountryChange($event)"
+            >
+              <option value="">Select Country</option>
+              <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+            </select>
           </div>
-          <div *ngIf="cityForm.get('name')?.touched && cityForm.get('name')?.hasError('maxlength')" class="invalid-feedback">
-            City name cannot exceed 100 characters
+
+          <div class="form-group">
+            <label for="stateId">State</label>
+            <select 
+              id="stateId" 
+              formControlName="stateId" 
+              class="form-control"
+              [ngClass]="{'is-invalid': cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors}">
+              <!--[disabled]="!selectedCountryId || states.length === 0"-->
+            
+              <option value="">Select State</option>
+              <option *ngFor="let state of states" [value]="state.id">{{ state.name }}</option>
+            </select>
+            <div *ngIf="cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors" class="error-message">
+              <div *ngIf="cityForm.get('stateId')?.errors?.['required']">State is required</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="name">City Name</label>
+            <input 
+              type="text" 
+              id="name" 
+              formControlName="name" 
+              class="form-control"
+              [ngClass]="{'is-invalid': cityForm.get('name')?.touched && cityForm.get('name')?.errors}"
+            >
+            <div *ngIf="cityForm.get('name')?.touched && cityForm.get('name')?.errors" class="error-message">
+              <div *ngIf="cityForm.get('name')?.errors?.['required']">City name is required</div>
+              <div *ngIf="cityForm.get('name')?.errors?.['maxlength']">City name must be less than 100 characters</div>
+              <div *ngIf="cityForm.get('name')?.errors?.['whitespace']">City name cannot contain only whitespace</div>
+              <div *ngIf="cityForm.get('name')?.errors?.['lettersOnly']">City name can only contain letters and spaces</div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="cityForm.invalid || loading">
+              {{ isEditMode ? 'Update' : 'Add' }} City
+            </button>
+            <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Cities list -->
+      <div class="table-container">
+        <div class="table-header">
+          <h3>Cities List</h3>
+          
+          <div class="filter-controls">
+            <label for="stateFilter">Filter by State:</label>
+            <select 
+              id="stateFilter" 
+              class="form-control" 
+              (change)="onStateFilterChange($event)"
+            >
+              <option value="all">All States</option>
+              <option *ngFor="let state of states" [value]="state.id">{{ state.name }} ({{ getCountryForState(state.id || '') }})</option>
+            </select>
           </div>
         </div>
         
-        <div class="form-group">
-          <label for="country">Country</label>
-          <select 
-            id="country" 
-            class="form-control"
-            (change)="onCountryChange($event)"
-            [value]="selectedCountryId || ''"
-          >
-            <option value="">Select Country</option>
-            <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="stateId">State</label>
-          <select 
-            id="stateId" 
-            formControlName="stateId" 
-            class="form-control"
-            [ngClass]="{'is-invalid': cityForm.get('stateId')?.touched && cityForm.get('stateId')?.invalid}"
-            [disabled]="!selectedCountryId"
-          >
-            <option value="">Select State</option>
-            <option *ngFor="let state of states" [value]="state.id">{{ state.name }}</option>
-          </select>
-          <div *ngIf="cityForm.get('stateId')?.touched && cityForm.get('stateId')?.hasError('required')" class="invalid-feedback">
-            State is required
-          </div>
+        <div *ngIf="loading" class="loading-indicator">Loading...</div>
+        
+        <div *ngIf="cities.length === 0 && !loading" class="no-data">
+          No cities found. Please add a new city.
         </div>
         
-        <div class="form-check">
-          <input type="checkbox" id="isActive" formControlName="isActive" class="form-check-input">
-          <label class="form-check-label" for="isActive">Active</label>
-        </div>
-        
-        <div class="form-buttons">
-          <button type="submit" class="btn btn-primary" [disabled]="cityForm.invalid || isLoading">
-            {{ isEditing ? 'Update' : 'Create' }}
-          </button>
-          <button type="button" class="btn btn-secondary" (click)="resetForm()" [disabled]="isLoading">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="city-list card">
-    <div class="card-header">
-      <h3>Cities</h3>
-    </div>
-    <div class="card-body">
-      <div *ngIf="isLoading" class="loading">Loading...</div>
-      
-      <table *ngIf="!isLoading && cities.length > 0" class="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>State</th>
-            <th>Country</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let city of cities">
-            <td>{{ city.name }}</td>
-            <td>{{ city.state?.name || 'Unknown' }}</td>
-            <td>{{ city.state?.country?.name || 'Unknown' }}</td>
-            <td>
-              <span [ngClass]="{'badge-success': city.isActive, 'badge-danger': !city.isActive}" class="status-badge">
-                {{ city.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
-            <td>
-              <button class="btn btn-sm btn-info" (click)="editCity(city)">Edit</button>
-              <button class="btn btn-sm btn-danger" (click)="deleteCity(city.id!)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <div *ngIf="!isLoading && cities.length === 0" class="no-data">
-        No cities found. Add your first city above.
+        <table *ngIf="cities.length > 0" class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>State</th>
+              <th>Country</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let city of cities">
+              <td>{{ city.name }}</td>
+              <td>{{ getStateName(city.stateId) }}</td>
+              <td>{{ getCountryForState(city.stateId) }}</td>
+              <td class="actions">
+                <button class="btn-edit" (click)="editCity(city)">Edit</button>
+                <button class="btn-delete" (click)="deleteCity(city.id!)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
-</div> 
+  </main>
+</div>

@@ -10,6 +10,17 @@ namespace ECommercePlateform.Server.Data
         {
         }
 
+        //ingnore datetime.now database warnings
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    base.OnConfiguring(optionsBuilder);
+
+        //    optionsBuilder
+        //        .ConfigureWarnings(warnings => warnings
+        //        .Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        //}
+
+
         // DbSet properties for all entities
         public DbSet<User> Users { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -45,6 +56,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(254);
                 entity.Property(e => e.Password).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(15);
+
+                //self navigation
+                //entity.Property(e => e.Users).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
 
                 entity.HasMany(u => u.Addresses)
                     .WithOne(a => a.User)
@@ -82,6 +96,10 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.Line3).HasMaxLength(100);
                 entity.Property(e => e.ZipCode).IsRequired().HasMaxLength(18);
 
+                //self navigation
+                //entity.Property(e => e.Addresses).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
+
                 entity.HasOne(a => a.City)
                     .WithMany(c => c.Addresses)
                     .HasForeignKey(a => a.CityId)
@@ -106,6 +124,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.TotalItems).IsRequired();
                 entity.Property(e => e.TotalAmount).IsRequired().HasPrecision(18, 2);
 
+                //self navigation
+                //entity.Property(e => e.Carts).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
                 entity.HasMany(c => c.CartItems)
                     .WithOne(ci => ci.Cart)
                     .HasForeignKey(ci => ci.CartId)
@@ -119,6 +140,9 @@ namespace ECommercePlateform.Server.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Quantity).IsRequired();
                 entity.Property(e => e.UnitPrice).IsRequired().HasPrecision(18, 2);
+
+                //self navigation
+                //entity.Property(e => e.CartItems).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
 
                 entity.HasOne(ci => ci.Product)
                     .WithMany(p => p.CartItems)
@@ -138,6 +162,9 @@ namespace ECommercePlateform.Server.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
 
+                //self navigation
+                //entity.Property(e => e.Cities).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
                 entity.HasOne(c => c.State)
                     .WithMany(s => s.Cities)
                     .HasForeignKey(c => c.StateId)
@@ -152,6 +179,10 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Code).IsRequired().HasMaxLength(10);
 
+                //self navigation
+                //entity.Property(e => e.Countries).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
+
             });
 
             // Coupen entity configurations
@@ -163,6 +194,10 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.DiscountValue).IsRequired().HasPrecision(18, 2);
                 entity.Property(e => e.MinimumValue).IsRequired().HasPrecision(18, 2);
                 entity.Property(e => e.MaximumValue).IsRequired().HasPrecision(18, 2);
+
+                //self navigation
+                //entity.Property(e => e.Coupens).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
 
                 entity.HasOne(c => c.Product)
                     .WithMany(p => p.Coupens)
@@ -187,6 +222,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.TaxAmount).IsRequired().HasPrecision(18, 2);
                 entity.Property(e => e.ShippingAmount).IsRequired().HasPrecision(18, 2);
                 entity.Property(e => e.TotalAmount).IsRequired().HasPrecision(18, 2);
+
+                //self navigation
+                //entity.Property(e => e.Orders).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
 
                 entity.HasOne(o => o.ShippingAddress)
                     .WithMany(sa => sa.Orders)
@@ -215,6 +253,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.UnitPrice).IsRequired().HasPrecision(18, 2);
                 entity.Property(e => e.TotalPrice).IsRequired().HasPrecision(18, 2);
 
+                //self navigation
+                //entity.Property(e => e.OrderItems).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
                 entity.HasOne(oi => oi.Product)
                     .WithMany(p => p.OrderItems)
                     .HasForeignKey(oi => oi.ProductId)
@@ -236,6 +277,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.BasePrice).IsRequired().HasPrecision(18, 2);
                 entity.Property(e => e.SKU).HasMaxLength(50);
                 entity.Property(e => e.Tags).HasMaxLength(100);
+
+                //self navigation
+                //entity.Property(e => e.Products).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
 
                 entity.HasMany(p => p.ProductVarients)
                     .WithOne(pv => pv.Product)
@@ -262,6 +306,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.Tags).HasMaxLength(100);
                 entity.Property(e => e.StockQuantity).IsRequired();
 
+                //self navigation
+                //entity.Property(e => e.ProductVarients).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
             });
 
             // Review entity configurations
@@ -270,6 +317,9 @@ namespace ECommercePlateform.Server.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Rating).IsRequired();
                 entity.Property(e => e.ReviewText).IsRequired().HasMaxLength(255);
+
+                //self navigation
+                //entity.Property(e => e.Reviews).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
 
             });
 
@@ -281,6 +331,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.DeliveryFee).IsRequired().HasPrecision(18, 2);
                 entity.Property(e => e.FreeDeliveryAbove).IsRequired().HasPrecision(18, 2);
 
+                //self navigation
+                //entity.Property(e => e.Settings).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
             });
 
             // ShippingAddress entity configurations
@@ -291,6 +344,9 @@ namespace ECommercePlateform.Server.Data
                 entity.Property(e => e.Line2).HasMaxLength(100);
                 entity.Property(e => e.Line3).HasMaxLength(100);
                 entity.Property(e => e.ZipCode).IsRequired().HasMaxLength(18);
+
+                //self navigation
+                //entity.Property(e => e.ShippingAddresses).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
 
                 entity.HasOne(sa => sa.City)
                     .WithMany(c => c.ShippingAddresses)
@@ -315,6 +371,9 @@ namespace ECommercePlateform.Server.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Code).IsRequired().HasMaxLength(10);
+
+                //self navigation
+                //entity.Property(e => e.States).UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
 
                 entity.HasOne(s => s.Country)
                     .WithMany(c => c.States)
@@ -356,6 +415,9 @@ namespace ECommercePlateform.Server.Data
             // Create a default admin user
             var adminId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F"); // Fixed GUID for admin
 
+            // Use a specific fixed date instead of DateTime.Now
+            var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0); // Year, Month, Day, Hour, Minute, Second
+
             modelBuilder.Entity<User>().HasData(
                 new User
                 {
@@ -363,15 +425,15 @@ namespace ECommercePlateform.Server.Data
                     FirstName = "Admin",
                     LastName = "User",
                     Email = "admin@admin.com",
-                    Password = "Admin@123", // In production, use a hashed password
+                    Password = "Admin@123", 
                     ConfirmPassword = "Admin@123",
                     PhoneNumber = "1234567890",
                     DateOfBirth = new DateOnly(1990, 1, 1),
                     Gender = Models.Enum.Gender.Male,
                     Bio = "System Administrator",
                     Role = Models.Enum.UserRole.Admin,
-                    CreatedOn = DateTime.Now,
-                    ModifiedOn = DateTime.Now,
+                    CreatedOn = fixedDate,
+                    ModifiedOn = fixedDate,
                     CreatedBy = "System",
                     ModifiedBy = "System",
                     IsActive = true,

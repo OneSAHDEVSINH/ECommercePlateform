@@ -47,25 +47,19 @@ namespace ECommercePlateform.Server.Models
         [DefaultValue(false)]
         public bool IsReported { get; set; } // Indicates whether the review is reported by a user
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
-        [Required]
         [DataType(DataType.DateTime)]
-        public required DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
 
-        [Required]
-        public required string ModifiedBy { get; set; }
+        public string? ModifiedBy { get; set; }
 
-        [Required]
-        public required bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
-        [Required]
-        public required bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; }
 
         // Navigation properties for related entities
         public virtual ICollection<Address>? Addresses { get; set; } // Navigation property for related addresses
@@ -78,7 +72,7 @@ namespace ECommercePlateform.Server.Models
         public virtual ICollection<OrderItem>? OrderItems { get; set; } // Navigation property for related order items
         public virtual ICollection<Product>? Products { get; set; } // Navigation property for related products
         public virtual ICollection<ProductVarient>? ProductVarients { get; set; } // Navigation property for related product varients
-        public virtual ICollection<Review>? Reviews { get; set; } // Navigation property for related reviews
+        //public virtual ICollection<Review>? Reviews { get; set; } // Navigation property for related reviews
         public virtual ICollection<Setting>? Settings { get; set; } // Navigation property for related settings
         public virtual ICollection<ShippingAddress>? ShippingAddresses { get; set; } // Navigation property for related shipping addresses
         public virtual ICollection<State>? States { get; set; } // Navigation property for related states

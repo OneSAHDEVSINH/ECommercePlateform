@@ -1,30 +1,40 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { Message } from '../../services/message.service';
+import { CountryComponent } from '../country/country.component';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, RouterModule, RouterOutlet],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrls: ['./dashboard.component.scss'],
+  standalone: true,
+  imports: [CommonModule, RouterModule, NavbarComponent]
 })
 export class DashboardComponent implements OnInit {
+  userName: string = '';
+  
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    // Check if user is authenticated
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/admin/login']);
-    }
+    this.authService.currentUser$.subscribe(user => {
+      console.log('Current user in dashboard:', user);
+      if (user) {
+        const firstName = user.firstName || user['firstName'] || '';
+        const lastName = user.lastName || user['lastName'] || '';
+        this.userName = `${firstName} ${lastName}`.trim() || user.email;
+        console.log('User name set to:', this.userName);
+      }
+    });
   }
 
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/admin/login']);
   }
-} 
+}
