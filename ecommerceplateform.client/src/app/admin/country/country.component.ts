@@ -33,8 +33,7 @@ export class CountryComponent implements OnInit, OnDestroy {
     private countryService: CountryService,
     private authService: AuthService,
     private messageService: MessageService,
-    private fb: FormBuilder,
-    private nws: NoWhiteSpaceService
+    private fb: FormBuilder
   ) { }
 
   ngOnInit(): void {
