@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { State } from '../../models/state.model';
@@ -28,6 +28,15 @@ export class StateComponent implements OnInit {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+
+  noWhitespaceValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      // Check if the value exists and if it contains only whitespace
+      const isWhitespace = control.value && control.value.trim().length === 0;
+      // Return validation error if true, otherwise null
+      return isWhitespace ? { 'whitespace': true } : null;
+    };
+  }
 
   constructor(
     private stateService: StateService,
@@ -60,8 +69,8 @@ export class StateComponent implements OnInit {
 
   private initForm(): void {
     this.stateForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
-      code: ['', [Validators.required, Validators.maxLength(10)]],
+      name: ['', [Validators.required, Validators.maxLength(100), this.noWhitespaceValidator()]],
+      code: ['', [Validators.required, Validators.maxLength(10), this.noWhitespaceValidator()]],
       countryId: ['', [Validators.required]]
     });
   }

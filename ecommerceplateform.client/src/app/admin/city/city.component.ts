@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { City } from '../../models/city.model';
@@ -32,6 +32,15 @@ export class CityComponent implements OnInit, OnDestroy {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+
+  noWhitespaceValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      // Check if the value exists and if it contains only whitespace
+      const isWhitespace = control.value && control.value.trim().length === 0;
+      // Return validation error if true, otherwise null
+      return isWhitespace ? { 'whitespace': true } : null;
+    };
+  }
 
   constructor(
     private cityService: CityService,
@@ -66,7 +75,7 @@ export class CityComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.cityForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
+      name: ['', [Validators.required, Validators.maxLength(100), this.noWhitespaceValidator()]],
       stateId: ['', [Validators.required]]
     });
   }

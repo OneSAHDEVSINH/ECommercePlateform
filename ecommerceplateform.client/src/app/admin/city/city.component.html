@@ -71,6 +71,7 @@
             <div *ngIf="cityForm.get('name')?.touched && cityForm.get('name')?.errors" class="error-message">
               <div *ngIf="cityForm.get('name')?.errors?.['required']">City name is required</div>
               <div *ngIf="cityForm.get('name')?.errors?.['maxlength']">City name must be less than 100 characters</div>
+              <div *ngIf="cityForm.get('name')?.errors?.['whitespace']">City name cannot contain only whitespace</div>
             </div>
           </div>
           

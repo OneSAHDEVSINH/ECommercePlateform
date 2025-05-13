@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Country } from '../../models/country.model';
@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { MessageService, Message } from '../../services/message.service';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from "../navbar/navbar.component";
+import { NoWhiteSpaceService } from '../../services/no-white-space.service';
 
 @Component({
   selector: 'app-country',
@@ -16,6 +17,7 @@ import { NavbarComponent } from "../navbar/navbar.component";
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, NavbarComponent]
 })
+
 export class CountryComponent implements OnInit, OnDestroy {
   countries: Country[] = [];
   countryForm!: FormGroup;
@@ -26,11 +28,22 @@ export class CountryComponent implements OnInit, OnDestroy {
   private currentUser: any = null;
   private messageSubscription!: Subscription;
 
+  // Custom validator function to prevent whitespace-only values
+  noWhitespaceValidator(): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    // Check if the value exists and if it contains only whitespace
+    const isWhitespace = control.value && control.value.trim().length === 0;
+    // Return validation error if true, otherwise null
+    return isWhitespace ? { 'whitespace': true } : null;
+  };
+}
+
   constructor(
     private countryService: CountryService,
     private authService: AuthService,
     private messageService: MessageService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private nws: NoWhiteSpaceService
   ) { }
 
   ngOnInit(): void {
@@ -55,8 +68,8 @@ export class CountryComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.countryForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(100)]],
-      code: ['', [Validators.required, Validators.maxLength(10)]]
+      name: ['', [Validators.required, Validators.maxLength(100), this.noWhitespaceValidator()]],
+      code: ['', [Validators.required, Validators.maxLength(10), this.noWhitespaceValidator()]]
     });
   }
 
