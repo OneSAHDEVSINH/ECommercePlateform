@@ -1,17 +1,14 @@
-using ECommercePlateform.Server.Core.Application.Interfaces;
-using ECommercePlateform.Server.Core.Application.Mappings;
-using ECommercePlateform.Server.Core.Application.Services;
-using ECommercePlateform.Server.Infrastructure.Persistence.Repositories;
-using ECommercePlateform.Server.Infrastructure.Persistence;
+using ECommercePlateform.API.Middleware;
+using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Mappings;
+using ECommercePlateform.Application.Services;
+using ECommercePlateform.Infrastructure;
+using ECommercePlateform.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using ECommercePlateform.Server.Presentation.Middleware;
-using ECommercePlateform.Server.src.Core.Application.Interfaces;
-using ECommercePlateform.Server.src.Core.Application.Services;
-using ECommercePlateform.Server.src.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,21 +42,22 @@ builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IStateRepository, StateRepository>();
-builder.Services.AddScoped<ICityRepository, CityRepository>();  
+builder.Services.AddScoped<ICityRepository, CityRepository>();
 
 
 // Register services
 builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IStateService, StateService>(); 
+builder.Services.AddScoped<IStateService, StateService>();
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(c => {
+builder.Services.AddSwaggerGen(c =>
+{
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "JWTToken_Auth_API",
@@ -113,10 +111,10 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddCors();
-builder.Services.AddDbContext<ECommercePlateform.Server.Infrastructure.Persistence.AppDbContext>(options =>
+builder.Services.AddDbContext<ECommercePlateform.Infrastructure.AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-    //To ignore databse warning datateti,e now admin seed from here. use anly one either from here or from AppDbContext.
-    //.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
+//To ignore databse warning datateti,e now admin seed from here. use anly one either from here or from AppDbContext.
+//.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 // Add JWT Authentication
 
 //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -166,7 +164,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        var dbContext = services.GetRequiredService<ECommercePlateform.Server.Infrastructure.Persistence.AppDbContext>();
+        var dbContext = services.GetRequiredService<ECommercePlateform.Infrastructure.AppDbContext>();
         dbContext.Database.Migrate(); // This will apply any pending migrations and create the database if it doesn't exist
         Console.WriteLine("Database migrated successfully.");
     }
