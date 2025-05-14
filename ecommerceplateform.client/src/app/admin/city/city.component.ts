@@ -264,26 +264,72 @@ export class CityComponent implements OnInit, OnDestroy {
     if (state) {
       this.selectedCountryId = state.countryId;
 
-      // Load states for the selected country and then set the stateId
+      // First load states for the selected country
       this.stateService.getStatesByCountry(state.countryId).subscribe({
         next: (states) => {
           this.states = states;
 
-          // Now set the state value after states are loaded
-          this.cityForm.patchValue({
-            name: city.name,
-            stateId: city.stateId
+          // After states are loaded, set form values
+          setTimeout(() => {
+            this.cityForm.patchValue({
+              name: city.name,
+              stateId: city.stateId
+            });
+          });
+        },
+        error: (error) => {
+          console.error('Error loading states for city editing:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: 'Failed to load states for the selected country'
           });
         }
       });
     } else {
-      // If state not found, patch form with available data
-      this.cityForm.patchValue({
-        name: city.name,
-        stateId: city.stateId
+      // If we can't find the state in our current list,
+      // we need to load all states first to ensure we have the right data
+      this.stateService.getStates().subscribe({
+        next: (states) => {
+          this.states = states;
+
+          // Now try to find the state again with the fresh data
+          const refreshedState = this.states.find(s => s.id === city.stateId);
+          if (refreshedState) {
+            this.selectedCountryId = refreshedState.countryId;
+
+            // Load states for this country
+            this.stateService.getStatesByCountry(refreshedState.countryId).subscribe({
+              next: (countryStates) => {
+                this.states = countryStates;
+
+                // Now set form values
+                setTimeout(() => {
+                  this.cityForm.patchValue({
+                    name: city.name,
+                    stateId: city.stateId
+                  });
+                });
+              }
+            });
+          } else {
+            // If still can't find state, just patch form with what we have
+            this.cityForm.patchValue({
+              name: city.name,
+              stateId: city.stateId
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error loading all states for city editing:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: 'Failed to load states'
+          });
+        }
       });
     }
   }
+
 
   deleteCity(id: string): void {
     if (confirm('Are you sure you want to delete this city?')) {
