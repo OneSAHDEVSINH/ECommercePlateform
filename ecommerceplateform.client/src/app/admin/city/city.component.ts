@@ -19,7 +19,7 @@ import { CustomValidatorsService } from '../../services/custom-validators/custom
   templateUrl: './city.component.html',
   styleUrls: ['./city.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent, NavbarComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent]
 })
 export class CityComponent implements OnInit, OnDestroy {
   cities: City[] = [];

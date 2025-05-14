@@ -15,7 +15,7 @@ import { CustomValidatorsService } from '../../services/custom-validators/custom
   templateUrl: './country.component.html',
   styleUrls: ['./country.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, NavbarComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent]
 })
 
 export class CountryComponent implements OnInit, OnDestroy {
