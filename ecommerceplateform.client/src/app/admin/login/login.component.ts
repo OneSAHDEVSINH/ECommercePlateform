@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth.service';
-import { ThemeService, ThemeType } from '../../services/theme.service';
+import { AuthService } from '../../services/auth/auth.service';
+import { ThemeService, ThemeType } from '../../services/general/theme.service';
 import {
   trigger,
   transition,
@@ -15,7 +15,7 @@ import {
   stagger,
   animateChild
 } from '@angular/animations';
-import { MessageService, Message } from '../../services/message.service';
+import { MessageService, Message } from '../../services/general/message.service';
 import { Subscription } from 'rxjs';
 
 @Component({

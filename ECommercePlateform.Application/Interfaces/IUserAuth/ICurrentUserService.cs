@@ -1,4 +1,4 @@
-﻿namespace ECommercePlateform.Application.Interfaces
+﻿namespace ECommercePlateform.Application.Interfaces.IAuth
 {
     public interface ICurrentUserService
     {

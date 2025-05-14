@@ -1,5 +1,5 @@
 using ECommercePlateform.Application.DTOs;
-using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Interfaces.IAuth;
 using ECommercePlateform.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;

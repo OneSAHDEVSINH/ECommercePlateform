@@ -1,6 +1,7 @@
-﻿using ECommercePlateform.Domain.Entities;
+﻿using ECommercePlateform.Application.Interfaces.IGeneral;
+using ECommercePlateform.Domain.Entities;
 
-namespace ECommercePlateform.Application.Interfaces
+namespace ECommercePlateform.Application.Interfaces.IState
 {
     public interface IStateRepository : IGenericRepository<State>
     {

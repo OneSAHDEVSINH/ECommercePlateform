@@ -3,12 +3,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn, A
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Country } from '../../models/country.model';
-import { CountryService } from '../../services/country.service';
-import { AuthService } from '../../services/auth.service';
-import { MessageService, Message } from '../../services/message.service';
+import { CountryService } from '../../services/country/country.service';
+import { AuthService } from '../../services/auth/auth.service';
+import { MessageService, Message } from '../../services/general/message.service';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from "../navbar/navbar.component";
-import { CustomValidatorsService } from '../../services/custom-validators.service';
+import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
 
 @Component({
   selector: 'app-country',
