@@ -1,5 +1,11 @@
 using ECommercePlateform.API.Middleware;
 using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Interfaces.IAuth;
+using ECommercePlateform.Application.Interfaces.ICity;
+using ECommercePlateform.Application.Interfaces.ICountry;
+using ECommercePlateform.Application.Interfaces.IGeneral;
+using ECommercePlateform.Application.Interfaces.IProduct;
+using ECommercePlateform.Application.Interfaces.IState;
 using ECommercePlateform.Application.Mappings;
 using ECommercePlateform.Application.Services;
 using ECommercePlateform.Infrastructure;

@@ -1,4 +1,4 @@
-﻿using ECommercePlateform.Application.Interfaces;
+﻿using ECommercePlateform.Application.Interfaces.IState;
 using ECommercePlateform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 

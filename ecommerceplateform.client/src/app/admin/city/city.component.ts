@@ -5,14 +5,14 @@ import { RouterModule } from '@angular/router';
 import { City } from '../../models/city.model';
 import { State } from '../../models/state.model';
 import { Country } from '../../models/country.model';
-import { CityService } from '../../services/city.service';
-import { StateService } from '../../services/state.service';
-import { CountryService } from '../../services/country.service';
-import { AuthService } from '../../services/auth.service';
-import { MessageService, Message } from '../../services/message.service';
+import { CityService } from '../../services/city/city.service';
+import { StateService } from '../../services/state/state.service';
+import { CountryService } from '../../services/country/country.service';
+import { AuthService } from '../../services/auth/auth.service';
+import { MessageService, Message } from '../../services/general/message.service';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from "../navbar/navbar.component";
-import { CustomValidatorsService } from '../../services/custom-validators.service';
+import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
 
 @Component({
   selector: 'app-city',
