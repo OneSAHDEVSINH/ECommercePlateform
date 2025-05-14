@@ -1,7 +1,6 @@
 using ECommercePlateform.Server.Core.Application.Interfaces;
 using ECommercePlateform.Server.Core.Application.Mappings;
 using ECommercePlateform.Server.Core.Application.Services;
-using ECommercePlateform.Server.Data;
 using ECommercePlateform.Server.Infrastructure.Persistence.Repositories;
 using ECommercePlateform.Server.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

@@ -3,7 +3,6 @@ using ECommercePlateform.Server.Core.Application.DTOs;
 using ECommercePlateform.Server.Core.Application.Interfaces;
 using ECommercePlateform.Server.Core.Domain.Entities;
 using ECommercePlateform.Server.Core.Domain.Exceptions;
-using ECommercePlateform.Server.Models;
 using ECommercePlateform.Server.src.Core.Application.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
@@ -41,6 +40,7 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
             var city = _mapper.Map<Server.Core.Domain.Entities.City>(createCityDto);
             city.CreatedOn = DateTime.Now;
             city.IsActive = true;
+
             // Set the creator information
             if (_currentUserService.IsAuthenticated)
             {
@@ -48,7 +48,10 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
                 city.CreatedBy = _currentUserService.UserId ?? _currentUserService.Email;
                 city.ModifiedBy = city.CreatedBy;
             }
+
+            // Add the city to the database
             var result = await _unitOfWork.Cities.AddAsync(city);
+
             await _unitOfWork.CompleteAsync();
             return _mapper.Map<CityDto>(result);
         }
@@ -56,8 +59,10 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
         public async Task DeleteCityAsync(Guid id)
         {
             var city = await _unitOfWork.Cities.GetByIdAsync(id);
+
             if (city == null)
                 throw new KeyNotFoundException($"City with ID {id} not found");
+
             await _unitOfWork.Cities.DeleteAsync(city);
             await _unitOfWork.CompleteAsync();
         }
@@ -90,8 +95,10 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
         public async Task<CityDto> GetCityByIdAsync(Guid id)
         {
             var city = await _unitOfWork.Cities.GetByIdAsync(id);
+
             if (city == null)
                 throw new KeyNotFoundException($"City with ID {id} not found");
+
             return _mapper.Map<CityDto>(city);
         }
 
@@ -103,6 +110,7 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
         public async Task UpdateCityAsync(Guid id, UpdateCityDto updateCityDto)
         {
             var city = await _unitOfWork.Cities.GetByIdAsync(id);
+
             if (city == null)
                 throw new KeyNotFoundException($"City with ID {id} not found");
 
@@ -135,11 +143,13 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
 
             _mapper.Map(updateCityDto, city);
             city.ModifiedOn = DateTime.Now;
+
             // Set the modifier information
             if (_currentUserService.IsAuthenticated)
             {
                 city.ModifiedBy = _currentUserService.UserId ?? _currentUserService.Email;
             }
+
             await _unitOfWork.Cities.UpdateAsync(city);
             await _unitOfWork.CompleteAsync();
         }

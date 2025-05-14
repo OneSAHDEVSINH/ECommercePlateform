@@ -3,7 +3,6 @@ using ECommercePlateform.Server.Core.Application.DTOs;
 using ECommercePlateform.Server.Core.Application.Interfaces;
 using ECommercePlateform.Server.Core.Domain.Entities;
 using ECommercePlateform.Server.Core.Domain.Exceptions;
-using ECommercePlateform.Server.Models;
 using ECommercePlateform.Server.src.Core.Application.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Mono.TextTemplating;
@@ -49,6 +48,7 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
             var state = _mapper.Map<Server.Core.Domain.Entities.State>(createStateDto);
             state.CreatedOn = DateTime.Now;
             state.IsActive = true;
+
             // Set the creator information
             if (_currentUserService.IsAuthenticated)
             {
@@ -56,15 +56,19 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
                 state.CreatedBy = _currentUserService.UserId ?? _currentUserService.Email;
                 state.ModifiedBy = state.CreatedBy;
             }
+
             var result = await _unitOfWork.States.AddAsync(state);
+
             await _unitOfWork.CompleteAsync();
             return _mapper.Map<StateDto>(result);
         }
         public async Task DeleteStateAsync(Guid id)
         {
             var state = await _unitOfWork.States.GetByIdAsync(id);
+
             if (state == null)
                 throw new KeyNotFoundException($"State with ID {id} not found");
+
             await _unitOfWork.States.DeleteAsync(state);
             await _unitOfWork.CompleteAsync();
         }
@@ -78,16 +82,20 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
         public async Task<StateDto> GetStateByIdAsync(Guid id)
         {
             var state = await _unitOfWork.States.GetByIdAsync(id);
+
             if (state == null)
                 throw new KeyNotFoundException($"State with ID {id} not found");
+
             return _mapper.Map<StateDto>(state);
         }
 
         public async Task<StateDto> GetStateWithCitiesAsync(Guid id)
         {
             var state = await _unitOfWork.States.GetStateWithCitiesAsync(id);
+
             if (state == null)
                 throw new KeyNotFoundException($"State with ID {id} not found");
+
             //var cities = await _unitOfWork.Cities.GetAllAsync(c => c.StateId == id);
             //state.Cities = cities.ToList();
             return _mapper.Map<StateDto>(state);
@@ -125,13 +133,16 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
                     throw new DuplicateResourceException($"A state with the code '{updateStateDto.Code}' already exists in the selected country.");
                 }
             }
+
             _mapper.Map(updateStateDto, state);
             state.ModifiedOn = DateTime.Now;
+
             // Set the modifier information
             if (_currentUserService.IsAuthenticated)
             {
                 state.ModifiedBy = _currentUserService.UserId ?? _currentUserService.Email;
             }
+
             await _unitOfWork.States.UpdateAsync(state);
             await _unitOfWork.CompleteAsync();
         }
@@ -139,9 +150,12 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
         public async Task<StateDto> RestoreStateAsync(Guid id)
         {
             var state = await _unitOfWork.States.GetByIdAsync(id);
+
             if (state == null)
                 throw new KeyNotFoundException($"State with ID {id} not found");
+
             state.IsDeleted = false;
+
             await _unitOfWork.CompleteAsync();
             return _mapper.Map<StateDto>(state);
         }
@@ -149,9 +163,12 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
         public async Task<StateDto> SoftDeleteStateAsync(Guid id)
         {
             var state = await _unitOfWork.States.GetByIdAsync(id);
+
             if (state == null)
                 throw new KeyNotFoundException($"State with ID {id} not found");
+
             state.IsDeleted = true;
+
             await _unitOfWork.CompleteAsync();
             return _mapper.Map<StateDto>(state);
         }
@@ -160,6 +177,7 @@ namespace ECommercePlateform.Server.src.Core.Application.Services
         {
             // First check if country exists
             var country = await _unitOfWork.Countries.GetByIdAsync(countryId);
+
             if (country == null)
                 throw new KeyNotFoundException($"Country with ID {countryId} not found");
 

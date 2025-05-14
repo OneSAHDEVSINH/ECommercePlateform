@@ -11,7 +11,8 @@ namespace ECommercePlateform.Server.Core.Application.Interfaces
         IProductRepository Products { get; }
         IStateRepository States { get; }
         ICityRepository Cities { get; }
-        // Add more repositories as properties
+
+        // Shall be added more repositories as properties
 
         Task<int> CompleteAsync();
     }

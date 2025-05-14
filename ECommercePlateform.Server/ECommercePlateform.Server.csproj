@@ -11,12 +11,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\**" />
+    <Compile Remove="Data\**" />
+    <Compile Remove="Models\**" />
     <Compile Remove="Model\**" />
     <Compile Remove="NewFolder\**" />
+    <Content Remove="Controllers\**" />
+    <Content Remove="Data\**" />
+    <Content Remove="Models\**" />
     <Content Remove="Model\**" />
     <Content Remove="NewFolder\**" />
+    <EmbeddedResource Remove="Controllers\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <EmbeddedResource Remove="Models\**" />
     <EmbeddedResource Remove="Model\**" />
     <EmbeddedResource Remove="NewFolder\**" />
+    <None Remove="Controllers\**" />
+    <None Remove="Data\**" />
+    <None Remove="Models\**" />
     <None Remove="Model\**" />
     <None Remove="NewFolder\**" />
   </ItemGroup>

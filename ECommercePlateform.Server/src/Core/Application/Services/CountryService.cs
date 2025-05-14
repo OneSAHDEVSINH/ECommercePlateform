@@ -53,6 +53,7 @@ namespace ECommercePlateform.Server.Core.Application.Services
             var country = _mapper.Map<Country>(createCountryDto);
             country.CreatedOn = DateTime.Now;
             country.IsActive = true;
+
             // Set the creator information
             if (_currentUserService.IsAuthenticated)
             {
@@ -60,15 +61,17 @@ namespace ECommercePlateform.Server.Core.Application.Services
                 country.CreatedBy = _currentUserService.UserId ?? _currentUserService.Email;
                 country.ModifiedBy = country.CreatedBy;
             }
+
             var result = await _unitOfWork.Countries.AddAsync(country);
+
             await _unitOfWork.CompleteAsync();
-            
             return _mapper.Map<CountryDto>(result);
         }
 
         public async Task DeleteCountryAsync(Guid id)
         {
             var country = await _unitOfWork.Countries.GetByIdAsync(id);
+
             if (country == null)
                 throw new KeyNotFoundException($"Country with ID {id} not found");
 
@@ -85,6 +88,7 @@ namespace ECommercePlateform.Server.Core.Application.Services
         public async Task<CountryDto> GetCountryByIdAsync(Guid id)
         {
             var country = await _unitOfWork.Countries.GetByIdAsync(id);
+
             if (country == null)
                 throw new KeyNotFoundException($"Country with ID {id} not found");
 
@@ -94,6 +98,7 @@ namespace ECommercePlateform.Server.Core.Application.Services
         public async Task<CountryDto> GetCountryWithStatesAsync(Guid id)
         {
             var country = await _unitOfWork.Countries.GetCountryWithStatesAsync(id);
+
             if (country == null)
                 throw new KeyNotFoundException($"Country with ID {id} not found");
 
