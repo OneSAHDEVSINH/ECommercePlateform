@@ -1,6 +1,7 @@
 using AutoMapper;
 using ECommercePlateform.Application.DTOs;
 using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Interfaces.IProduct;
 using ECommercePlateform.Domain.Entities;
 
 namespace ECommercePlateform.Application.Services

@@ -1,5 +1,5 @@
 using ECommercePlateform.Application.DTOs;
-using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Interfaces.IProduct;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

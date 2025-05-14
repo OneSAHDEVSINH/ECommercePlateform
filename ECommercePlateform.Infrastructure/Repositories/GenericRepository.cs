@@ -1,4 +1,4 @@
-using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Interfaces.IGeneral;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 

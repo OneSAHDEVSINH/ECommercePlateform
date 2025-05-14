@@ -1,4 +1,9 @@
 using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Interfaces.IAuth;
+using ECommercePlateform.Application.Interfaces.ICity;
+using ECommercePlateform.Application.Interfaces.ICountry;
+using ECommercePlateform.Application.Interfaces.IProduct;
+using ECommercePlateform.Application.Interfaces.IState;
 using ECommercePlateform.Infrastructure.Repositories;
 
 namespace ECommercePlateform.Infrastructure

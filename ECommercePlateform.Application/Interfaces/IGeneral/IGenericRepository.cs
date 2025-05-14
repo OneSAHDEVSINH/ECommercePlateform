@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace ECommercePlateform.Application.Interfaces
+namespace ECommercePlateform.Application.Interfaces.IGeneral
 {
     public interface IGenericRepository<T> where T : class
     {

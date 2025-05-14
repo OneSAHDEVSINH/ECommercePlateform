@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using ECommercePlateform.Application.DTOs;
 using ECommercePlateform.Application.Interfaces;
+using ECommercePlateform.Application.Interfaces.IAuth;
+using ECommercePlateform.Application.Interfaces.IState;
 using ECommercePlateform.Domain.Entities;
 using ECommercePlateform.Domain.Exceptions;
 using System.ComponentModel.DataAnnotations;

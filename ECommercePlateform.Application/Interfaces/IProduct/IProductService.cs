@@ -1,6 +1,6 @@
 using ECommercePlateform.Application.DTOs;
 
-namespace ECommercePlateform.Application.Interfaces
+namespace ECommercePlateform.Application.Interfaces.IProduct
 {
     public interface IProductService
     {

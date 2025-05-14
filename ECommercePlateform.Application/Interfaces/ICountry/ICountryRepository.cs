@@ -1,6 +1,7 @@
+using ECommercePlateform.Application.Interfaces.IGeneral;
 using ECommercePlateform.Domain.Entities;
 
-namespace ECommercePlateform.Application.Interfaces
+namespace ECommercePlateform.Application.Interfaces.ICountry
 {
     public interface ICountryRepository : IGenericRepository<Country>
     {

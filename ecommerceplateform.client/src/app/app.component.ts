@@ -1,7 +1,7 @@
 // src/app/app.component.ts
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { FaviconService } from './services/favicon.service';
+import { FaviconService } from './services/general/favicon.service';
 import { MessageComponent } from './shared/message/message.component';
 
 @Component({

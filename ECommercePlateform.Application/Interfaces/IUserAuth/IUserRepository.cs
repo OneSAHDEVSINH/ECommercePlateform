@@ -1,6 +1,7 @@
+using ECommercePlateform.Application.Interfaces.IGeneral;
 using ECommercePlateform.Domain.Entities;
 
-namespace ECommercePlateform.Application.Interfaces
+namespace ECommercePlateform.Application.Interfaces.IAuth
 {
     public interface IUserRepository : IGenericRepository<User>
     {

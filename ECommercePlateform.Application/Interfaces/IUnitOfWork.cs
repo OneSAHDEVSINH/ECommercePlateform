@@ -1,3 +1,9 @@
+using ECommercePlateform.Application.Interfaces.IAuth;
+using ECommercePlateform.Application.Interfaces.ICity;
+using ECommercePlateform.Application.Interfaces.ICountry;
+using ECommercePlateform.Application.Interfaces.IProduct;
+using ECommercePlateform.Application.Interfaces.IState;
+
 namespace ECommercePlateform.Application.Interfaces
 {
     public interface IUnitOfWork : IDisposable
