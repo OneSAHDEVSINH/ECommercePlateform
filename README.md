@@ -1,4 +1,4 @@
-# ECommercePlateform
+# ECommercePlatform
 
 > **Note:** This project is in daily development. Features, APIs, and structure may change frequently.
 
@@ -21,7 +21,7 @@ A clean architecture-based e-commerce API built with ASP.NET Core (.NET 9), Enti
 
 ## Overview
 
-ECommercePlateform is a full-stack, clean architecture-based e-commerce solution.  
+ECommercePlatform is a full-stack, clean architecture-based e-commerce solution.  
 - **Backend:** ASP.NET Core (.NET 9) Web API  
 - **Frontend:** Angular (located in the `client` project)  
 It provides a modular, scalable foundation for building e-commerce solutions, featuring JWT authentication, role-based authorization, and robust API documentation.
@@ -69,7 +69,7 @@ It provides a modular, scalable foundation for building e-commerce solutions, fe
 ### Installation
 
 1. **Clone the repository:**
-   git clone https://github.com/OneSAHDEVSINH/ECommercePlateform.git cd ECommercePlateform
+   git clone https://github.com/OneSAHDEVSINH/ECommercePlatform.git cd ECommercePlatform
 
 2. **Configure the database connection:**
    
@@ -94,7 +94,7 @@ It provides a modular, scalable foundation for building e-commerce solutions, fe
    dotnet restore
 
 5. **Run the backend:**
-   dotnet run --project ECommercePlateform.Server
+   dotnet run --project ECommercePlatform.Server
 
    The API will be available at `https://localhost:5001` (or as configured).
 
@@ -125,7 +125,7 @@ It provides a modular, scalable foundation for building e-commerce solutions, fe
 
 Migrations are applied automatically on startup. To add new migrations manually:
 
-dotnet ef migrations add MigrationName --project ECommercePlateform.Infrastructure dotnet ef database update --project ECommercePlateform.Infrastructure
+dotnet ef migrations add MigrationName --project ECommercePlatform.Infrastructure dotnet ef database update --project ECommercePlatform.Infrastructure
 
 ## API Documentation
 
@@ -137,24 +137,24 @@ Swagger UI is enabled in development mode.
 ## Project Structure
 
 ```
-ECommercePlateform
-ECommercePlateform.API
+ECommercePlatform
+ECommercePlatform.API
 │
 ├── Controllers/
 ├── Middleware/
 │
-ECommercePlateform.Application
+ECommercePlatform.Application
 │
 ├── DTOs/
 ├── Interfaces/
 ├── Mappings/
 ├── Services/
 │
-ECommercePlateform.client
+ECommercePlatform.client
 │
 ├── Whole Angular frontend Project
 │
-ECommercePlateform.Domain
+ECommercePlatform.Domain
 │
 ├── Entities/
 ├── Enums/
@@ -167,7 +167,7 @@ EommercePlateform.Infrastructure
 ├── AppDbContext.cs
 ├── UnitOfWork.cs
 │
-ECommercePlateform.Server
+ECommercePlatform.Server
 │
 └── (Whole Server Project)
 ```
