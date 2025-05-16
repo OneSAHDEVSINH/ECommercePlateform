@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ECommercePlatform.Application.Features.Countries.Queries
+namespace ECommercePlatform.Application.Features.Countries.Queries.Validators
 {
-    public class ValidatorsGetCountryByIdValidator
+    public class GetCountryByIdValidator
     {
     }
 }

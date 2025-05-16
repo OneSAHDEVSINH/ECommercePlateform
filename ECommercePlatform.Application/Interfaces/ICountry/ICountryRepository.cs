@@ -11,6 +11,6 @@ namespace ECommercePlatform.Application.Interfaces.ICountry
         Task<bool> IsCodeUniqueAsync(string code);
         Task<bool> IsNameUniqueAsync(string name, Guid excludeId);
         Task<bool> IsCodeUniqueAsync(string code, Guid excludeId);
-
+        Task<bool> IsNameAndCodeUniqueAsync(string name, string code);
     }
 }

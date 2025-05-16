@@ -1,8 +1,8 @@
 using AutoMapper;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IAuth;
 using ECommercePlatform.Application.Interfaces.ICountry;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Domain.Exceptions;
 using System.ComponentModel.DataAnnotations;
@@ -28,6 +28,11 @@ namespace ECommercePlatform.Application.Services
             if (!ValidationService.IsValidNameorCode(createCountryDto.Name, createCountryDto.Code, out var errorMessage))
             {
                 throw new ValidationException(errorMessage);
+            }
+
+            bool isNameAndCodeUnique = await _unitOfWork.Countries.IsNameAndCodeUniqueAsync(createCountryDto.Name, createCountryDto.Code);
+            if (!isNameAndCodeUnique) {
+                throw new DuplicateResourceException($"A country with the name '{createCountryDto.Name}' and code '{createCountryDto.Code}' already exists.");
             }
 
             // Check for duplicate name

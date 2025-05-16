@@ -1,8 +1,8 @@
-using ECommercePlatform.Application.Interfaces.IAuth;
 using ECommercePlatform.Application.Interfaces.ICity;
 using ECommercePlatform.Application.Interfaces.ICountry;
 using ECommercePlatform.Application.Interfaces.IProduct;
 using ECommercePlatform.Application.Interfaces.IState;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
 
 namespace ECommercePlatform.Application.Interfaces
 {

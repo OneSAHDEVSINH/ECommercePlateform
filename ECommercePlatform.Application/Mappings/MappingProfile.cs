@@ -1,5 +1,6 @@
 using AutoMapper;
 using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Features.Countries.Commands;
 using ECommercePlatform.Domain.Entities;
 
 namespace ECommercePlatform.Application.Mappings
@@ -13,6 +14,7 @@ namespace ECommercePlatform.Application.Mappings
                 .ForMember(dest => dest.States, opt => opt.MapFrom(src => src.States));
             CreateMap<CreateCountryDto, Country>();
             CreateMap<UpdateCountryDto, Country>();
+            CreateMap<UpdateCountryCommand, Country>();
 
             // State mappings
             CreateMap<State, StateDto>()

@@ -1,5 +1,5 @@
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Interfaces.IAuth;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.API.Controllers

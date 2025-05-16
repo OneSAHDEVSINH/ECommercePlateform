@@ -1,11 +1,12 @@
 using ECommercePlatform.API.Middleware;
+using ECommercePlatform.Application.Common;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IAuth;
 using ECommercePlatform.Application.Interfaces.ICity;
 using ECommercePlatform.Application.Interfaces.ICountry;
 using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Application.Interfaces.IProduct;
 using ECommercePlatform.Application.Interfaces.IState;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Mappings;
 using ECommercePlatform.Application.Services;
 using ECommercePlatform.Infrastructure;
@@ -38,6 +39,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Register MediatR, FluentValidation, and other application services
+builder.Services.AddApplicationServices();
 
 // Register Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
