@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Features.States.Commands;
+﻿using ECommercePlatform.Application.Features.States.Commands.Create;
+using ECommercePlatform.Application.Features.States.Commands.Update;
 using ECommercePlatform.Application.Features.States.Queries;
 using ECommercePlatform.Application.Interfaces.IState;
 using MediatR;

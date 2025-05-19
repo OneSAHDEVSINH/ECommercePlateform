@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Features.Cities.Commands;
+﻿using ECommercePlatform.Application.Features.Cities.Commands.Create;
+using ECommercePlatform.Application.Features.Cities.Commands.Update;
 using ECommercePlatform.Application.Features.Cities.Queries;
 using ECommercePlatform.Application.Interfaces.IState;
 using MediatR;

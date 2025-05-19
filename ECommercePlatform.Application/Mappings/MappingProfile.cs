@@ -1,8 +1,8 @@
 using AutoMapper;
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Features.Cities.Commands;
-using ECommercePlatform.Application.Features.Countries.Commands;
-using ECommercePlatform.Application.Features.States.Commands;
+using ECommercePlatform.Application.Features.Cities.Commands.Update;
+using ECommercePlatform.Application.Features.Countries.Commands.Update;
+using ECommercePlatform.Application.Features.States.Commands.Update;
 using ECommercePlatform.Domain.Entities;
 
 namespace ECommercePlatform.Application.Mappings
