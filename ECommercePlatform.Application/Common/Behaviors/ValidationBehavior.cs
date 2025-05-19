@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using ECommercePlatform.Application.Common.Models;
+using FluentValidation;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,8 @@ using ValidationException = System.ComponentModel.DataAnnotations.ValidationExce
 namespace ECommercePlatform.Application.Common.Behaviors
 {
     public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
-        where TResponse : notnull
+            where TRequest : IRequest<TResponse>
+            where TResponse : notnull
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
 
@@ -37,10 +38,35 @@ namespace ECommercePlatform.Application.Common.Behaviors
 
                 if (failures.Count != 0)
                 {
+                    // Group error messages by property
                     var errorMessages = failures
                         .GroupBy(e => e.PropertyName, e => e.ErrorMessage)
-                        .ToDictionary(failuerGroup => failuerGroup.Key, failuerGroup => failuerGroup.ToArray());
+                        .ToDictionary(failureGroup => failureGroup.Key, failureGroup => failureGroup.ToArray());
 
+                    // For AppResult<T> responses, we can create a failure result with the error messages
+                    if (typeof(TResponse).IsGenericType &&
+                        typeof(TResponse).GetGenericTypeDefinition() == typeof(AppResult<>))
+                    {
+                        // Formatting the error message
+                        var formattedError = string.Join("; ",
+                            errorMessages.Select(e => $"{e.Key}: {string.Join(", ", e.Value)}"));
+
+                        // Create a failed AppResult<T> with proper error message
+                        // This uses reflection to create the appropriate AppResult<T> type
+                        var resultType = typeof(TResponse);
+                        var failureMethod = resultType.GetMethod("Failure");
+
+                        if (failureMethod != null)
+                        {
+                            var result = failureMethod.Invoke(null, new object[] { formattedError });
+                            if (result is not null)
+                            {
+                                return (TResponse)result; // Fix for CS8600 and CS8603
+                            }
+                        }
+                    }
+
+                    // If response cannot handle validation errors appropriately, then throw exception as fallback
                     throw new ValidationException($"Command Validation Errors for Type {typeof(TRequest).Name}");
                 }
             }
