@@ -31,7 +31,7 @@ namespace ECommercePlatform.Application.Features.Countries.Commands.Delete
                 }
 
                 await _unitOfWork.Countries.DeleteAsync(country);
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.CompleteAsync();
                 return AppResult.Success();
             }
             catch (Exception ex)

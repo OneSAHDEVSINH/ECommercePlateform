@@ -67,7 +67,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                 }
 
                 await _unitOfWork.States.UpdateAsync(state);
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.CompleteAsync();
                 return AppResult.Success();
             }
             catch (Exception ex)

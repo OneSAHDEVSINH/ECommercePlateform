@@ -29,7 +29,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Delete
                     return AppResult.Failure($"Cannot delete state with ID {request.Id} as it has associated countries");
                 }
                 await _unitOfWork.States.DeleteAsync(state);
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.CompleteAsync();
                 return AppResult.Success();
             }
             catch (Exception ex)

@@ -1,9 +1,10 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Interfaces;
+using ECommercePlatform.Application.Common.Models;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Update;
 
-public record UpdateCountryCommand : IRequest<AppResult>
+public record UpdateCountryCommand : IRequest<AppResult>, ITransactionalBehavior
 {
     public Guid Id { get; init; }
     public string? Name { get; init; }

@@ -33,7 +33,9 @@ namespace ECommercePlatform.Infrastructure.Repositories
 
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
-            return await _context.Set<T>().ToListAsync();
+            return await _context.Set<T>()
+                .AsNoTracking() // Use AsNoTracking to avoid tracking issues
+                .ToListAsync();
         }
 
         public async Task<T> GetByIdAsync(Guid id)

@@ -7,15 +7,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 {
-    public class CreateCityHandler : IRequestHandler<CreateCityCommand, AppResult<CityDto>>
+    public class CreateCityHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateCityCommand, AppResult<CityDto>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        public CreateCityHandler(IUnitOfWork unitOfWork, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-        }
+
         public async Task<AppResult<CityDto>> Handle(CreateCityCommand request, CancellationToken cancellationToken)
         {
             var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.StateId);
@@ -34,7 +28,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
             };
 
             await _unitOfWork.Cities.AddAsync(city);
-            await _unitOfWork.CompleteAsync();
+            //await _unitOfWork.CompleteAsync();
 
             var cityDto = _mapper.Map<CityDto>(city);
             return AppResult<CityDto>.Success(cityDto);

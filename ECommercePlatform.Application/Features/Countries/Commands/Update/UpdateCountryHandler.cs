@@ -62,7 +62,7 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
                 country.ModifiedOn = DateTime.Now;
             }
             await _unitOfWork.Countries.UpdateAsync(country);
-            await _unitOfWork.CompleteAsync();
+            //await _unitOfWork.CompleteAsync();
             return AppResult.Success();
         }
         catch (Exception ex)

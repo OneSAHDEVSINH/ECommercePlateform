@@ -1,9 +1,10 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Interfaces;
+using ECommercePlatform.Application.Common.Models;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Update
 {
-    public record UpdateCityCommand : IRequest<AppResult>
+    public record UpdateCityCommand : IRequest<AppResult>, ITransactionalBehavior
     {
         public Guid Id { get; init; }
         public required string Name { get; init; }

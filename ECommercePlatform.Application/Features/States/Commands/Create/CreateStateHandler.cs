@@ -40,7 +40,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
                     IsActive = true
                 };
                 await _unitOfWork.States.AddAsync(state);
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.CompleteAsync();
 
                 var stateDto = _mapper.Map<StateDto>(state);
                 return AppResult<StateDto>.Success(stateDto);

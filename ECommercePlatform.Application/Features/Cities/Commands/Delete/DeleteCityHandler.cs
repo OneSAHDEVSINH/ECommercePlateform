@@ -25,7 +25,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
                 }
 
                 await _unitOfWork.Cities.DeleteAsync(city);
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.CompleteAsync();
                 return AppResult.Success();
             }
             catch (Exception ex)

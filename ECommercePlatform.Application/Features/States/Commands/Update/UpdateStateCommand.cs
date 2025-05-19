@@ -1,9 +1,10 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Interfaces;
+using ECommercePlatform.Application.Common.Models;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Update
 {
-    public record UpdateStateCommand : IRequest<AppResult>
+    public record UpdateStateCommand : IRequest<AppResult>, ITransactionalBehavior
     {
         public Guid Id { get; init; }
         public string? Name { get; init; }

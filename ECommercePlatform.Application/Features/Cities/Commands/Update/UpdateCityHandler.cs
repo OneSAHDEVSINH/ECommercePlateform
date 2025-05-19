@@ -50,7 +50,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
                 }
 
                 await _unitOfWork.Cities.UpdateAsync(city);
-                await _unitOfWork.CompleteAsync();
+                //await _unitOfWork.CompleteAsync();
                 return AppResult.Success();
             }
             catch (Exception ex)
