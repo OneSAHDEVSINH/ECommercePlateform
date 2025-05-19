@@ -24,7 +24,7 @@ namespace ECommercePlatform.Application.Mappings
                 .ForMember(dest => dest.Cities, opt => opt.MapFrom(src => src.Cities));
             CreateMap<CreateStateDto, State>();
             CreateMap<UpdateStateDto, State>();
-            CreateMap<UpdateStateCommand, Country>();
+            CreateMap<UpdateStateCommand, State>();
 
             // City mappings
             CreateMap<City, CityDto>()
@@ -33,7 +33,7 @@ namespace ECommercePlatform.Application.Mappings
                 .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.State != null && src.State.Country != null ? src.State.Country.Name : string.Empty));
             CreateMap<CreateCityDto, City>();
             CreateMap<UpdateCityDto, City>();
-            CreateMap<UpdateCityCommand, Country>();
+            CreateMap<UpdateCityCommand, City>();
 
             // Product mappings
             CreateMap<Product, ProductDto>()

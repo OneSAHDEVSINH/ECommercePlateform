@@ -33,7 +33,7 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
             var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
             if (country == null)
             {
-                throw new KeyNotFoundException($"Country with ID {request.Id} not found.");
+                return AppResult.Failure($"Country with ID {request.Id} not found.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Code))

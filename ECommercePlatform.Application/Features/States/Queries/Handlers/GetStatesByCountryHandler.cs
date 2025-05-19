@@ -1,4 +1,9 @@
-﻿using System;
+﻿using AutoMapper;
+using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Interfaces;
+using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +11,29 @@ using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.States.Queries.Handlers
 {
-    public class GetStatesByCountryHandler
+    public class GetStatesByCountryHandler : IRequestHandler<GetStatesByCountryQuery, AppResult<List<StateDto>>>
     {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+
+        public GetStatesByCountryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        {
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+        }
+
+        public async Task<AppResult<List<StateDto>>> Handle(GetStatesByCountryQuery request, CancellationToken cancellationToken)
+        {
+            var country = await _unitOfWork.Countries.GetByIdAsync(request.CountryId);
+
+            if (country == null) 
+            {
+                return AppResult<List<StateDto>>.Failure($"Country with ID {request.CountryId} not found");
+            }
+
+            var states = await _unitOfWork.States.GetStatesByCountryIdAsync(request.CountryId);
+            var statesDto = _mapper.Map<List<StateDto>>(states);
+            return AppResult<List<StateDto>>.Success(statesDto);
+        }
     }
 }
