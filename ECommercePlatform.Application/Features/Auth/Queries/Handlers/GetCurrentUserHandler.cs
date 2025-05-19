@@ -1,4 +1,10 @@
-﻿using System;
+﻿using AutoMapper;
+using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
+using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +12,53 @@ using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.Auth.Queries.Handlers
 {
-    public class GetCurrentUserHandler
+    public class GetCurrentUserHandler : IRequestHandler<GetCurrentUserQuery, AppResult<UserDto>>
     {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IUserRepository _userRepository;
+
+        public GetCurrentUserHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper, IUserRepository userRepository)
+        {
+            _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
+            _mapper = mapper;
+            _userRepository = userRepository;
+        }
+        public async Task<AppResult<UserDto>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))
+                {
+                    return AppResult<UserDto>.Failure("User is not authenticated");
+                }
+
+                var userId = Guid.Parse(_currentUserService.UserId); // Convert string UserId to Guid
+                var user = await _userRepository.GetByIdAsync(userId);
+
+                if (user == null)
+                {
+                    return AppResult<UserDto>.Failure("User not found");
+                }
+
+                var userDto = new UserDto
+                {
+                    Id = user.Id.ToString(),
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Role = user.Role.ToString(),
+                    IsActive = user.IsActive
+                };
+
+                return AppResult<UserDto>.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserDto>.Failure($"An error occurred while getting the current user: {ex.Message}");
+            }
+        }
     }
 }
