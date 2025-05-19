@@ -41,12 +41,12 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Handlers
                 var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
                 if (city == null)
                 {
-                    return AppResult.Failure($"City with ID {request.Id} not found.");
+                    return AppResult.Failure($"City with this ID \"{request.Id}\" not found.");
                 }
                 var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.Id);
                 if (!isNameUnique)
                 {
-                    return AppResult.Failure($"City with this name {request.Name} already exists.");
+                    return AppResult.Failure($"City with this name \"{request.Name}\" already exists.");
                 }
 
                 _mapper.Map(request, city);

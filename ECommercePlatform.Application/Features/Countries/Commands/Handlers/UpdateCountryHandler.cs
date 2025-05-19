@@ -33,7 +33,7 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
             var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
             if (country == null)
             {
-                return AppResult.Failure($"Country with ID {request.Id} not found.");
+                return AppResult.Failure($"Country with this ID \"{request.Id}\" not found.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Code))
@@ -44,7 +44,7 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
             var isCodeUnique = await _unitOfWork.Countries.IsCodeUniqueAsync(request.Code, request.Id);
             if (!isCodeUnique)
             {
-                return AppResult.Failure($"Country with this code {request.Code} already exists.");
+                return AppResult.Failure($"Country with this code \"{request.Code}\" already exists.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Name))
@@ -55,7 +55,7 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
             var isNameUnique = await _unitOfWork.Countries.IsNameUniqueAsync(request.Name, request.Id);
             if (!isNameUnique)
             {
-                return AppResult.Failure($"Country with this name {request.Name} already exists.");
+                return AppResult.Failure($"Country with this name \"{request.Name}\" already exists.");
             }
 
 

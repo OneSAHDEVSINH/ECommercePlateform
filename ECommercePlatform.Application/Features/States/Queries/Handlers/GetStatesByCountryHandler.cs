@@ -28,7 +28,7 @@ namespace ECommercePlatform.Application.Features.States.Queries.Handlers
 
             if (country == null) 
             {
-                return AppResult<List<StateDto>>.Failure($"Country with ID {request.CountryId} not found");
+                return AppResult<List<StateDto>>.Failure($"Country with this ID \"{request.CountryId}\" not found.");
             }
 
             var states = await _unitOfWork.States.GetStatesByCountryIdAsync(request.CountryId);

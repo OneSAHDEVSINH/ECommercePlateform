@@ -30,13 +30,13 @@ public class CreateCountryHandler : IRequestHandler<CreateCountryCommand, AppRes
             var isCodeUnique = await _unitOfWork.Countries.IsCodeUniqueAsync(request.Code);
             if (!isCodeUnique)
             {
-                return AppResult<CountryDto>.Failure("Country with this code already exists.");
+                return AppResult<CountryDto>.Failure($"Country with this code \"{request.Code}\" already exists.");
             }
 
             var isNameUnique = await _unitOfWork.Countries.IsNameUniqueAsync(request.Name);
             if (!isNameUnique)
             {
-                return AppResult<CountryDto>.Failure("Country with this name already exists.");
+                return AppResult<CountryDto>.Failure($"Country with this name \"{request.Name}\" already exists.");
             }
 
             var country = new Country

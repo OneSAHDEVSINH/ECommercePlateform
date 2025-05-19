@@ -51,19 +51,19 @@ namespace ECommercePlatform.Application.Features.States.Commands.Handlers
                 var state = await _unitOfWork.States.GetByIdAsync(request.Id);
                 if (state == null)
                 {
-                    return AppResult.Failure($"State with ID {request.Id} not found.");
+                    return AppResult.Failure($"State with this ID \"{request.Id}\" not found.");
                 }
 
                 var isCodeUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(request.Code, request.Id);
                 if (!isCodeUnique)
                 {
-                    return AppResult.Failure($"State with this code {request.Code} already exists.");
+                    return AppResult.Failure($"State with this code \"{request.Code}\" already exists.");
                 }
 
                 var isNameUnique = await _unitOfWork.States.IsNameUniqueInCountryAsync(request.Name, request.Id);
                 if (!isNameUnique)
                 {
-                    return AppResult.Failure($"State with this name {request.Name} already exists.");
+                    return AppResult.Failure($"State with this name \"{request.Name}\" already exists.");
                 }
 
                 _mapper.Map(request, state);

@@ -28,7 +28,7 @@ namespace ECommercePlatform.Application.Features.Countries.Queries.Handlers
             var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
             if (country == null)
             {
-                return AppResult<CountryDto>.Failure($"Country with ID {request.Id} not found");
+                return AppResult<CountryDto>.Failure($"Country with this ID \"{request.Id}\" not found");
             }
             var countryDto = _mapper.Map<CountryDto>(country);
             return AppResult<CountryDto>.Success(countryDto);

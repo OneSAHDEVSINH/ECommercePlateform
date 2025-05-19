@@ -26,7 +26,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Handlers
             var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.StateId);
             if (!isNameUnique)
             {
-                return AppResult<CityDto>.Failure("City with this name already exists.");
+                return AppResult<CityDto>.Failure($"City with this name \"{request.Name}\" already exists.");
             }
 
             var city = new City

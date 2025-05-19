@@ -28,12 +28,12 @@ namespace ECommercePlatform.Application.Features.States.Commands.Handlers
                 var isCodeUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(request.Code, request.CountryId);
                 if (!isCodeUnique)
                 {
-                    return AppResult<StateDto>.Failure("State with this code already exists.");
+                    return AppResult<StateDto>.Failure($"State with this code \"{request.Code}\" already exists.");
                 }
                 var isNameUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(request.Name, request.CountryId);
                 if (!isNameUnique)
                 {
-                    return AppResult<StateDto>.Failure("State with this name already exists.");
+                    return AppResult<StateDto>.Failure($"State with this name \"{request.Name}\" already exists.");
                 }
                 var state = new State
                 {

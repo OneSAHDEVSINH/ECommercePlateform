@@ -28,7 +28,7 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.Handlers
                 var state = await _unitOfWork.States.GetByIdAsync(request.StateId);
                 if (state == null)
                 {
-                    return AppResult<List<CityDto>>.Failure($"No cities found for state with ID {request.StateId}");
+                    return AppResult<List<CityDto>>.Failure($"Cities with this ID \"{request.StateId}\" not found.");
                 }
                 var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(request.StateId);
                 var citiesDto = _mapper.Map<List<CityDto>>(cities);

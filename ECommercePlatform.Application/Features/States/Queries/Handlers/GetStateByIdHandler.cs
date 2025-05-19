@@ -28,7 +28,7 @@ namespace ECommercePlatform.Application.Features.States.Queries.Handlers
             var state = await _unitOfWork.States.GetByIdAsync(request.Id);
             if (state == null)
             {
-                return AppResult<StateDto>.Failure($"State with ID {request.Id} not found");
+                return AppResult<StateDto>.Failure($"State with this ID \"{request.Id}\" not found.");
             }
             var stateDto = _mapper.Map<StateDto>(state);
             return AppResult<StateDto>.Success(stateDto);
