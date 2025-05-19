@@ -9,6 +9,8 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 {
     public class CreateCityHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateCityCommand, AppResult<CityDto>>
     {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
 
         public async Task<AppResult<CityDto>> Handle(CreateCityCommand request, CancellationToken cancellationToken)
         {
