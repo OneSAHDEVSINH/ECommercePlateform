@@ -1,7 +1,6 @@
 ﻿using ECommercePlatform.Application.Features.States.Commands.Create;
 using ECommercePlatform.Application.Features.States.Commands.Delete;
 using ECommercePlatform.Application.Features.States.Commands.Update;
-using ECommercePlatform.Application.Features.States.Queries;
 using ECommercePlatform.Application.Features.States.Queries.GetAllStates;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesByCountry;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesById;

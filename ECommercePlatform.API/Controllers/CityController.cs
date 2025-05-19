@@ -1,7 +1,6 @@
 ﻿using ECommercePlatform.Application.Features.Cities.Commands.Create;
 using ECommercePlatform.Application.Features.Cities.Commands.Delete;
 using ECommercePlatform.Application.Features.Cities.Commands.Update;
-using ECommercePlatform.Application.Features.Cities.Queries;
 using ECommercePlatform.Application.Features.Cities.Queries.GetAllCities;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCityById;
