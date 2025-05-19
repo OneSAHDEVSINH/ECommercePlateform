@@ -1,8 +1,6 @@
-﻿using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Features.States.Commands;
+﻿using ECommercePlatform.Application.Features.States.Commands;
 using ECommercePlatform.Application.Features.States.Queries;
 using ECommercePlatform.Application.Interfaces.IState;
-using ECommercePlatform.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

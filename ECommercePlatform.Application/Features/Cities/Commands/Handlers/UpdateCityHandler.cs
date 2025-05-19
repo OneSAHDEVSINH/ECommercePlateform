@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
-using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.ICity;
-using ECommercePlatform.Application.Interfaces.IState;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
-using ECommercePlatform.Domain.Entities;
-using FluentValidation;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Handlers
@@ -53,7 +44,8 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Handlers
 
                 if (_currentUserService.IsAuthenticated)
                 {
-                    city.ModifiedBy = _currentUserService.UserId;
+                    //city.ModifiedBy = _currentUserService.UserId;
+                    city.ModifiedBy = request.ModifiedBy;
                     city.ModifiedOn = DateTime.Now;
                 }
 

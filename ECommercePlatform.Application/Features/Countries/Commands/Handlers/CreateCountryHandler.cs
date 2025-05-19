@@ -4,11 +4,6 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Handlers;
 
@@ -44,6 +39,7 @@ public class CreateCountryHandler : IRequestHandler<CreateCountryCommand, AppRes
                 Name = request.Name,
                 Code = request.Code,
                 CreatedOn = DateTime.UtcNow,
+                CreatedBy = request.CreatedBy,
                 IsActive = true
             };
 

@@ -1,16 +1,10 @@
 ﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Validators
 {
     public class CreateCountryValidator : AbstractValidator<CreateCountryCommand>
     {
-        public CreateCountryValidator() 
+        public CreateCountryValidator()
         {
             RuleFor(x => x.Name)
             .NotNull().WithMessage("Country Name is required !!!")

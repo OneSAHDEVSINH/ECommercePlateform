@@ -1,7 +1,5 @@
-using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Features.Auth.Commands;
 using ECommercePlatform.Application.Features.Auth.Queries;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

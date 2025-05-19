@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ECommercePlatform.Application.Common.Models
+﻿namespace ECommercePlatform.Application.Common.Models
 {
     public class AppResult<T>
     {
@@ -24,7 +18,7 @@ namespace ECommercePlatform.Application.Common.Models
             Error = error;
         }
 
-        public static AppResult<T> Success(T value) => 
+        public static AppResult<T> Success(T value) =>
             new AppResult<T>(true, value, string.Empty);
 
         public static AppResult<T> Failure(string error) =>

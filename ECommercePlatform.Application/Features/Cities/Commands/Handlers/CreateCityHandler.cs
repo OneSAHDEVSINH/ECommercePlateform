@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
@@ -34,6 +29,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Handlers
                 Name = request.Name,
                 StateId = request.StateId,
                 CreatedOn = DateTime.UtcNow,
+                CreatedBy = request.CreatedBy,
                 IsActive = true
             };
 

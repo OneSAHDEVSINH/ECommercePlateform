@@ -1,18 +1,9 @@
 ﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
-using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IState;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
-using ECommercePlatform.Domain.Entities;
-using FluentValidation;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Handlers
 {
@@ -70,7 +61,8 @@ namespace ECommercePlatform.Application.Features.States.Commands.Handlers
 
                 if (_currentUserService.IsAuthenticated)
                 {
-                    state.ModifiedBy = _currentUserService.UserId;
+                    //state.ModifiedBy = _currentUserService.UserId;
+                    state.ModifiedBy = request.ModifiedBy;
                     state.ModifiedOn = DateTime.Now;
                 }
 

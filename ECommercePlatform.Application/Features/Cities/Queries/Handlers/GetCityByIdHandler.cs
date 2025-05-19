@@ -1,14 +1,9 @@
 ﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
-using ECommercePlatform.Application.Interfaces;
-using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
+using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Queries.Handlers
 {
@@ -32,8 +27,8 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.Handlers
             }
             var cityDto = _mapper.Map<CityDto>(city);
             return AppResult<CityDto>.Success(cityDto);
-           
-            
+
+
         }
     }
 }

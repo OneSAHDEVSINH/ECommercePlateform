@@ -31,7 +31,8 @@ namespace ECommercePlatform.Application.Services
             }
 
             bool isNameAndCodeUnique = await _unitOfWork.Countries.IsNameAndCodeUniqueAsync(createCountryDto.Name, createCountryDto.Code);
-            if (!isNameAndCodeUnique) {
+            if (!isNameAndCodeUnique)
+            {
                 throw new DuplicateResourceException($"A country with the name '{createCountryDto.Name}' and code '{createCountryDto.Code}' already exists.");
             }
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ECommercePlatform.Application.Features.Auth.Commands.Handlers
+﻿namespace ECommercePlatform.Application.Features.Auth.Commands.Handlers
 {
     public class RegisterHandler
     {

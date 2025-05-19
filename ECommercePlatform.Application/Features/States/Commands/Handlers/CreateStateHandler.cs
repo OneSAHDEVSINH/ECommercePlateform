@@ -4,11 +4,6 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Handlers
 {
@@ -41,6 +36,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Handlers
                     Code = request.Code,
                     CountryId = request.CountryId,
                     CreatedOn = DateTime.UtcNow,
+                    CreatedBy = request.CreatedBy,
                     IsActive = true
                 };
                 await _unitOfWork.States.AddAsync(state);

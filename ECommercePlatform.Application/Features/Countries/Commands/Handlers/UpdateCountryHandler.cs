@@ -1,15 +1,8 @@
 ﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
-using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
-using ECommercePlatform.Domain.Exceptions;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Handlers;
@@ -64,7 +57,8 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
             // Set the updater information
             if (_currentUserService.IsAuthenticated)
             {
-                country.ModifiedBy = _currentUserService.UserId;
+                //country.ModifiedBy = _currentUserService.UserId;
+                country.ModifiedBy = request.ModifiedBy;
                 country.ModifiedOn = DateTime.Now;
             }
             await _unitOfWork.Countries.UpdateAsync(country);

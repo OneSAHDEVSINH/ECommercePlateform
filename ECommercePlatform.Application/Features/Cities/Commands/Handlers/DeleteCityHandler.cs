@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.ICity;
-using ECommercePlatform.Application.Interfaces.IState;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Handlers
@@ -30,7 +23,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Handlers
                 {
                     return AppResult.Failure($"City with ID {request.Id} not found");
                 }
-                
+
                 await _unitOfWork.Cities.DeleteAsync(city);
                 await _unitOfWork.CompleteAsync();
                 return AppResult.Success();

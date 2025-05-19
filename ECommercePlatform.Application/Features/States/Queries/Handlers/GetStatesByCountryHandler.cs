@@ -3,11 +3,6 @@ using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.States.Queries.Handlers
 {
@@ -26,7 +21,7 @@ namespace ECommercePlatform.Application.Features.States.Queries.Handlers
         {
             var country = await _unitOfWork.Countries.GetByIdAsync(request.CountryId);
 
-            if (country == null) 
+            if (country == null)
             {
                 return AppResult<List<StateDto>>.Failure($"Country with this ID \"{request.CountryId}\" not found.");
             }
