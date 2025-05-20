@@ -59,24 +59,5 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return !await _context.States
                 .AnyAsync(s => s.Code != null && s.Code.ToLower().Trim() == code.ToLower().Trim() && s.CountryId == countryId && s.Id != excludeId && !s.IsDeleted);
         }
-
-        //public async Task<bool> IsCodeUniqueInCountryAsync(string code, Guid countryId)
-        //{
-        //    return !await _context.States
-        //        .AnyAsync(s => s.Code!.ToLower().Trim() == code.ToLower().Trim() && s.CountryId == countryId && !s.IsDeleted);
-        //}
-
-        //public async Task<bool> IsNameUniqueInCountryAsync(string name, Guid countryId, Guid excludeId)
-        //{
-        //    return !await _context.States
-        //        .AnyAsync(s => s.Name.ToLower().Trim() == name.ToLower().Trim() && s.CountryId == countryId && s.Id != excludeId && !s.IsDeleted);
-        //}
-
-        //public async Task<bool> IsCodeUniqueInCountryAsync(string code, Guid countryId, Guid excludeId)
-        //{
-        //    return !await _context.States
-        //        .AnyAsync(s => s.Code!.ToLower().Trim() == code.ToLower().Trim() && s.CountryId == countryId && s.Id != excludeId && !s.IsDeleted);
-        //}
-
     }
 }

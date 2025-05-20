@@ -53,18 +53,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        //public async Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId)
-        //{
-        //    return !await _context.Cities
-        //        .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && c.StateId == stateId && !c.IsDeleted);
-        //}
-
-        //public async Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId, Guid excludeId)
-        //{
-        //    return !await _context.Cities
-        //        .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && c.StateId == stateId && c.Id != excludeId && !c.IsDeleted);
-        //}
-
         public async Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId)
         {
             return !await _context.Cities

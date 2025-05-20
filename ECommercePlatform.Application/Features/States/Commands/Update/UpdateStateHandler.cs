@@ -60,6 +60,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                 }
 
                 //_mapper.Map(request, state);
+
                 var updatedState = (UpdateStateDto)request;
                 state.Update(request.Name, request.Code);
         
