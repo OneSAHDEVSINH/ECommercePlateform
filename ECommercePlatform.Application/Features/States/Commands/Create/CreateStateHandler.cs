@@ -31,19 +31,12 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
                 {
                     return AppResult<StateDto>.Failure($"State with this name \"{request.Name}\" already exists.");
                 }
-                var state = new State
-                {
-                    Name = request.Name,
-                    Code = request.Code,
-                    CountryId = request.CountryId,
-                    //CreatedOn = DateTime.Now,
-                    //CreatedBy = request.CreatedBy,
-                    IsActive = true
-                };
+
+                var state = State.Create(request.Name, request.Code, request.CountryId); // Use the static Create method
+                state.IsActive = true;
+
                 await _unitOfWork.States.AddAsync(state);
-                //await _unitOfWork.CompleteAsync();
-                var stateDto = (StateDto)state;
-                //var stateDto = _mapper.Map<StateDto>(state);
+                var stateDto = _mapper.Map<StateDto>(state); // Use the mapper to map the entity to DTO
                 return AppResult<StateDto>.Success(stateDto);
             }
             catch (Exception ex)

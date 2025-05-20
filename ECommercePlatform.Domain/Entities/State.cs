@@ -2,15 +2,28 @@ namespace ECommercePlatform.Domain.Entities
 {
     public class State : BaseEntity
     {
-        public string? Name { get;  set; }
-        public string? Code { get;  set; }
-        public Guid CountryId { get;  set; }
+        public string? Name { get; private set; }
+        public string? Code { get; private set; }
+        public Guid CountryId { get; private set; }
+        public Country? Country { get; set; }
+        public ICollection<City>? Cities { get; set; }
+        public ICollection<Address>? Addresses { get; set; }
 
-        // Navigation properties
-        public Country? Country { get;  set; }
-        public ICollection<City>? Cities { get;  set; }
-        public ICollection<Address>? Addresses { get;  set; }
+        public static State Create(string name, string code, Guid countryId)
+        {
+            return new State
+            {
+                Name = name,
+                Code = code,
+                CountryId = countryId
+            };
+        }
 
-        public State() { }
+        // Add a public method to update the state properties  
+        public void Update(string name, string code)
+        {
+            Name = name;
+            Code = code;
+        }
     }
 }

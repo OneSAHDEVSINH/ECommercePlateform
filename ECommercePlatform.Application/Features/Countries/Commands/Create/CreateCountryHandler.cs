@@ -34,14 +34,8 @@ public class CreateCountryHandler : IRequestHandler<CreateCountryCommand, AppRes
                 return AppResult<CountryDto>.Failure($"Country with this name \"{request.Name}\" already exists.");
             }
 
-            var country = new Country
-            {
-                Name = request.Name,
-                Code = request.Code,
-                //CreatedOn = DateTime.Now,
-                //CreatedBy = request.CreatedBy,
-                IsActive = true
-            };
+            var country = Country.Create(request.Name, request.Code); // Use the static Create method
+            country.IsActive = true;
 
             await _unitOfWork.Countries.AddAsync(country);
             //await _unitOfWork.CompleteAsync();

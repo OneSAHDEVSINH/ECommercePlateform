@@ -55,12 +55,11 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
 
             var updatedCountry = (UpdateCountryDto)request;
 
-            country.Name = updatedCountry.Name;
-            country.Code = updatedCountry.Code;
+            country.Update(request.Name, request.Code);
 
             // Map the updated properties
             //_mapper.Map(request, country);
-            
+
             // Set the updater information
             //if (_currentUserService.IsAuthenticated)
             //{

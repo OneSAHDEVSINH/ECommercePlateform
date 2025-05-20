@@ -46,8 +46,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
                 //_mapper.Map(request, city);
 
                 var updatedCity = (UpdateCityDto)request;
-
-                city.Name = updatedCity.Name;
+                city.Update(request.Name);
 
                 //if (_currentUserService.IsAuthenticated)
                 //{

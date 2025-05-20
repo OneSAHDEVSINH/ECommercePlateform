@@ -134,6 +134,12 @@ namespace ECommercePlatform.Application.Services
             // If state is changing, also check uniqueness in the new state
             if (updateCityDto.StateId != city.StateId)
             {
+                // Ensure city.Name is not null before passing it
+                if (string.IsNullOrEmpty(city.Name))
+                {
+                    throw new InvalidOperationException("City name cannot be null when checking for uniqueness in the new state.");
+                }
+
                 bool isNameUniqueInNewState = await _unitOfWork.Cities.IsNameUniqueInStateAsync(city.Name, updateCityDto.StateId);
                 if (!isNameUniqueInNewState)
                 {

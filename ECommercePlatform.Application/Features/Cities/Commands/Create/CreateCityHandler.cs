@@ -21,14 +21,8 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
                 return AppResult<CityDto>.Failure($"City with this name \"{request.Name}\" already exists.");
             }
 
-            var city = new City
-            {
-                Name = request.Name,
-                StateId = request.StateId,
-                //CreatedOn = DateTime.Now,
-                //CreatedBy = request.CreatedBy,
-                IsActive = true
-            };
+            var city = City.Create(request.Name, request.StateId); // Use the static Create method
+            city.IsActive = true;
 
             await _unitOfWork.Cities.AddAsync(city);
             //await _unitOfWork.CompleteAsync();

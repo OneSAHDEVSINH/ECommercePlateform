@@ -247,32 +247,31 @@ namespace ECommercePlatform.Infrastructure
 
         private void SeedDefaultAdmin(ModelBuilder modelBuilder)
         {
-            // Create a default admin user
-            var adminId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F"); // Fixed GUID for admin
+            // Create a default admin user  
+            var adminId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F"); // Fixed GUID for admin  
 
-            // Use a specific fixed date instead of DateTime.Now
-            var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0); // Year, Month, Day, Hour, Minute, Second
+            // Use a specific fixed date instead of DateTime.Now  
+            var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0); // Year, Month, Day, Hour, Minute, Second  
 
             modelBuilder.Entity<User>().HasData(
-                new User
-                {
-                    Id = adminId,
-                    FirstName = "Admin",
-                    LastName = "User",
-                    Email = "admin@admin.com",
-                    Password = "Admin@123",
-                    PhoneNumber = "1234567890",
-                    DateOfBirth = new DateOnly(1990, 1, 1),
-                    Gender = Gender.Male,
-                    Bio = "System Administrator",
-                    Role = UserRole.Admin,
-                    CreatedOn = fixedDate,
-                    ModifiedOn = fixedDate,
-                    CreatedBy = "System",
-                    ModifiedBy = "System",
-                    IsActive = true,
-                    IsDeleted = false
-                }
+                User.AdminCreate(
+                    id: adminId, 
+                    firstName: "Admin",
+                    lastName: "User",
+                    gender: Gender.Male,
+                    dateOfBirth: new DateOnly(1990, 1, 1),
+                    phoneNumber: "1234567890",
+                    email: "admin@admin.com",
+                    password: "Admin@123",
+                    bio: "System Administrator",
+                    userRole: UserRole.Admin,
+                    isActive: true,
+                    isDeleted: false,
+                    createdOn: fixedDate,
+                    createdBy: "System",
+                    modifiedOn: fixedDate,
+                    modifiedBy: "System"
+                )
             );
         }
     }
