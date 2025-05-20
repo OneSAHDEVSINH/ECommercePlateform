@@ -26,9 +26,8 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 
             await _unitOfWork.Cities.AddAsync(city);
             //await _unitOfWork.CompleteAsync();
-            var cityDto = (CityDto)city;
             //var cityDto = _mapper.Map<CityDto>(city);
-            return AppResult<CityDto>.Success(cityDto);
+            return AppResult<CityDto>.Success((CityDto)city);
         }
     }
 }
