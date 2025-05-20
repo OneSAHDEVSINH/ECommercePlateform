@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IState;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Update
@@ -57,8 +59,11 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                     return AppResult.Failure($"State with this name \"{request.Name}\" already exists.");
                 }
 
-                _mapper.Map(request, state);
+                //_mapper.Map(request, state);
+                var updatedState = (UpdateStateDto)request;
 
+                state.Name = updatedState.Name;
+                state.Code = updatedState.Code;
                 //if (_currentUserService.IsAuthenticated)
                 //{
                 //    //state.ModifiedBy = _currentUserService.UserId;

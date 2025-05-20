@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.ICity;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
+using System.Diagnostics.Metrics;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Update
 {
@@ -40,7 +43,11 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
                     return AppResult.Failure($"City with this name \"{request.Name}\" already exists.");
                 }
 
-                _mapper.Map(request, city);
+                //_mapper.Map(request, city);
+
+                var updatedCity = (UpdateCityDto)request;
+
+                city.Name = updatedCity.Name;
 
                 //if (_currentUserService.IsAuthenticated)
                 //{

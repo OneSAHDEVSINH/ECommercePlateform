@@ -45,8 +45,9 @@ public class CreateCountryHandler : IRequestHandler<CreateCountryCommand, AppRes
 
             await _unitOfWork.Countries.AddAsync(country);
             //await _unitOfWork.CompleteAsync();
+            var countryDto = (CountryDto)country;
 
-            var countryDto = _mapper.Map<CountryDto>(country);
+            //var countryDto = _mapper.Map<CountryDto>(country);
             return AppResult<CountryDto>.Success(countryDto);
         }
         catch (Exception ex)

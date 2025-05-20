@@ -4,6 +4,7 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
 using MediatR;
+using System.Diagnostics.Metrics;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Create
 {
@@ -41,8 +42,8 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
                 };
                 await _unitOfWork.States.AddAsync(state);
                 //await _unitOfWork.CompleteAsync();
-
-                var stateDto = _mapper.Map<StateDto>(state);
+                var stateDto = (StateDto)state;
+                //var stateDto = _mapper.Map<StateDto>(state);
                 return AppResult<StateDto>.Success(stateDto);
             }
             catch (Exception ex)

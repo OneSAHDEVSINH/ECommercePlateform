@@ -4,6 +4,7 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
 using MediatR;
+using System.Diagnostics.Metrics;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 {
@@ -31,8 +32,8 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 
             await _unitOfWork.Cities.AddAsync(city);
             //await _unitOfWork.CompleteAsync();
-
-            var cityDto = _mapper.Map<CityDto>(city);
+            var cityDto = (CityDto)city;
+            //var cityDto = _mapper.Map<CityDto>(city);
             return AppResult<CityDto>.Success(cityDto);
         }
     }

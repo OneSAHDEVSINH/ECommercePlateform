@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 
@@ -51,9 +53,14 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
                 return AppResult.Failure($"Country with this name \"{request.Name}\" already exists.");
             }
 
+            var updatedCountry = (UpdateCountryDto)request;
+
+            country.Name = updatedCountry.Name;
+            country.Code = updatedCountry.Code;
 
             // Map the updated properties
-            _mapper.Map(request, country);
+            //_mapper.Map(request, country);
+            
             // Set the updater information
             //if (_currentUserService.IsAuthenticated)
             //{

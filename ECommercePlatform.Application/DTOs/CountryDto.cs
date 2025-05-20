@@ -1,3 +1,7 @@
+using ECommercePlatform.Application.Features.Countries.Commands.Update;
+using ECommercePlatform.Domain.Entities;
+using System.Diagnostics.Metrics;
+
 namespace ECommercePlatform.Application.DTOs
 {
     public class CountryDto
@@ -7,6 +11,19 @@ namespace ECommercePlatform.Application.DTOs
         public string? Code { get; init; }
         public bool IsActive { get; init; }
         public List<StateDto>? States { get; init; }
+
+        // Explicit conversion operator from Country to CountryDto
+        public static explicit operator CountryDto(Country country)
+        {
+            return new CountryDto
+            {
+                Id = country.Id,
+                Name = country.Name,
+                Code = country.Code,
+                IsActive = country.IsActive,
+                States = country.States?.Select(state => (StateDto)state).ToList()
+            };
+        }
     }
 
     public class CreateCountryDto
@@ -20,5 +37,18 @@ namespace ECommercePlatform.Application.DTOs
         public string? Name { get; init; }
         public string? Code { get; init; }
         public bool IsActive { get; init; }
+        public string? ModifiedBy { get; init; }
+        public DateTime ModifiedOn { get; init; }
+
+        public static explicit operator UpdateCountryDto(UpdateCountryCommand command)
+        {
+            return new UpdateCountryDto
+            {
+                Name = command.Name,
+                Code = command.Code,
+                IsActive = command.IsActive
+            };
+        }
     }
+
 }
