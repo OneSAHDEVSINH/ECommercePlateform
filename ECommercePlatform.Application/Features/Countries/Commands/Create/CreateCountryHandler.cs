@@ -38,8 +38,8 @@ public class CreateCountryHandler : IRequestHandler<CreateCountryCommand, AppRes
             {
                 Name = request.Name,
                 Code = request.Code,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = request.CreatedBy,
+                //CreatedOn = DateTime.Now,
+                //CreatedBy = request.CreatedBy,
                 IsActive = true
             };
 

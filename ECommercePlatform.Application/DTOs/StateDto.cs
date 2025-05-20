@@ -2,27 +2,27 @@ namespace ECommercePlatform.Application.DTOs
 {
     public class StateDto
     {
-        public Guid Id { get; set; }
-        public string? Name { get; set; }
-        public string? Code { get; set; }
-        public Guid CountryId { get; set; }
-        public string? CountryName { get; set; }
-        public bool IsActive { get; set; }
-        public List<CityDto>? Cities { get; set; }
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Code { get; init; }
+        public Guid CountryId { get; init; }
+        public string? CountryName { get; init; }
+        public bool IsActive { get; init; }
+        public List<CityDto>? Cities { get; init; }
     }
 
     public class CreateStateDto
     {
-        public required string Name { get; set; }
-        public required string Code { get; set; }
-        public Guid CountryId { get; set; }
+        public required string Name { get; init; }
+        public required string Code { get; init; }
+        public Guid CountryId { get; init; }
     }
 
     public class UpdateStateDto
     {
-        public string? Name { get; set; }
-        public string? Code { get; set; }
-        public Guid CountryId { get; set; }
-        public bool IsActive { get; set; }
+        public string? Name { get; init; }
+        public string? Code { get; init; }
+        public Guid CountryId { get; init; }
+        public bool IsActive { get; init; }
     }
 }

@@ -42,12 +42,12 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
 
                 _mapper.Map(request, city);
 
-                if (_currentUserService.IsAuthenticated)
-                {
-                    //city.ModifiedBy = _currentUserService.UserId;
-                    city.ModifiedBy = request.ModifiedBy;
-                    city.ModifiedOn = DateTime.Now;
-                }
+                //if (_currentUserService.IsAuthenticated)
+                //{
+                //    //city.ModifiedBy = _currentUserService.UserId;
+                //    city.ModifiedBy = request.ModifiedBy;
+                //    city.ModifiedOn = DateTime.Now;
+                //}
 
                 await _unitOfWork.Cities.UpdateAsync(city);
                 //await _unitOfWork.CompleteAsync();

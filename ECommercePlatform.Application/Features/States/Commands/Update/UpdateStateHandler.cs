@@ -59,12 +59,12 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
 
                 _mapper.Map(request, state);
 
-                if (_currentUserService.IsAuthenticated)
-                {
-                    //state.ModifiedBy = _currentUserService.UserId;
-                    state.ModifiedBy = request.ModifiedBy;
-                    state.ModifiedOn = DateTime.Now;
-                }
+                //if (_currentUserService.IsAuthenticated)
+                //{
+                //    //state.ModifiedBy = _currentUserService.UserId;
+                //    state.ModifiedBy = request.ModifiedBy;
+                //    state.ModifiedOn = DateTime.Now;
+                //}
 
                 await _unitOfWork.States.UpdateAsync(state);
                 //await _unitOfWork.CompleteAsync();

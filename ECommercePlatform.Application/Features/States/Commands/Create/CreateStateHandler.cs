@@ -35,8 +35,8 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
                     Name = request.Name,
                     Code = request.Code,
                     CountryId = request.CountryId,
-                    CreatedOn = DateTime.UtcNow,
-                    CreatedBy = request.CreatedBy,
+                    //CreatedOn = DateTime.Now,
+                    //CreatedBy = request.CreatedBy,
                     IsActive = true
                 };
                 await _unitOfWork.States.AddAsync(state);

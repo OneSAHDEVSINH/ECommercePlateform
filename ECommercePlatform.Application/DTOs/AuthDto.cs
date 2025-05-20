@@ -2,23 +2,23 @@ namespace ECommercePlatform.Application.DTOs
 {
     public class LoginDto
     {
-        public string? Email { get; set; }
-        public string? Password { get; set; }
+        public string? Email { get; init; }
+        public string? Password { get; init; }
     }
 
     public class AuthResultDto
     {
-        public string? Token { get; set; }
-        public UserDto? User { get; set; }
+        public string? Token { get; init; }
+        public UserDto? User { get; init; }
     }
 
     public class UserDto
     {
-        public string? Id { get; set; }
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Email { get; set; }
-        public string? Role { get; set; }
-        public bool IsActive { get; set; }
+        public string? Id { get; init; }
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? Email { get; init; }
+        public string? Role { get; init; }
+        public bool IsActive { get; init; }
     }
 }

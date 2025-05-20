@@ -1,3 +1,4 @@
+using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -6,9 +7,12 @@ namespace ECommercePlatform.Infrastructure
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options)
+        private readonly ICurrentUserService _currentUserService;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService)
             : base(options)
         {
+            _currentUserService = currentUserService;
         }
 
         public DbSet<User> Users { get; set; }
@@ -24,6 +28,47 @@ namespace ECommercePlatform.Infrastructure
         public DbSet<ShippingAddress> ShippingAddresses { get; set; }
         public DbSet<State> States { get; set; }
         public DbSet<Category> Categories { get; set; }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            UpdateAuditFields();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override int SaveChanges()
+        {
+            UpdateAuditFields();
+            return base.SaveChanges();
+        }
+
+        private void UpdateAuditFields()
+        {
+            var now = DateTime.Now;
+            var userId = _currentUserService.IsAuthenticated
+                ? _currentUserService.UserId ?? _currentUserService.Email ?? "system"
+                : "system";
+
+            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = now;
+                    //entry.Entity.ModifiedBy = userId;
+                    //entry.Entity.ModifiedOn = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    // Don't modify creation fields
+                    //entry.Property(e => e.CreatedBy).IsModified = false;
+                    //entry.Property(e => e.CreatedOn).IsModified = false;
+
+                    // Update modification fields
+                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedOn = now;
+                }
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

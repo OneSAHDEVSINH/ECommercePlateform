@@ -2,20 +2,22 @@ namespace ECommercePlatform.Domain.Entities
 {
     public class Address : BaseEntity
     {
-        public required string Line1 { get; set; }
-        public string? Line2 { get; set; }
-        public string? Line3 { get; set; }
-        public Guid CityId { get; set; }
-        public Guid StateId { get; set; }
-        public Guid CountryId { get; set; }
-        public string? ZipCode { get; set; }
-        public Guid UserId { get; set; }
-        public bool IsDefault { get; set; }
+        public string? Line1 { get; private set; }
+        public string? Line2 { get; private set; }
+        public string? Line3 { get; private set; }
+        public Guid CityId { get; private set; }
+        public Guid StateId { get; private set; }
+        public Guid CountryId { get; private set; }
+        public string? ZipCode { get; private set; }
+        public Guid UserId { get; private set; }
+        public bool IsDefault { get; private set; }
 
         // Navigation properties
-        public City? City { get; set; }
-        public State? State { get; set; }
-        public Country? Country { get; set; }
-        public User? User { get; set; }
+        public City? City { get; private set; }
+        public State? State { get; private set; }
+        public Country? Country { get; private set; }
+        public User? User { get; private set; }
+
+        private Address() { }
     }
 }

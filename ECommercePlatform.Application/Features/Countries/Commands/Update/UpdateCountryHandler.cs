@@ -55,12 +55,12 @@ public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppRes
             // Map the updated properties
             _mapper.Map(request, country);
             // Set the updater information
-            if (_currentUserService.IsAuthenticated)
-            {
-                //country.ModifiedBy = _currentUserService.UserId;
-                country.ModifiedBy = request.ModifiedBy;
-                country.ModifiedOn = DateTime.Now;
-            }
+            //if (_currentUserService.IsAuthenticated)
+            //{
+            //    //country.ModifiedBy = _currentUserService.UserId;
+            //    country.ModifiedBy = request.ModifiedBy;
+            //    country.ModifiedOn = DateTime.Now;
+            //}
             await _unitOfWork.Countries.UpdateAsync(country);
             //await _unitOfWork.CompleteAsync();
             return AppResult.Success();

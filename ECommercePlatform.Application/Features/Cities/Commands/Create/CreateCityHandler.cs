@@ -24,8 +24,8 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
             {
                 Name = request.Name,
                 StateId = request.StateId,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = request.CreatedBy,
+                //CreatedOn = DateTime.Now,
+                //CreatedBy = request.CreatedBy,
                 IsActive = true
             };
 
