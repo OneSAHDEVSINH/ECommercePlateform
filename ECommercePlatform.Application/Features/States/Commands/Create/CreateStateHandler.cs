@@ -8,15 +8,11 @@ using System.Diagnostics.Metrics;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Create
 {
-    public class CreateStateHandler : IRequestHandler<CreateStateCommand, AppResult<StateDto>>
+    public class CreateStateHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateStateCommand, AppResult<StateDto>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        public CreateStateHandler(IUnitOfWork unitOfWork, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+
         public async Task<AppResult<StateDto>> Handle(CreateStateCommand request, CancellationToken cancellationToken)
         {
             try

@@ -9,26 +9,18 @@ using System.Text;
 
 namespace ECommercePlatform.Application.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(IConfiguration configuration, IUserRepository userRepository) : IAuthService
     {
-        private readonly IConfiguration _configuration;
-        private readonly IUserRepository _userRepository;
-
-        public AuthService(IConfiguration configuration, IUserRepository userRepository)
-        {
-            _configuration = configuration;
-            _userRepository = userRepository;
-        }
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IUserRepository _userRepository = userRepository;
 
         public async Task<AuthResultDto> LoginAsync(LoginDto loginDto)
         {
             if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
                 throw new ArgumentException("Email and password are required");
 
-            var user = await _userRepository.FindUserByEmailAndPasswordAsync(loginDto.Email, loginDto.Password);
-            if (user == null)
-                throw new KeyNotFoundException("Invalid email or password");
-
+            var user = await _userRepository.FindUserByEmailAndPasswordAsync(loginDto.Email, loginDto.Password) 
+                ?? throw new KeyNotFoundException("Invalid email or password");
             var token = GenerateJwtToken(user);
 
             return new AuthResultDto
@@ -48,8 +40,10 @@ namespace ECommercePlatform.Application.Services
 
         private string GenerateJwtToken(User user)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "User cannot be null");
             if (user.Email == null)
-                throw new ArgumentNullException(nameof(user.Email), "User email cannot be null");
+                throw new ArgumentNullException(nameof(user), "User email cannot be null");
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345");

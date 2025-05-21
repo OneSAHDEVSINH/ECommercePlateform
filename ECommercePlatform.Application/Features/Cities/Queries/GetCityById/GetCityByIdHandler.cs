@@ -7,17 +7,12 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Queries.GetCityById
 {
-    public class GetCityByIdHandler : IRequestHandler<GetCityByIdQuery, AppResult<CityDto>>
+    public class GetCityByIdHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper) : IRequestHandler<GetCityByIdQuery, AppResult<CityDto>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-        public GetCityByIdHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _currentUserService = currentUserService;
-            _mapper = mapper;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+
         public async Task<AppResult<CityDto>> Handle(GetCityByIdQuery request, CancellationToken cancellationToken)
         {
             var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);

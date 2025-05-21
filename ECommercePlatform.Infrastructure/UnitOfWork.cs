@@ -8,7 +8,7 @@ using ECommercePlatform.Infrastructure.Repositories;
 
 namespace ECommercePlatform.Infrastructure
 {
-    public class UnitOfWork(AppDbContext context) : IUnitOfWork
+    public class UnitOfWork(AppDbContext context) : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _context = context;
         private ICountryRepository? _countryRepository;
@@ -35,6 +35,7 @@ namespace ECommercePlatform.Infrastructure
         public void Dispose()
         {
             _context.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

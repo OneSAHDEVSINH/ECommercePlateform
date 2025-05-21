@@ -6,16 +6,10 @@ using ECommercePlatform.Domain.Entities;
 
 namespace ECommercePlatform.Application.Services
 {
-    public class ProductService : IProductService
+    public class ProductService(IUnitOfWork unitOfWork, IMapper mapper) : IProductService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
 
         public async Task<ProductDto> CreateProductAsync(CreateProductDto createProductDto)
         {
@@ -32,9 +26,8 @@ namespace ECommercePlatform.Application.Services
 
         public async Task DeleteProductAsync(Guid id)
         {
-            var product = await _unitOfWork.Products.GetByIdAsync(id);
-            if (product == null)
-                throw new KeyNotFoundException($"Product with ID {id} not found");
+            var product = await _unitOfWork.Products.GetByIdAsync(id) 
+                ?? throw new KeyNotFoundException($"Product with ID {id} not found");
 
             // Soft delete
             product.IsDeleted = true;

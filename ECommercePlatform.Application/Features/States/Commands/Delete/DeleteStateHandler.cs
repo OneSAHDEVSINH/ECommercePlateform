@@ -5,15 +5,11 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Delete
 {
-    public class DeleteStateHandler : IRequestHandler<DeleteStateCommand, AppResult>
+    public class DeleteStateHandler(IStateRepository stateRepository, IUnitOfWork unitOfWork) : IRequestHandler<DeleteStateCommand, AppResult>
     {
-        private readonly IStateRepository _stateRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        public DeleteStateHandler(IStateRepository stateRepository, IUnitOfWork unitOfWork)
-        {
-            _stateRepository = stateRepository;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IStateRepository _stateRepository = stateRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
         public async Task<AppResult> Handle(DeleteStateCommand request, CancellationToken cancellationToken)
         {
             try

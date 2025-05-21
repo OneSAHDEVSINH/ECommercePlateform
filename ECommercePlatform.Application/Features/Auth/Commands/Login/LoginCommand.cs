@@ -2,7 +2,7 @@
 using ECommercePlatform.Application.DTOs;
 using MediatR;
 
-namespace ECommercePlatform.Application.Features.Auth.Commands
+namespace ECommercePlatform.Application.Features.Auth.Commands.Login
 {
     public record LoginCommand : IRequest<AppResult<AuthResultDto>>
     {

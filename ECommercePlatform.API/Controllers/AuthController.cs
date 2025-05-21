@@ -1,4 +1,4 @@
-using ECommercePlatform.Application.Features.Auth.Commands;
+using ECommercePlatform.Application.Features.Auth.Commands.Login;
 using ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

@@ -9,18 +9,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ECommercePlatform.Application.Services
 {
-    public class CityService : ICityService
+    public class CityService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : ICityService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-
-        public CityService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _currentUserService = currentUserService;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public async Task<CityDto> CreateCityAsync(CreateCityDto createCityDto)
         {
@@ -58,11 +51,7 @@ namespace ECommercePlatform.Application.Services
 
         public async Task DeleteCityAsync(Guid id)
         {
-            var city = await _unitOfWork.Cities.GetByIdAsync(id);
-
-            if (city == null)
-                throw new KeyNotFoundException($"City with ID {id} not found");
-
+            var city = await _unitOfWork.Cities.GetByIdAsync(id) ?? throw new KeyNotFoundException($"City with ID {id} not found");
             await _unitOfWork.Cities.DeleteAsync(city);
             await _unitOfWork.CompleteAsync();
         }
@@ -81,9 +70,8 @@ namespace ECommercePlatform.Application.Services
         public async Task<IReadOnlyList<CityDto>> GetCitiesByStateIdAsync(Guid stateId)
         {
             // Verify that the state exists first
-            var state = await _unitOfWork.States.GetByIdAsync(stateId);
-            if (state == null)
-                throw new KeyNotFoundException($"State with ID {stateId} not found");
+            var state = await _unitOfWork.States.GetByIdAsync(stateId) 
+                ?? throw new KeyNotFoundException($"State with ID {stateId} not found");
 
             // Get cities by state ID using the repository method
             var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(stateId);
@@ -96,10 +84,8 @@ namespace ECommercePlatform.Application.Services
         {
             var city = await _unitOfWork.Cities.GetByIdAsync(id);
 
-            if (city == null)
-                throw new KeyNotFoundException($"City with ID {id} not found");
-
-            return _mapper.Map<CityDto>(city);
+            return city == null ? throw new KeyNotFoundException($"City with ID {id} not found") 
+                : _mapper.Map<CityDto>(city);
         }
 
         public Task<CityDto> GetCityWithStateAsync(Guid id)
@@ -109,10 +95,8 @@ namespace ECommercePlatform.Application.Services
 
         public async Task UpdateCityAsync(Guid id, UpdateCityDto updateCityDto)
         {
-            var city = await _unitOfWork.Cities.GetByIdAsync(id);
-
-            if (city == null)
-                throw new KeyNotFoundException($"City with ID {id} not found");
+            var city = await _unitOfWork.Cities.GetByIdAsync(id) 
+                ?? throw new KeyNotFoundException($"City with ID {id} not found");
 
             // Check if Name is null before calling ValidationService
             if (updateCityDto.Name != null &&

@@ -9,18 +9,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ECommercePlatform.Application.Services
 {
-    public class CountryService : ICountryService
+    public class CountryService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : ICountryService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-
-        public CountryService(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _currentUserService = currentUserService;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public async Task<CountryDto> CreateCountryAsync(CreateCountryDto createCountryDto)
         {
@@ -71,11 +64,8 @@ namespace ECommercePlatform.Application.Services
 
         public async Task DeleteCountryAsync(Guid id)
         {
-            var country = await _unitOfWork.Countries.GetByIdAsync(id);
-
-            if (country == null)
-                throw new KeyNotFoundException($"Country with ID {id} not found");
-
+            var country = await _unitOfWork.Countries.GetByIdAsync(id) 
+                ?? throw new KeyNotFoundException($"Country with ID {id} not found");
             await _unitOfWork.Countries.DeleteAsync(country);
             await _unitOfWork.CompleteAsync();
         }
@@ -90,27 +80,22 @@ namespace ECommercePlatform.Application.Services
         {
             var country = await _unitOfWork.Countries.GetByIdAsync(id);
 
-            if (country == null)
-                throw new KeyNotFoundException($"Country with ID {id} not found");
-
-            return _mapper.Map<CountryDto>(country);
+            return country == null ? throw new KeyNotFoundException($"Country with ID {id} not found") 
+                : _mapper.Map<CountryDto>(country);
         }
 
         public async Task<CountryDto> GetCountryWithStatesAsync(Guid id)
         {
             var country = await _unitOfWork.Countries.GetCountryWithStatesAsync(id);
 
-            if (country == null)
-                throw new KeyNotFoundException($"Country with ID {id} not found");
-
-            return _mapper.Map<CountryDto>(country);
+            return country == null ? throw new KeyNotFoundException($"Country with ID {id} not found") 
+                : _mapper.Map<CountryDto>(country);
         }
 
         public async Task UpdateCountryAsync(Guid id, UpdateCountryDto updateCountryDto)
         {
-            var country = await _unitOfWork.Countries.GetByIdAsync(id);
-            if (country == null)
-                throw new KeyNotFoundException($"Country with ID {id} not found");
+            var country = await _unitOfWork.Countries.GetByIdAsync(id) 
+                ?? throw new KeyNotFoundException($"Country with ID {id} not found");
 
             // Check if Name is null before calling ValidationService
             if (updateCountryDto.Name != null && updateCountryDto.Code != null &&

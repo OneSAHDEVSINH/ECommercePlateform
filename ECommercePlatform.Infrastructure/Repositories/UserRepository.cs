@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class UserRepository : GenericRepository<User>, IUserRepository
+    public class UserRepository(AppDbContext context) : GenericRepository<User>(context), IUserRepository
     {
-        public UserRepository(AppDbContext context) : base(context)
-        {
-        }
-
         public async Task<User> FindUserByEmailAndPasswordAsync(string email, string password)
         {
             return await _context.Users

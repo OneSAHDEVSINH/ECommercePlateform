@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class CountryRepository : GenericRepository<Country>, ICountryRepository
+    public class CountryRepository(AppDbContext context) : GenericRepository<Country>(context), ICountryRepository
     {
-        public CountryRepository(AppDbContext context) : base(context)
-        {
-        }
-
         public async Task<IReadOnlyList<Country>> GetActiveCountriesAsync()
         {
             return await _context.Countries

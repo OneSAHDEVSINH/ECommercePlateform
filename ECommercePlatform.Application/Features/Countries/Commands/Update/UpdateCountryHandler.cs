@@ -9,18 +9,12 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Update;
 
-public class UpdateCountryHandler : IRequestHandler<UpdateCountryCommand, AppResult>
+public class UpdateCountryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<UpdateCountryCommand, AppResult>
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IMapper _mapper = mapper;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public UpdateCountryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
-    {
-        _unitOfWork = unitOfWork;
-        _mapper = mapper;
-        _currentUserService = currentUserService;
-    }
     public async Task<AppResult> Handle(UpdateCountryCommand request, CancellationToken cancellationToken)
     {
         try

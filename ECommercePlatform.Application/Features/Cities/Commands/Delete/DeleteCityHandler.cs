@@ -5,15 +5,11 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
 {
-    public class DeleteCityHandler : IRequestHandler<DeleteCityCommand, AppResult>
+    public class DeleteCityHandler(ICityRepository cityRepository, IUnitOfWork unitOfWork) : IRequestHandler<DeleteCityCommand, AppResult>
     {
-        private readonly ICityRepository _cityRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        public DeleteCityHandler(ICityRepository cityRepository, IUnitOfWork unitOfWork)
-        {
-            _cityRepository = cityRepository;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly ICityRepository _cityRepository = cityRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
         public async Task<AppResult> Handle(DeleteCityCommand request, CancellationToken cancellationToken)
         {
             try

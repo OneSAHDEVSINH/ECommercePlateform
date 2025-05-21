@@ -5,14 +5,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Auth.Commands.Login
 {
-    public class LoginHandler : IRequestHandler<LoginCommand, AppResult<AuthResultDto>>
+    public class LoginHandler(IAuthService authService) : IRequestHandler<LoginCommand, AppResult<AuthResultDto>>
     {
-        private readonly IAuthService _authService;
-
-        public LoginHandler(IAuthService authService)
-        {
-            _authService = authService;
-        }
+        private readonly IAuthService _authService = authService;
 
         public async Task<AppResult<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {

@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class CityRepository : GenericRepository<City>, ICityRepository
+    public class CityRepository(AppDbContext context) : GenericRepository<City>(context), ICityRepository
     {
-        public CityRepository(AppDbContext context) : base(context)
-        {
-        }
-
         public async Task<IReadOnlyList<City>> GetActiveCitiesAsync()
         {
             return await _context.Cities

@@ -5,15 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService) : DbContext(options)
     {
-        private readonly ICurrentUserService _currentUserService;
-
-        public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService)
-            : base(options)
-        {
-            _currentUserService = currentUserService;
-        }
+        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public DbSet<User> Users { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -81,7 +75,7 @@ namespace ECommercePlatform.Infrastructure
             ApplyEntityConfigurations(modelBuilder);
         }
 
-        private void ApplyEntityConfigurations(ModelBuilder modelBuilder)
+        private static void ApplyEntityConfigurations(ModelBuilder modelBuilder)
         {
             // Configure entity relationships
             ConfigureUserEntity(modelBuilder);
@@ -95,7 +89,7 @@ namespace ECommercePlatform.Infrastructure
             // Add more configuration methods as needed
         }
 
-        private void ConfigureUserEntity(ModelBuilder modelBuilder)
+        private static void ConfigureUserEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>(entity =>
             {
@@ -123,7 +117,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void ConfigureAddressEntity(ModelBuilder modelBuilder)
+        private static void ConfigureAddressEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Address>(entity =>
             {
@@ -150,7 +144,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void ConfigureCityEntity(ModelBuilder modelBuilder)
+        private static void ConfigureCityEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<City>(entity =>
             {
@@ -164,7 +158,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void ConfigureCountryEntity(ModelBuilder modelBuilder)
+        private static void ConfigureCountryEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Country>(entity =>
             {
@@ -174,7 +168,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void ConfigureStateEntity(ModelBuilder modelBuilder)
+        private static void ConfigureStateEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<State>(entity =>
             {
@@ -189,7 +183,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void ConfigureOrderEntity(ModelBuilder modelBuilder)
+        private static void ConfigureOrderEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Order>(entity =>
             {
@@ -213,7 +207,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void ConfigureProductEntity(ModelBuilder modelBuilder)
+        private static void ConfigureProductEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>(entity =>
             {
@@ -230,7 +224,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void ConfigureCategoryEntity(ModelBuilder modelBuilder)
+        private static void ConfigureCategoryEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Category>(entity =>
             {
@@ -245,7 +239,7 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private void SeedDefaultAdmin(ModelBuilder modelBuilder)
+        private static void SeedDefaultAdmin(ModelBuilder modelBuilder)
         {
             // Create a default admin user  
             var adminId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F"); // Fixed GUID for admin  

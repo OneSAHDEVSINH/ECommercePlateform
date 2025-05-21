@@ -17,5 +17,6 @@ namespace ECommercePlatform.Application.Interfaces
         // Shall be added more repositories as properties
 
         Task<int> CompleteAsync();
+        void Dispose();
     }
 }

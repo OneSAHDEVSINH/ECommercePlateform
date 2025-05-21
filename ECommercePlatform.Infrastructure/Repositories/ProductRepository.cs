@@ -4,12 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class ProductRepository : GenericRepository<Product>, IProductRepository
+    public class ProductRepository(AppDbContext context) : GenericRepository<Product>(context), IProductRepository
     {
-        public ProductRepository(AppDbContext context) : base(context)
-        {
-        }
-
         public async Task<IReadOnlyList<Product>> GetProductsByCategoryAsync(Guid categoryId)
         {
             return await _context.Products

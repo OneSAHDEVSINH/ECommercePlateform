@@ -66,7 +66,7 @@ namespace ECommercePlatform.Application.Common.Behaviors
                 }
             }
 
-            return await next();
+            return await next(cancellationToken);
         }
     }
 }

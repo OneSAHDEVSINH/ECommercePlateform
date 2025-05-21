@@ -7,17 +7,12 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Queries.GetStatesById
 {
-    public class GetStateByIdHandler : IRequestHandler<GetStateByIdQuery, AppResult<StateDto>>
+    public class GetStateByIdHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper) : IRequestHandler<GetStateByIdQuery, AppResult<StateDto>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-        public GetStateByIdHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _currentUserService = currentUserService;
-            _mapper = mapper;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+
         public async Task<AppResult<StateDto>> Handle(GetStateByIdQuery request, CancellationToken cancellationToken)
         {
             var state = await _unitOfWork.States.GetByIdAsync(request.Id);

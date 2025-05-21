@@ -7,17 +7,12 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Countries.Queries.GetCountryById
 {
-    public class GetCountryByIdHandler : IRequestHandler<GetCountryByIdQuery, AppResult<CountryDto>>
+    public class GetCountryByIdHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper) : IRequestHandler<GetCountryByIdQuery, AppResult<CountryDto>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-        public GetCountryByIdHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _currentUserService = currentUserService;
-            _mapper = mapper;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+
         public async Task<AppResult<CountryDto>> Handle(GetCountryByIdQuery request, CancellationToken cancellationToken)
         {
             var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);

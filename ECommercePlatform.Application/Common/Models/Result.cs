@@ -19,10 +19,10 @@
         }
 
         public static AppResult<T> Success(T value) =>
-            new AppResult<T>(true, value, string.Empty);
+            new(true, value, string.Empty);
 
         public static AppResult<T> Failure(string error) =>
-            new AppResult<T>(false, default!, error);
+            new(false, default!, error);
 
     }
 
@@ -42,9 +42,9 @@
         }
 
         public static AppResult Success() =>
-            new AppResult(true, string.Empty);
+            new(true, string.Empty);
 
         public static AppResult Failure(string error) =>
-            new AppResult(false, error);
+            new(false, error);
     }
 }

@@ -4,11 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class StateRepository : GenericRepository<State>, IStateRepository
+    public class StateRepository(AppDbContext context) : GenericRepository<State>(context), IStateRepository
     {
-        public StateRepository(AppDbContext context) : base(context)
-        {
-        }
         public async Task<IReadOnlyList<State>> GetActiveStatesAsync()
         {
             return await _context.States

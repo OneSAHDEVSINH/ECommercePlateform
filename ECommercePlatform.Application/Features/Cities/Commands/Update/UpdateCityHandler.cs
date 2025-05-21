@@ -10,19 +10,13 @@ using System.Diagnostics.Metrics;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Update
 {
-    public class UpdateCityHandler : IRequestHandler<UpdateCityCommand, AppResult>
+    public class UpdateCityHandler(ICityRepository cityRepository, IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<UpdateCityCommand, AppResult>
     {
-        private readonly ICityRepository _cityRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-        public UpdateCityHandler(ICityRepository cityRepository, IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
-        {
-            _cityRepository = cityRepository;
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _currentUserService = currentUserService;
-        }
+        private readonly ICityRepository _cityRepository = cityRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+
         public async Task<AppResult> Handle(UpdateCityCommand request, CancellationToken cancellationToken)
         {
             try

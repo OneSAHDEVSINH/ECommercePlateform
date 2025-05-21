@@ -9,23 +9,15 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Update
 {
-    public class UpdateStateHandler : IRequestHandler<UpdateStateCommand, AppResult>
+    public class UpdateStateHandler(IStateRepository stateRepository, IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<UpdateStateCommand, AppResult>
     {
 
-        private readonly IStateRepository _stateRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly IStateRepository _stateRepository = stateRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
         //private readonly IValidator<UpdateStateCommand> _validator;
-        private readonly ICurrentUserService _currentUserService;
-        //public UpdateStateHandler(IStateRepository stateRepository, IUnitOfWork unitOfWork, IMapper mapper, IValidator<UpdateStateCommand> validator, ICurrentUserService currentUserService)
-        public UpdateStateHandler(IStateRepository stateRepository, IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
-        {
-            _stateRepository = stateRepository;
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            //_validator = validator;
-            _currentUserService = currentUserService;
-        }
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+
         public async Task<AppResult> Handle(UpdateStateCommand request, CancellationToken cancellationToken)
         {
             try

@@ -10,19 +10,13 @@ using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Common.Behaviors
 {
-    public class AuditBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class AuditBehavior<TRequest, TResponse>(
+        ICurrentUserService currentUserService,
+        ILogger<AuditBehavior<TRequest, TResponse>> logger) : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
-        private readonly ICurrentUserService _currentUserService;
-        private readonly ILogger<AuditBehavior<TRequest, TResponse>> _logger;
-
-        public AuditBehavior(
-            ICurrentUserService currentUserService,
-            ILogger<AuditBehavior<TRequest, TResponse>> logger)
-        {
-            _currentUserService = currentUserService;
-            _logger = logger;
-        }
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+        private readonly ILogger<AuditBehavior<TRequest, TResponse>> _logger = logger;
 
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
@@ -63,7 +57,7 @@ namespace ECommercePlatform.Application.Common.Behaviors
             }
 
             // Continue with the next handler in the pipeline
-            return await next();
+            return await next(cancellationToken);
         }
     }
 }

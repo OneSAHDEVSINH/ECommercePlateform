@@ -7,20 +7,13 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
 {
-    public class GetCurrentUserHandler : IRequestHandler<GetCurrentUserQuery, AppResult<UserDto>>
+    public class GetCurrentUserHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper, IUserRepository userRepository) : IRequestHandler<GetCurrentUserQuery, AppResult<UserDto>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+        private readonly IUserRepository _userRepository = userRepository;
 
-        public GetCurrentUserHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper, IUserRepository userRepository)
-        {
-            _unitOfWork = unitOfWork;
-            _currentUserService = currentUserService;
-            _mapper = mapper;
-            _userRepository = userRepository;
-        }
         public async Task<AppResult<UserDto>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
         {
             try

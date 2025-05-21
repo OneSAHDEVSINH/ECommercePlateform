@@ -5,14 +5,9 @@ using System.Linq.Expressions;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class GenericRepository<T> : IGenericRepository<T> where T : class
+    public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> where T : class
     {
-        protected readonly AppDbContext _context;
-
-        public GenericRepository(AppDbContext context)
-        {
-            _context = context;
-        }
+        protected readonly AppDbContext _context = context;
 
         public async Task<T> AddAsync(T entity)
         {

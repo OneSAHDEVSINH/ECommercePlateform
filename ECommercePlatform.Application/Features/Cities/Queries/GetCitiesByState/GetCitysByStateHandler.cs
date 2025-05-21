@@ -6,16 +6,11 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState
 {
-    public class GetCitysByStateHandler : IRequestHandler<GetCitiesByStateQuery, AppResult<List<CityDto>>>
+    public class GetCitysByStateHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<GetCitiesByStateQuery, AppResult<List<CityDto>>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
 
-        public GetCitysByStateHandler(IUnitOfWork unitOfWork, IMapper mapper)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-        }
         public async Task<AppResult<List<CityDto>>> Handle(GetCitiesByStateQuery request, CancellationToken cancellationToken)
         {
             try
