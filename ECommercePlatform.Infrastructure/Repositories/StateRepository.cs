@@ -14,6 +14,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return await _context.States
                 .Where(s => s.IsActive && !s.IsDeleted)
                 .OrderBy(s => s.Name)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -23,6 +24,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .Where(s => s.CountryId == countryId && !s.IsDeleted)
                 .Include(s => s.Country)
                 .OrderBy(s => s.Name)
+                .AsNoTracking()
                 .ToListAsync();
         }
 

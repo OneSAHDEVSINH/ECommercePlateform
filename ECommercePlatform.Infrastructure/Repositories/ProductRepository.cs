@@ -15,6 +15,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return await _context.Products
                 .Where(p => p.CategoryId == categoryId && p.IsActive && !p.IsDeleted)
                 .Include(p => p.Category)
+                .AsNoTracking()
                 .ToListAsync() ?? new List<Product>();
         }
 

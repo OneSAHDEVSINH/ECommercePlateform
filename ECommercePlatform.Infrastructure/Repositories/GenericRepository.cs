@@ -29,13 +29,16 @@ namespace ECommercePlatform.Infrastructure.Repositories
 
         public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _context.Set<T>().Where(predicate).ToListAsync();
+            return await _context.Set<T>()
+                .Where(predicate)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             return await _context.Set<T>()
-                .AsNoTracking() // Use AsNoTracking to avoid tracking issues
+                .AsNoTracking()
                 .ToListAsync();
         }
 

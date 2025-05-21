@@ -15,6 +15,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return await _context.Countries
                 .Where(c => c.IsActive && !c.IsDeleted)
                 .OrderBy(c => c.Name)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
