@@ -46,5 +46,6 @@
 
         public static AppResult Failure(string error) =>
             new(false, error);
+
     }
 }

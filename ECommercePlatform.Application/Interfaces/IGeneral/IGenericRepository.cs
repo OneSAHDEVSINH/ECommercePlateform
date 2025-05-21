@@ -1,3 +1,5 @@
+using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Domain.Entities;
 using System.Linq.Expressions;
 
 namespace ECommercePlatform.Application.Interfaces.IGeneral

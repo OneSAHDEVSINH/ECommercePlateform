@@ -1,3 +1,4 @@
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;

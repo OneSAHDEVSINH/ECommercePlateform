@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ECommercePlatform.Application.Common.Extensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
@@ -15,19 +16,35 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 
         public async Task<AppResult<CityDto>> Handle(CreateCityCommand request, CancellationToken cancellationToken)
         {
-            var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.StateId);
-            if (!isNameUnique)
+            try
             {
-                return AppResult<CityDto>.Failure($"City with this name \"{request.Name}\" already exists.");
-            }
+                //var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.StateId);
+                //if (!isNameUnique)
+                //{
+                //    return AppResult<CityDto>.Failure($"City with this name \"{request.Name}\" already exists.");
+                //}
 
-            var city = City.Create(request.Name, request.StateId); // Use the static Create method
+                //var city = City.Create(request.Name, request.StateId); // Use the static Create method
+                //city.IsActive = true;
+
+                //await _unitOfWork.Cities.AddAsync(city);
+                ////await _unitOfWork.CompleteAsync();
+                ////var cityDto = _mapper.Map<CityDto>(city);
+                //return AppResult<CityDto>.Success((CityDto)city);
+
+                return await _unitOfWork.States.EnsureNameIsUniqueAsync(request.Name)
+        .BindAsync(_ =>
+        {
+            var city = City.Create(request.Name, request.StateId);
             city.IsActive = true;
-
-            await _unitOfWork.Cities.AddAsync(city);
-            //await _unitOfWork.CompleteAsync();
-            //var cityDto = _mapper.Map<CityDto>(city);
-            return AppResult<CityDto>.Success((CityDto)city);
+            return _unitOfWork.Cities.AddAsync(city)
+                .ContinueWith(_ => AppResult<CityDto>.Success((CityDto)city));
+        });
+            }
+            catch (Exception ex)
+            {
+                return AppResult<CityDto>.Failure($"An error occurred: {ex.Message}");
+            }
         }
     }
 }

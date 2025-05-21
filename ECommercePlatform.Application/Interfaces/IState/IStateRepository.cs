@@ -1,5 +1,7 @@
-﻿using ECommercePlatform.Application.Interfaces.IGeneral;
+﻿using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace ECommercePlatform.Application.Interfaces.IState
 {
@@ -12,6 +14,11 @@ namespace ECommercePlatform.Application.Interfaces.IState
         Task<bool> IsCodeUniqueInCountryAsync(string code, Guid countryId);
         Task<bool> IsNameUniqueInCountryAsync(string name, Guid countryId, Guid excludeId);
         Task<bool> IsCodeUniqueInCountryAsync(string code, Guid countryId, Guid excludeId);
+        Task<AppResult<string>> EnsureCodeIsUniqueAsync(string code);
+        Task<AppResult<string>> EnsureNameIsUniqueAsync(string name);
+        Task<AppResult<string>> EnsureCodeIsUniqueAsync(string code, Guid excludeId);
+        Task<AppResult<string>> EnsureNameIsUniqueAsync(string name, Guid excludeId);
+        Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate);
 
     }
 }

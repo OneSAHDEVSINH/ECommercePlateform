@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Extensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
@@ -16,27 +18,37 @@ public class CreateCountryHandler(IUnitOfWork unitOfWork, IMapper mapper) : IReq
     {
         try
         {
-            var isCodeUnique = await _unitOfWork.Countries.IsCodeUniqueAsync(request.Code);
-            if (!isCodeUnique)
-            {
-                return AppResult<CountryDto>.Failure($"Country with this code \"{request.Code}\" already exists.");
-            }
+            //var isCodeUnique = await _unitOfWork.Countries.IsCodeUniqueAsync(request.Code);
+            //if (!isCodeUnique)
+            //{
+            //    return AppResult<CountryDto>.Failure($"Country with this code \"{request.Code}\" already exists.");
+            //}
 
-            var isNameUnique = await _unitOfWork.Countries.IsNameUniqueAsync(request.Name);
-            if (!isNameUnique)
-            {
-                return AppResult<CountryDto>.Failure($"Country with this name \"{request.Name}\" already exists.");
-            }
+            //var isNameUnique = await _unitOfWork.Countries.IsNameUniqueAsync(request.Name);
+            //if (!isNameUnique)
+            //{
+            //    return AppResult<CountryDto>.Failure($"Country with this name \"{request.Name}\" already exists.");
+            //}
 
-            var country = Country.Create(request.Name, request.Code); // Use the static Create method
+            //var country = Country.Create(request.Name, request.Code);
+            //country.IsActive = true;
+
+            //await _unitOfWork.Countries.AddAsync(country);
+            ////await _unitOfWork.CompleteAsync();
+            //var countryDto = (CountryDto)country;
+
+            ////var countryDto = _mapper.Map<CountryDto>(country);
+            //return AppResult<CountryDto>.Success(countryDto);
+
+            return await _unitOfWork.Countries.EnsureCodeIsUniqueAsync(request.Code)
+        .BindAsync(_ => _unitOfWork.Countries.EnsureNameIsUniqueAsync(request.Name))
+        .BindAsync(_ =>
+        {
+            var country = Country.Create(request.Name, request.Code);
             country.IsActive = true;
-
-            await _unitOfWork.Countries.AddAsync(country);
-            //await _unitOfWork.CompleteAsync();
-            var countryDto = (CountryDto)country;
-
-            //var countryDto = _mapper.Map<CountryDto>(country);
-            return AppResult<CountryDto>.Success(countryDto);
+            return _unitOfWork.Countries.AddAsync(country)
+                .ContinueWith(_ => AppResult<CountryDto>.Success((CountryDto)country));
+        });
         }
         catch (Exception ex)
         {

@@ -1,5 +1,7 @@
-﻿using ECommercePlatform.Application.Interfaces.IGeneral;
+﻿using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace ECommercePlatform.Application.Interfaces.ICity
 {
@@ -10,6 +12,9 @@ namespace ECommercePlatform.Application.Interfaces.ICity
         Task<IReadOnlyList<City>> GetCitiesByStateIdAsync(Guid stateId);
         Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId);
         Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId, Guid excludeId);
+        Task<AppResult<string>> EnsureNameIsUniqueAsync(string name);
+        Task<AppResult<string>> EnsureNameIsUniqueAsync(string name, Guid excludeId);
+        Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate);
 
     }
 }
