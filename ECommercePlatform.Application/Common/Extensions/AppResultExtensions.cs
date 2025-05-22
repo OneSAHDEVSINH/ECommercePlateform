@@ -17,5 +17,4 @@ namespace ECommercePlatform.Application.Common.Extensions
             return await func(result.Value);
         }
     }
-
 }

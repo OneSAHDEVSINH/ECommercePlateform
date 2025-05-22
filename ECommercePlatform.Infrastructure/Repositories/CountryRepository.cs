@@ -88,6 +88,42 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 : AppResult<string>.Success(normalizedCode);
         }
 
+        public Task<Result<string>> EnsureCodeAIsUniqueAsync(string code)
+        {
+            return Result.Success(code)
+                .Ensure(c => !string.IsNullOrEmpty(c?.Trim()), "Code cannot be null or empty.")
+                .Map(c => c.Trim().ToLower())
+                .Bind(async normalizedCode =>
+                {
+                    var exists = await _context.Countries
+                        .AnyAsync(c => c.Code != null &&
+                                       c.Code.ToLower().Trim() == normalizedCode &&
+                                       !c.IsDeleted);
+
+                    return exists
+                        ? Result.Failure<string>($"Country with this code \"{code}\" already exists.")
+                        : Result.Success(normalizedCode);
+                });
+        }
+
+        public Task<Result<string>> EnsureNameAIsUniqueAsync(string name)
+        {
+            return Result.Success(name)
+                .Ensure(c => !string.IsNullOrEmpty(c?.Trim()), "Name cannot be null or empty.")
+                .Map(c => c.Trim().ToLower())
+                .Bind(async normalizedName =>
+                {
+                    var exists = await _context.Countries
+                        .AnyAsync(c => c.Name != null &&
+                                       c.Name.ToLower().Trim() == normalizedName &&
+                                       !c.IsDeleted);
+
+                    return exists
+                        ? Result.Failure<string>($"Country with this code \"{name}\" already exists.")
+                        : Result.Success(normalizedName);
+                });
+        }
+
         public async Task<AppResult<string>> EnsureNameIsUniqueAsync(string name, Guid excludeId)
         {
             var normalizedName = name?.Trim().ToLower();
@@ -118,7 +154,25 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return exists ? AppResult<string>.Failure($"Country with this code \"{code}\" already exists.")
                 : AppResult<string>.Success(normalizedCode);
         }
+        public Task<Result<string>> EnsureCodeAIsUniqueAsync(string code, Guid excludeId)
+        {
+            return Task.FromResult(Result.Success(code))
+                .Ensure(c => !string.IsNullOrEmpty(c?.Trim()), "Code cannot be null or empty.")
+                .Ensure(c => !string.IsNullOrWhiteSpace(c), "Country code cannot be null or empty.")
+                .Map(c => c.Trim().ToLower())
+                .Bind(async normalizedCode =>
+                {
+                    var exists = await _context.Countries
+                        .AnyAsync(c => c.Code != null &&
+                                       c.Code.ToLower().Trim() == normalizedCode &&
+                                       c.Id != excludeId &&
+                                       !c.IsDeleted);
 
+                    return exists
+                        ? Result.Failure<string>($"Country with this code \"{code}\" already exists.")
+                        : Result.Success(normalizedCode);
+                });
+        }
         private Task<Result<string>> ValidateCode(string code, Guid countryId)
         {
             if (string.IsNullOrWhiteSpace(code))

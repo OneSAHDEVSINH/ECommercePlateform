@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Extensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
@@ -39,6 +40,8 @@ public class CreateCountryHandler(IUnitOfWork unitOfWork, IMapper mapper) : IReq
             ////var countryDto = _mapper.Map<CountryDto>(country);
             //return AppResult<CountryDto>.Success(countryDto);
 
+
+
             return await _unitOfWork.Countries.EnsureCodeIsUniqueAsync(request.Code)
         .BindAsync(_ => _unitOfWork.Countries.EnsureNameIsUniqueAsync(request.Name))
         .BindAsync(_ =>
@@ -48,6 +51,8 @@ public class CreateCountryHandler(IUnitOfWork unitOfWork, IMapper mapper) : IReq
             return _unitOfWork.Countries.AddAsync(country)
                 .ContinueWith(_ => AppResult<CountryDto>.Success((CountryDto)country));
         });
+
+
         }
         catch (Exception ex)
         {

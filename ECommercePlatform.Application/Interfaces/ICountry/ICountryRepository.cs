@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Domain.Entities;
@@ -18,6 +19,9 @@ namespace ECommercePlatform.Application.Interfaces.ICountry
         Task<AppResult<string>> EnsureNameIsUniqueAsync(string name);
         Task<AppResult<string>> EnsureCodeIsUniqueAsync(string code, Guid excludeId);
         Task<AppResult<string>> EnsureNameIsUniqueAsync(string name, Guid excludeId);
+        Task<Result<string>> EnsureCodeAIsUniqueAsync(string code, Guid excludeId);
+        Task<Result<string>> EnsureCodeAIsUniqueAsync(string code);
+        Task<Result<string>> EnsureNameAIsUniqueAsync(string name);
         Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate);
     }
 }
