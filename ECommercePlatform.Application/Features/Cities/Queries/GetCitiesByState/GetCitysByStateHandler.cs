@@ -20,8 +20,6 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState
                     return AppResult<List<CityDto>>.Failure($"Cities with this ID \"{request.StateId}\" not found.");
                 }
                 var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(request.StateId);
-                //var citiesDto = _mapper.Map<List<CityDto>>(cities);
-                //var cityDtos = _mapper.Map<List<CityDto>>(cities);
                 var citiesDto = cities.Select(city => (CityDto)city).ToList();
                 return AppResult<List<CityDto>>.Success(citiesDto);
             }

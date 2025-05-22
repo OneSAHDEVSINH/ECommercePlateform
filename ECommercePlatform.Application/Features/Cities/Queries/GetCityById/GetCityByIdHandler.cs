@@ -20,8 +20,8 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCityById
                 {
                     return AppResult<CityDto>.Failure($"City with this ID \"{request.Id}\" not found.");
                 }
-                //var cityDto = _mapper.Map<CityDto>(city);
                 var cityDto = (CityDto)city;
+
                 return AppResult<CityDto>.Success(cityDto);
             }
             catch (Exception ex)
