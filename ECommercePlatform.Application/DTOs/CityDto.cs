@@ -1,5 +1,4 @@
 using ECommercePlatform.Application.Features.Cities.Commands.Update;
-using ECommercePlatform.Application.Features.Countries.Commands.Update;
 using ECommercePlatform.Domain.Entities;
 
 namespace ECommercePlatform.Application.DTOs

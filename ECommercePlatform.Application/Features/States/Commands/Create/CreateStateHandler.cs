@@ -5,7 +5,6 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
 using MediatR;
-using System.Diagnostics.Metrics;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Create
 {

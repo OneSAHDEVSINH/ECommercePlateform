@@ -19,7 +19,7 @@ namespace ECommercePlatform.Application.Services
             if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
                 throw new ArgumentException("Email and password are required");
 
-            var user = await _userRepository.FindUserByEmailAndPasswordAsync(loginDto.Email, loginDto.Password) 
+            var user = await _userRepository.FindUserByEmailAndPasswordAsync(loginDto.Email, loginDto.Password)
                 ?? throw new KeyNotFoundException("Invalid email or password");
             var token = GenerateJwtToken(user);
 

@@ -70,7 +70,7 @@ namespace ECommercePlatform.Application.Services
         public async Task<IReadOnlyList<CityDto>> GetCitiesByStateIdAsync(Guid stateId)
         {
             // Verify that the state exists first
-            var state = await _unitOfWork.States.GetByIdAsync(stateId) 
+            var state = await _unitOfWork.States.GetByIdAsync(stateId)
                 ?? throw new KeyNotFoundException($"State with ID {stateId} not found");
 
             // Get cities by state ID using the repository method
@@ -84,7 +84,7 @@ namespace ECommercePlatform.Application.Services
         {
             var city = await _unitOfWork.Cities.GetByIdAsync(id);
 
-            return city == null ? throw new KeyNotFoundException($"City with ID {id} not found") 
+            return city == null ? throw new KeyNotFoundException($"City with ID {id} not found")
                 : _mapper.Map<CityDto>(city);
         }
 
@@ -95,7 +95,7 @@ namespace ECommercePlatform.Application.Services
 
         public async Task UpdateCityAsync(Guid id, UpdateCityDto updateCityDto)
         {
-            var city = await _unitOfWork.Cities.GetByIdAsync(id) 
+            var city = await _unitOfWork.Cities.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"City with ID {id} not found");
 
             // Check if Name is null before calling ValidationService

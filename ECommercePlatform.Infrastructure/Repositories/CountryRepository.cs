@@ -1,23 +1,14 @@
 using CSharpFunctionalExtensions;
-using ECommercePlatform.Application.Common.Extensions;
 using ECommercePlatform.Application.Common.Models;
-using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Features.Cities.Commands.Create;
-using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.ICountry;
 using ECommercePlatform.Domain.Entities;
-using FluentAssertions.Equivalency;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class CountryRepository : GenericRepository<Country>, ICountryRepository
+    public class CountryRepository(AppDbContext context) : GenericRepository<Country>(context), ICountryRepository
     {
-        public CountryRepository(AppDbContext context) : base(context)
-        {
-        }
         public async Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate)
         {
             return await _context.Countries.AnyAsync(predicate);
@@ -47,7 +38,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == name.ToLower().Trim() && !c.IsDeleted);
         }
 
-        
+
 
         public async Task<bool> IsCodeUniqueAsync(string code)
         {

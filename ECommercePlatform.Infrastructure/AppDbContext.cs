@@ -249,7 +249,7 @@ namespace ECommercePlatform.Infrastructure
 
             modelBuilder.Entity<User>().HasData(
                 User.AdminCreate(
-                    id: adminId, 
+                    id: adminId,
                     firstName: "Admin",
                     lastName: "User",
                     gender: Gender.Male,
