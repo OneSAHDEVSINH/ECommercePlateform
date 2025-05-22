@@ -81,7 +81,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             var exists = await _context.Cities
                 .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == normalizedName && !c.IsDeleted);
 
-            return exists ? AppResult<string>.Failure($"State with this name \"{name}\" already exists.")
+            return exists ? AppResult<string>.Failure($"City with this name \"{name}\" already exists.")
                 : AppResult<string>.Success(normalizedName);
         }
 
@@ -96,7 +96,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             var exists = await _context.Cities
                 .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == normalizedName && c.Id != excludeId && !c.IsDeleted);
 
-            return exists ? AppResult<string>.Failure($"State with this name \"{name}\" already exists.")
+            return exists ? AppResult<string>.Failure($"City with this name \"{name}\" already exists.")
                 : AppResult<string>.Success(normalizedName);
         }
     }
