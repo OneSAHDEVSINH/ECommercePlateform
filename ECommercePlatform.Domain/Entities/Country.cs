@@ -6,8 +6,8 @@ namespace ECommercePlatform.Domain.Entities
         public string? Code { get; private set; }
 
         // Navigation properties
-        public ICollection<State>? States { get;  set; }
-        public ICollection<Address>? Addresses { get;  set; }
+        public ICollection<State>? States { get; set; }
+        public ICollection<Address>? Addresses { get; set; }
 
         private Country() { }
 

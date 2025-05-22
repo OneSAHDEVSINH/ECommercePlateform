@@ -1,5 +1,3 @@
-using FluentAssertions.Equivalency;
-
 namespace ECommercePlatform.Domain.Entities
 {
     public class City : BaseEntity
@@ -8,9 +6,9 @@ namespace ECommercePlatform.Domain.Entities
         public Guid StateId { get; private set; }
 
         // Navigation properties
-        public State? State { get;  set; }
+        public State? State { get; set; }
 
-        public ICollection<Address>? Addresses { get;  set; }
+        public ICollection<Address>? Addresses { get; set; }
 
         private City() { }
 

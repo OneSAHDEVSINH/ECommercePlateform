@@ -55,7 +55,7 @@ namespace ECommercePlatform.Application.Services
         }
         public async Task DeleteStateAsync(Guid id)
         {
-            var state = await _unitOfWork.States.GetByIdAsync(id) 
+            var state = await _unitOfWork.States.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"State with ID {id} not found");
             await _unitOfWork.States.DeleteAsync(state);
             await _unitOfWork.CompleteAsync();
@@ -71,13 +71,13 @@ namespace ECommercePlatform.Application.Services
         {
             var state = await _unitOfWork.States.GetByIdAsync(id);
 
-            return state == null ? throw new KeyNotFoundException($"State with ID {id} not found") 
+            return state == null ? throw new KeyNotFoundException($"State with ID {id} not found")
                 : _mapper.Map<StateDto>(state);
         }
 
         public async Task<StateDto> GetStateWithCitiesAsync(Guid id)
         {
-            var state = await _unitOfWork.States.GetStateWithCitiesAsync(id) 
+            var state = await _unitOfWork.States.GetStateWithCitiesAsync(id)
                 ?? throw new KeyNotFoundException($"State with ID {id} not found");
 
             //var cities = await _unitOfWork.Cities.GetAllAsync(c => c.StateId == id);
@@ -87,7 +87,7 @@ namespace ECommercePlatform.Application.Services
 
         public async Task UpdateStateAsync(Guid id, UpdateStateDto updateStateDto)
         {
-            var state = await _unitOfWork.States.GetByIdAsync(id) 
+            var state = await _unitOfWork.States.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"State with ID {id} not found");
 
             // Check if Name is null before calling ValidationService
@@ -132,7 +132,7 @@ namespace ECommercePlatform.Application.Services
 
         public async Task<StateDto> RestoreStateAsync(Guid id)
         {
-            var state = await _unitOfWork.States.GetByIdAsync(id) 
+            var state = await _unitOfWork.States.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"State with ID {id} not found");
             state.IsDeleted = false;
 
@@ -142,7 +142,7 @@ namespace ECommercePlatform.Application.Services
 
         public async Task<StateDto> SoftDeleteStateAsync(Guid id)
         {
-            var state = await _unitOfWork.States.GetByIdAsync(id) 
+            var state = await _unitOfWork.States.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"State with ID {id} not found");
             state.IsDeleted = true;
 

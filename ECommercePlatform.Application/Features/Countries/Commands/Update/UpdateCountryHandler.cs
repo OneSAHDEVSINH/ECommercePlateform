@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
-using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
-using ECommercePlatform.Application.Common.Extensions;
-using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 

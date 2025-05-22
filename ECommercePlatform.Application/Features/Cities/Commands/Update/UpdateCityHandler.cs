@@ -4,9 +4,7 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.ICity;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
-using ECommercePlatform.Domain.Entities;
 using MediatR;
-using System.Diagnostics.Metrics;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Update
 {

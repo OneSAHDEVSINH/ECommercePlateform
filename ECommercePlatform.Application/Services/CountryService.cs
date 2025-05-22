@@ -64,7 +64,7 @@ namespace ECommercePlatform.Application.Services
 
         public async Task DeleteCountryAsync(Guid id)
         {
-            var country = await _unitOfWork.Countries.GetByIdAsync(id) 
+            var country = await _unitOfWork.Countries.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Country with ID {id} not found");
             await _unitOfWork.Countries.DeleteAsync(country);
             await _unitOfWork.CompleteAsync();
@@ -80,7 +80,7 @@ namespace ECommercePlatform.Application.Services
         {
             var country = await _unitOfWork.Countries.GetByIdAsync(id);
 
-            return country == null ? throw new KeyNotFoundException($"Country with ID {id} not found") 
+            return country == null ? throw new KeyNotFoundException($"Country with ID {id} not found")
                 : _mapper.Map<CountryDto>(country);
         }
 
@@ -88,13 +88,13 @@ namespace ECommercePlatform.Application.Services
         {
             var country = await _unitOfWork.Countries.GetCountryWithStatesAsync(id);
 
-            return country == null ? throw new KeyNotFoundException($"Country with ID {id} not found") 
+            return country == null ? throw new KeyNotFoundException($"Country with ID {id} not found")
                 : _mapper.Map<CountryDto>(country);
         }
 
         public async Task UpdateCountryAsync(Guid id, UpdateCountryDto updateCountryDto)
         {
-            var country = await _unitOfWork.Countries.GetByIdAsync(id) 
+            var country = await _unitOfWork.Countries.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Country with ID {id} not found");
 
             // Check if Name is null before calling ValidationService

@@ -26,7 +26,7 @@ namespace ECommercePlatform.Application.Services
 
         public async Task DeleteProductAsync(Guid id)
         {
-            var product = await _unitOfWork.Products.GetByIdAsync(id) 
+            var product = await _unitOfWork.Products.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Product with ID {id} not found");
 
             // Soft delete
