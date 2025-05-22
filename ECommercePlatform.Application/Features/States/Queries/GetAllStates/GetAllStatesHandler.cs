@@ -7,24 +7,22 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Queries.GetAllStates
 {
-    public class GetAllStatesHandler : IRequestHandler<GetAllStatesQuery, AppResult<List<StateDto>>>
+    public class GetAllStatesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllStatesQuery, AppResult<List<StateDto>>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ICurrentUserService _currentUserService;
-
-        public GetAllStatesHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _currentUserService = currentUserService;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<AppResult<List<StateDto>>> Handle(GetAllStatesQuery request, CancellationToken cancellationToken)
         {
-            var states = await _unitOfWork.States.GetAllAsync();
-            var stateDtos = _mapper.Map<List<StateDto>>(states);
-            return AppResult<List<StateDto>>.Success(stateDtos);
+            try
+            {
+                var states = await _unitOfWork.States.GetAllAsync();
+                var stateDtos = states.Select(state => (StateDto)state).ToList();
+                return AppResult<List<StateDto>>.Success(stateDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<StateDto>>.Failure($"An error occurred: {ex.Message}");
+            }
         }
     }
 }

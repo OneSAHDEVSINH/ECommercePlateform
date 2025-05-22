@@ -6,10 +6,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState
 {
-    public class GetCitysByStateHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<GetCitiesByStateQuery, AppResult<List<CityDto>>>
+    public class GetCitysByStateHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetCitiesByStateQuery, AppResult<List<CityDto>>>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
 
         public async Task<AppResult<List<CityDto>>> Handle(GetCitiesByStateQuery request, CancellationToken cancellationToken)
         {
@@ -21,7 +20,9 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState
                     return AppResult<List<CityDto>>.Failure($"Cities with this ID \"{request.StateId}\" not found.");
                 }
                 var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(request.StateId);
-                var citiesDto = _mapper.Map<List<CityDto>>(cities);
+                //var citiesDto = _mapper.Map<List<CityDto>>(cities);
+                //var cityDtos = _mapper.Map<List<CityDto>>(cities);
+                var citiesDto = cities.Select(city => (CityDto)city).ToList();
                 return AppResult<List<CityDto>>.Success(citiesDto);
             }
             catch (Exception ex)
