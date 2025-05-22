@@ -7,17 +7,23 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Countries.Queries.GetAllCountries
 {
-    public class GetAllCountriesHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper) : IRequestHandler<GetAllCountriesQuery, AppResult<List<CountryDto>>>
+    public class GetAllCountriesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllCountriesQuery, AppResult<List<CountryDto>>>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
-        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public async Task<AppResult<List<CountryDto>>> Handle(GetAllCountriesQuery request, CancellationToken cancellationToken)
         {
-            var countries = await _unitOfWork.Countries.GetAllAsync();
-            var countryDtos = _mapper.Map<List<CountryDto>>(countries);
-            return AppResult<List<CountryDto>>.Success(countryDtos);
+            try
+            {
+                var countries = await _unitOfWork.Countries.GetAllAsync();
+                var countryDtos = countries.Select(country => (CountryDto)country).ToList();
+
+                return AppResult<List<CountryDto>>.Success(countryDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<CountryDto>>.Failure($"An error occurred: {ex.Message}");
+            }
         }
     }
 }

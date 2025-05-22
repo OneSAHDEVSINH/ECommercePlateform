@@ -5,10 +5,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Delete
 {
-    public class DeleteCountryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService) : IRequestHandler<DeleteCountryCommand, AppResult>
+    public class DeleteCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteCountryCommand, AppResult>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public async Task<AppResult> Handle(DeleteCountryCommand request, CancellationToken cancellationToken)
         {
@@ -27,7 +26,6 @@ namespace ECommercePlatform.Application.Features.Countries.Commands.Delete
                 }
 
                 await _unitOfWork.Countries.DeleteAsync(country);
-                //await _unitOfWork.CompleteAsync();
                 return AppResult.Success();
             }
             catch (Exception ex)

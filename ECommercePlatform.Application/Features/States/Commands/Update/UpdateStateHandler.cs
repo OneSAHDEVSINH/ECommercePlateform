@@ -1,21 +1,13 @@
-﻿using AutoMapper;
-using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IState;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Update
 {
-    public class UpdateStateHandler(IStateRepository stateRepository, IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<UpdateStateCommand, AppResult>
+    public class UpdateStateHandler(IUnitOfWork unitOfWork) : IRequestHandler<UpdateStateCommand, AppResult>
     {
-
-        private readonly IStateRepository _stateRepository = stateRepository;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
-        //private readonly IValidator<UpdateStateCommand> _validator;
-        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public async Task<AppResult> Handle(UpdateStateCommand request, CancellationToken cancellationToken)
         {
@@ -38,32 +30,15 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                     return AppResult.Failure($"State with this ID \"{request.Id}\" not found.");
                 }
 
-                var isCodeUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(request.Code, request.Id);
-                if (!isCodeUnique)
-                {
-                    return AppResult.Failure($"State with this code \"{request.Code}\" already exists.");
-                }
+                var validationResult = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId);
 
-                var isNameUnique = await _unitOfWork.States.IsNameUniqueInCountryAsync(request.Name, request.Id);
-                if (!isNameUnique)
-                {
-                    return AppResult.Failure($"State with this name \"{request.Name}\" already exists.");
-                }
-
-                //_mapper.Map(request, state);
+                if (validationResult.IsFailure)
+                    return AppResult.Failure(validationResult.Error);
 
                 var updatedState = (UpdateStateDto)request;
-                state.Update(request.Name, request.Code);
-
-                //if (_currentUserService.IsAuthenticated)
-                //{
-                //    //state.ModifiedBy = _currentUserService.UserId;
-                //    state.ModifiedBy = request.ModifiedBy;
-                //    state.ModifiedOn = DateTime.Now;
-                //}
+                state.Update(request.Name, request.Code, request.CountryId);
 
                 await _unitOfWork.States.UpdateAsync(state);
-                //await _unitOfWork.CompleteAsync();
                 return AppResult.Success();
             }
             catch (Exception ex)

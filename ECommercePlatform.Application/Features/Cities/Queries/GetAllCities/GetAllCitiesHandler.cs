@@ -7,17 +7,23 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Queries.GetAllCities
 {
-    public class GetAllCitiesHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<GetAllCitiesQuery, AppResult<List<CityDto>>>
+    public class GetAllCitiesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllCitiesQuery, AppResult<List<CityDto>>>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
-        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public async Task<AppResult<List<CityDto>>> Handle(GetAllCitiesQuery request, CancellationToken cancellationToken)
         {
-            var cities = await _unitOfWork.Cities.GetAllAsync();
-            var cityDtos = _mapper.Map<List<CityDto>>(cities);
-            return AppResult<List<CityDto>>.Success(cityDtos);
+            try
+            {
+                var cities = await _unitOfWork.Cities.GetAllAsync();
+                var cityDtos = cities.Select(city => (CityDto)city).ToList();
+
+                return AppResult<List<CityDto>>.Success(cityDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<CityDto>>.Failure($"An error occurred: {ex.Message}");
+            }
         }
     }
 }

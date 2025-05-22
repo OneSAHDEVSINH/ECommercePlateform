@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ECommercePlatform.Application.Common.Extensions;
+﻿using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
@@ -8,10 +7,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Create
 {
-    public class CreateStateHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateStateCommand, AppResult<StateDto>>
+    public class CreateStateHandler(IUnitOfWork unitOfWork) : IRequestHandler<CreateStateCommand, AppResult<StateDto>>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
 
         public async Task<AppResult<StateDto>> Handle(CreateStateCommand request, CancellationToken cancellationToken)
         {
@@ -35,15 +33,19 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
                 //var stateDto = _mapper.Map<StateDto>(state); // Use the mapper to map the entity to DTO
                 //return AppResult<StateDto>.Success(stateDto);
 
-                return await _unitOfWork.States.EnsureCodeIsUniqueAsync(request.Code)
-        .BindAsync(_ => _unitOfWork.States.EnsureNameIsUniqueAsync(request.Name))
-        .BindAsync(_ =>
-        {
-            var state = State.Create(request.Name, request.Code, request.CountryId);
-            state.IsActive = true;
-            return _unitOfWork.States.AddAsync(state)
-                .ContinueWith(_ => AppResult<StateDto>.Success((StateDto)state));
-        });
+                var result = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId)
+            .Map(tuple =>
+            {
+                var state = State.Create(request.Name, request.Code, request.CountryId);
+                state.IsActive = true;
+                return state;
+            })
+            .Tap(state => _unitOfWork.States.AddAsync(state))
+            .Map(state => AppResult<StateDto>.Success((StateDto)state));
+
+                return result.IsSuccess
+                    ? result.Value
+                    : AppResult<StateDto>.Failure(result.Error);
             }
             catch (Exception ex)
             {

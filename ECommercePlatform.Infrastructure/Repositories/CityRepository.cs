@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces.ICity;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -70,34 +71,50 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == name.ToLower().Trim() && c.StateId == stateId && c.Id != excludeId && !c.IsDeleted);
         }
 
-        public async Task<AppResult<string>> EnsureNameIsUniqueAsync(string name)
+        public Task<Result<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId)
         {
-            var normalizedName = name?.Trim().ToLower();
-            if (string.IsNullOrEmpty(normalizedName))
-            {
-                return AppResult<string>.Failure("Name cannot be null or empty.");
-            }
+            return Result.Success(name)
+                // Validate name is not empty
+                .Ensure(n => !string.IsNullOrEmpty(n?.Trim()), "Name cannot be null or empty.")
+                // Normalize the input
+                .Map(n => n.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedName =>
+                {
+                    var exists = await _context.Cities
+                        .AnyAsync(c => c.Name != null &&
+                                 c.Name.ToLower().Trim() == normalizedName &&
+                                 c.StateId == stateId &&
+                                 !c.IsDeleted);
 
-            var exists = await _context.Cities
-                .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == normalizedName && !c.IsDeleted);
-
-            return exists ? AppResult<string>.Failure($"State with this name \"{name}\" already exists.")
-                : AppResult<string>.Success(normalizedName);
+                    return exists
+                        ? Result.Failure<string>($"City with name \"{name}\" already exists in this state.")
+                        : Result.Success(normalizedName);
+                });
         }
 
-        public async Task<AppResult<string>> EnsureNameIsUniqueAsync(string name, Guid excludeId)
+        // Version with excludeId for updates
+        public Task<Result<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId, Guid excludeId)
         {
-            var normalizedName = name?.Trim().ToLower();
-            if (string.IsNullOrEmpty(normalizedName))
-            {
-                return AppResult<string>.Failure("Name cannot be null or empty.");
-            }
+            return Result.Success(name)
+                // Validate name is not empty
+                .Ensure(n => !string.IsNullOrEmpty(n?.Trim()), "Name cannot be null or empty.")
+                // Normalize the input
+                .Map(n => n.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedName =>
+                {
+                    var exists = await _context.Cities
+                        .AnyAsync(c => c.Name != null &&
+                                 c.Name.ToLower().Trim() == normalizedName &&
+                                 c.StateId == stateId &&
+                                 c.Id != excludeId &&
+                                 !c.IsDeleted);
 
-            var exists = await _context.Cities
-                .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == normalizedName && c.Id != excludeId && !c.IsDeleted);
-
-            return exists ? AppResult<string>.Failure($"State with this name \"{name}\" already exists.")
-                : AppResult<string>.Success(normalizedName);
+                    return exists
+                        ? Result.Failure<string>($"City with name \"{name}\" already exists in this state.")
+                        : Result.Success(normalizedName);
+                });
         }
     }
 }

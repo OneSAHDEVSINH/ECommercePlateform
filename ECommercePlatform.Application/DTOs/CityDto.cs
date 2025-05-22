@@ -21,8 +21,10 @@ namespace ECommercePlatform.Application.DTOs
                 Id = city.Id,
                 Name = city.Name,
                 IsActive = city.IsActive,
-                //Cities = state.Cities?.Select(city => (CityDto)city).ToList()
-                //States = country.States?.Select(state => (StateDto)state).ToList()
+                StateId = city.StateId,
+                StateName = city.State?.Name,
+                CountryId = city.State?.CountryId ?? Guid.Empty,
+                CountryName = city.State?.Country?.Name
             };
         }
     }
@@ -44,6 +46,7 @@ namespace ECommercePlatform.Application.DTOs
             return new UpdateCityDto
             {
                 Name = command.Name,
+                StateId = command.StateId,
                 IsActive = command.IsActive
             };
         }
