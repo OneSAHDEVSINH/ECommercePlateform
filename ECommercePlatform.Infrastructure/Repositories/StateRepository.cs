@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces.IState;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,5 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IState;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Delete
