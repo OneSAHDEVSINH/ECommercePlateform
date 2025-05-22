@@ -56,6 +56,60 @@ It provides a modular, scalable foundation for building e-commerce solutions, fe
 - **HTML**
 - **CSS**
 - **SCSS**
+
+## Advanced Patterns & Libraries
+
+### Mediator Pattern (MediatR)
+
+The application implements the Mediator pattern using [MediatR](https://github.com/jbogard/MediatR) to decouple request/response handling:
+
+- **Commands & Queries**: Following CQRS principles, operations are separated into commands (write operations) and queries (read operations)
+- **Handlers**: Each command/query has a dedicated handler (e.g., `LoginHandler`, `GetCountryByIdHandler`)
+- **Pipeline Behaviors**: Custom behaviors for cross-cutting concerns:
+  - `ValidationBehavior`: Automatic validation using FluentValidation
+  - `AuditBehavior`: Tracks entity changes for auditing
+  - `TransactionBehavior`: Manages database transactions
+
+Example usage in controllers:
+
+```
+// Sending a command var result = await _mediator.Send(new LoginCommand { Email = "user@example.com", Password = "password" });
+// Sending a query var countries = await _mediator.Send(new GetAllCountriesQuery());
+```
+
+### FluentValidation
+
+[FluentValidation](https://fluentvalidation.net/) provides a fluent interface for defining validation rules:
+
+- **Validators**: Each command/query has a dedicated validator (e.g., `LoginValidator`, `CreateCountryValidator`)
+- **Validation Pipeline**: Automatically validates requests before reaching handlers
+- **Custom Error Messages**: Detailed, localized validation messages
+
+Example validator:
+
+```
+public class LoginValidator : AbstractValidator<LoginCommand> { public LoginValidator() { RuleFor(x => x.Email) .NotEmpty().WithMessage("Email is required.") .EmailAddress().WithMessage("Invalid email format.");
+    RuleFor(x => x.Password)
+        .NotEmpty().WithMessage("Password is required.")
+        .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
+}
+}
+```
+
+### Result Pattern
+
+The application uses a custom `AppResult<T>` class inspired by [CSharpFunctionalExtensions](https://github.com/vkhorikov/CSharpFunctionalExtensions) to handle operation results:
+
+- **Success/Failure Results**: Explicit representation of operation outcomes
+- **Error Handling**: Encapsulates error messages without exceptions
+- **Fluent API**: Enables method chaining for processing results
+
+Example usage:
+
+```
+// Returning a result public async Task<AppResult<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken) { try { // Process login var result = await _authService.LoginAsync(loginDto); return AppResult<AuthResultDto>.Success(result); } catch (Exception ex) { return AppResult<AuthResultDto>.Failure($"An error occurred: {ex.Message}"); } }
+// Handling a result var result = await _mediator.Send(new LoginCommand { Email = email, Password = password }); if (result.IsSuccess) return Ok(result.Value); else return BadRequest(new { message = result.Error });
+```
   
 ## Getting Started
 
