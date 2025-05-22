@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using ECommercePlatform.Application.Common.Extensions;
+using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
@@ -8,10 +8,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 {
-    public class CreateCityHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateCityCommand, AppResult<CityDto>>
+    public class CreateCityHandler(IUnitOfWork unitOfWork) : IRequestHandler<CreateCityCommand, AppResult<CityDto>>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
 
         public async Task<AppResult<CityDto>> Handle(CreateCityCommand request, CancellationToken cancellationToken)
         {
@@ -27,18 +26,22 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
                 //city.IsActive = true;
 
                 //await _unitOfWork.Cities.AddAsync(city);
-                ////await _unitOfWork.CompleteAsync();
-                ////var cityDto = _mapper.Map<CityDto>(city);
                 //return AppResult<CityDto>.Success((CityDto)city);
 
-                return await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId)
-                .BindAsync(_ =>
-                {
-                    var city = City.Create(request.Name, request.StateId);
-                    city.IsActive = true;
-                    return _unitOfWork.Cities.AddAsync(city)
-                    .ContinueWith(_ => AppResult<CityDto>.Success((CityDto)city));
-                });
+                var result = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId)
+                    .Map(_ => // Use _ to ignore the normalized name
+                    {
+                        // Use the original name from the request
+                        var city = City.Create(request.Name, request.StateId);
+                        city.IsActive = true;
+                        return city;
+                    })
+                    .Tap(city => _unitOfWork.Cities.AddAsync(city))
+                    .Map(city => AppResult<CityDto>.Success((CityDto)city));
+
+                return result.IsSuccess
+                    ? result.Value
+                    : AppResult<CityDto>.Failure(result.Error);
             }
             catch (Exception ex)
             {
