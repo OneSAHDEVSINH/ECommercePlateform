@@ -19,7 +19,7 @@ namespace ECommercePlatform.Application.Common.Behaviors
             if (request is not ITransactionalBehavior)
             {
                 // Not a transactional request, just pass through
-                return await next();
+                return await next(cancellationToken);
             }
 
             try
