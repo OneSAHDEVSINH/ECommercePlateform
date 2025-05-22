@@ -31,7 +31,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
                 ////var cityDto = _mapper.Map<CityDto>(city);
                 //return AppResult<CityDto>.Success((CityDto)city);
 
-                return await _unitOfWork.States.EnsureNameIsUniqueAsync(request.Name)
+                return await _unitOfWork.Cities.EnsureNameIsUniqueAsync(request.Name)
         .BindAsync(_ =>
         {
             var city = City.Create(request.Name, request.StateId);
