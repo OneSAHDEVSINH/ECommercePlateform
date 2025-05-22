@@ -31,14 +31,14 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
                 ////var cityDto = _mapper.Map<CityDto>(city);
                 //return AppResult<CityDto>.Success((CityDto)city);
 
-                return await _unitOfWork.Cities.EnsureNameIsUniqueAsync(request.Name)
-        .BindAsync(_ =>
-        {
-            var city = City.Create(request.Name, request.StateId);
-            city.IsActive = true;
-            return _unitOfWork.Cities.AddAsync(city)
-                .ContinueWith(_ => AppResult<CityDto>.Success((CityDto)city));
-        });
+                return await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId)
+                .BindAsync(_ =>
+                {
+                    var city = City.Create(request.Name, request.StateId);
+                    city.IsActive = true;
+                    return _unitOfWork.Cities.AddAsync(city)
+                    .ContinueWith(_ => AppResult<CityDto>.Success((CityDto)city));
+                });
             }
             catch (Exception ex)
             {

@@ -99,6 +99,25 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return exists ? AppResult<string>.Failure($"City with this name \"{name}\" already exists.")
                 : AppResult<string>.Success(normalizedName);
         }
+
+        public async Task<AppResult<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId)
+        {
+            var normalizedName = name?.Trim().ToLower();
+            if (string.IsNullOrEmpty(normalizedName))
+            {
+                return AppResult<string>.Failure("Name cannot be null or empty.");
+            }
+
+            var exists = await _context.Cities
+                .AnyAsync(c => c.Name != null &&
+                         c.Name.ToLower().Trim() == normalizedName &&
+                         c.StateId == stateId &&
+                         !c.IsDeleted);
+
+            return exists
+                ? AppResult<string>.Failure($"City with name \"{name}\" already exists in this state.")
+                : AppResult<string>.Success(normalizedName);
+        }
     }
 }
 

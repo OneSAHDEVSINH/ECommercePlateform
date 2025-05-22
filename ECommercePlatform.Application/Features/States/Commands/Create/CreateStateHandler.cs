@@ -35,8 +35,8 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
                 //var stateDto = _mapper.Map<StateDto>(state); // Use the mapper to map the entity to DTO
                 //return AppResult<StateDto>.Success(stateDto);
 
-                return await _unitOfWork.States.EnsureCodeIsUniqueAsync(request.Code)
-        .BindAsync(_ => _unitOfWork.States.EnsureNameIsUniqueAsync(request.Name))
+                return await _unitOfWork.States.EnsureCodeIsUniqueInCountryAsync(request.Code, request.CountryId)
+        .BindAsync(_ => _unitOfWork.States.EnsureNameIsUniqueInCountryAsync(request.Name, request.CountryId))
         .BindAsync(_ =>
         {
             var state = State.Create(request.Name, request.Code, request.CountryId);

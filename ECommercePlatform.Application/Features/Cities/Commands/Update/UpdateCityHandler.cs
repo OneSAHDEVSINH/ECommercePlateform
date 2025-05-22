@@ -29,16 +29,22 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
                 {
                     return AppResult.Failure($"City with this ID \"{request.Id}\" not found.");
                 }
-                var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.Id);
-                if (!isNameUnique)
+                //var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.Id);
+                //if (!isNameUnique)
+                //{
+                //    return AppResult.Failure($"City with this name \"{request.Name}\" already exists.");
+                //}
+
+                var isNameUniqueInCountry = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId);
+                if (isNameUniqueInCountry == null || !isNameUniqueInCountry.IsSuccess)
                 {
-                    return AppResult.Failure($"City with this name \"{request.Name}\" already exists.");
+                    return AppResult.Failure($"City with this name \"{request.Name}\" already exists in this state.");
                 }
 
                 //_mapper.Map(request, city);
 
                 var updatedCity = (UpdateCityDto)request;
-                city.Update(request.Name);
+                city.Update(request.Name, request.StateId);
 
                 //if (_currentUserService.IsAuthenticated)
                 //{

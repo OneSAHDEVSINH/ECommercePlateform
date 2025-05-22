@@ -20,10 +20,11 @@ namespace ECommercePlatform.Domain.Entities
         }
 
         // Add a public method to update the state properties  
-        public void Update(string name, string code)
+        public void Update(string name, string code, Guid countryId)
         {
             Name = name;
             Code = code;
+            CountryId = countryId;
         }
     }
 }

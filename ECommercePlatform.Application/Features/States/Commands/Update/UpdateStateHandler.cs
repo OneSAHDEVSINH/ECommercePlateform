@@ -38,29 +38,33 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                     return AppResult.Failure($"State with this ID \"{request.Id}\" not found.");
                 }
 
-                var isCodeUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(request.Code, request.Id);
-                if (!isCodeUnique)
+                //var isCodeUnique = await _unitOfWork.States.IsCodeUniqueInCountryAsync(request.Code, request.Id);
+                //if (!isCodeUnique)
+                //{
+                //    return AppResult.Failure($"State with this code \"{request.Code}\" already exists.");
+                //}
+
+                //var isNameUnique = await _unitOfWork.States.IsNameUniqueInCountryAsync(request.Name, request.Id);
+                //if (!isNameUnique)
+                //{
+                //    return AppResult.Failure($"State with this name \"{request.Name}\" already exists.");
+                //}
+
+                var isNameUniqueInCountry = await _unitOfWork.States.EnsureNameIsUniqueInCountryAsync(request.Name, request.CountryId);
+                if (isNameUniqueInCountry == null || !isNameUniqueInCountry.IsSuccess)
                 {
-                    return AppResult.Failure($"State with this code \"{request.Code}\" already exists.");
+                    return AppResult.Failure($"State with this name \"{request.Name}\" already exists in this country.");
                 }
 
-                var isNameUnique = await _unitOfWork.States.IsNameUniqueInCountryAsync(request.Name, request.Id);
-                if (!isNameUnique)
+                var isCodeUniqueInCountry = await _unitOfWork.States.EnsureCodeIsUniqueInCountryAsync(request.Code, request.CountryId);
+                if (isNameUniqueInCountry == null || !isNameUniqueInCountry.IsSuccess)
                 {
-                    return AppResult.Failure($"State with this name \"{request.Name}\" already exists.");
+                    return AppResult.Failure($"State with this code \"{request.Code}\" already exists in this country.");
                 }
-
                 //_mapper.Map(request, state);
 
                 var updatedState = (UpdateStateDto)request;
-                state.Update(request.Name, request.Code);
-
-                //if (_currentUserService.IsAuthenticated)
-                //{
-                //    //state.ModifiedBy = _currentUserService.UserId;
-                //    state.ModifiedBy = request.ModifiedBy;
-                //    state.ModifiedOn = DateTime.Now;
-                //}
+                state.Update(request.Name, request.Code, request.CountryId);
 
                 await _unitOfWork.States.UpdateAsync(state);
                 //await _unitOfWork.CompleteAsync();
