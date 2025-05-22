@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Domain.Entities;
 using System.Linq.Expressions;
@@ -17,6 +16,6 @@ namespace ECommercePlatform.Application.Interfaces.ICity
         Task<Result<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId);
         // Version with excludeId for updates
         Task<Result<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId, Guid excludeId);
-        
+
     }
 }

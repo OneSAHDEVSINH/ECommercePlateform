@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Queries.GetAllStates
