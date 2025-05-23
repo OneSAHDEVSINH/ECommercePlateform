@@ -6,16 +6,14 @@ using System.Text.Json;
 
 namespace ECommercePlatform.API.Middleware
 {
-    public class ExceptionMiddleware
+    public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionMiddleware> _logger;
-
-        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+        private readonly RequestDelegate _next = next;
+        private readonly ILogger<ExceptionMiddleware> _logger = logger;
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
-            _next = next;
-            _logger = logger;
-        }
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
@@ -39,7 +37,7 @@ namespace ECommercePlatform.API.Middleware
                 KeyNotFoundException => (int)HttpStatusCode.NotFound,
                 ArgumentException => (int)HttpStatusCode.BadRequest,
                 UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
-                DuplicateResourceException => (int)HttpStatusCode.Conflict, // Add this line for duplicate resources
+                DuplicateResourceException => (int)HttpStatusCode.Conflict,
                 _ => (int)HttpStatusCode.InternalServerError
             };
 
@@ -59,11 +57,9 @@ namespace ECommercePlatform.API.Middleware
                 Details = details
             };
 
-            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var json = JsonSerializer.Serialize(response, options);
+            var json = JsonSerializer.Serialize(response, _jsonSerializerOptions);
 
             await context.Response.WriteAsync(json);
         }
-
     }
 }
