@@ -149,7 +149,7 @@ if (result.IsSuccess)
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-- [Angular CLI](https://angular.io/cli) (`npm install -g @angular/cli`)
+- [Angular CLI](https://angular.dev/tools/cli) (`npm install -g @angular/cli`)
 - (Optional) [Visual Studio 2022](https://visualstudio.microsoft.com/)
 
 ### Installation
