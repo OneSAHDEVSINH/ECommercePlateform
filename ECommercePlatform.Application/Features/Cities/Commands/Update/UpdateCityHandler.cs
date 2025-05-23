@@ -25,7 +25,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
                     return AppResult.Failure($"City with this ID \"{request.Id}\" not found.");
                 }
 
-                var isNameUniqueInState = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId);
+                var isNameUniqueInState = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId, request.Id);
                 if (isNameUniqueInState.IsFailure)
                 {
                     return AppResult.Failure(isNameUniqueInState.Error);

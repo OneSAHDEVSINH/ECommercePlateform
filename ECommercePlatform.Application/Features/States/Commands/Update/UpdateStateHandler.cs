@@ -30,7 +30,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                     return AppResult.Failure($"State with this ID \"{request.Id}\" not found.");
                 }
 
-                var validationResult = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId);
+                var validationResult = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId, request.Id);
 
                 if (validationResult.IsFailure)
                     return AppResult.Failure(validationResult.Error);

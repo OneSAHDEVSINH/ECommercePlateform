@@ -22,7 +22,8 @@ namespace ECommercePlatform.Application.DTOs
                 Name = state.Name,
                 Code = state.Code,
                 IsActive = state.IsActive,
-                Cities = state.Cities?.Select(city => (CityDto)city).ToList()
+                CountryId = state?.CountryId ?? Guid.Empty,
+                CountryName = state?.Country?.Name
             };
         }
     }
