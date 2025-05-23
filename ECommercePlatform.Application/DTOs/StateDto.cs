@@ -48,6 +48,7 @@ namespace ECommercePlatform.Application.DTOs
             {
                 Name = command.Name,
                 Code = command.Code,
+                CountryId = command.CountryId,
                 IsActive = command.IsActive
             };
         }
