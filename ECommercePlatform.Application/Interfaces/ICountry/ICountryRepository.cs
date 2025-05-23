@@ -14,10 +14,7 @@ namespace ECommercePlatform.Application.Interfaces.ICountry
         Task<bool> IsNameUniqueAsync(string name, Guid excludeId);
         Task<bool> IsCodeUniqueAsync(string code, Guid excludeId);
         Task<bool> IsNameAndCodeUniqueAsync(string name, string code);
-        // Add these to ICountryRepository
-        Task<Result<(string normalizedName, string normalizedCode)>> EnsureNameAndCodeAreUniqueAsync(string name, string code);
-        Task<Result<(string normalizedName, string normalizedCode)>> EnsureNameAndCodeAreUniqueAsync(string name, string code, Guid excludeId);
-
+        Task<Result<(string normalizedName, string normalizedCode)>> EnsureNameAndCodeAreUniqueAsync(string name, string code, Guid? excludeId = null);
         Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate);
     }
 }

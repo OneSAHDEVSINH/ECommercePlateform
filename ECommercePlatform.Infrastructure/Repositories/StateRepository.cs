@@ -80,7 +80,8 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 !s.IsDeleted);
         }
 
-        public Task<Result<(string normalizedName, string normalizedCode)>> EnsureNameAndCodeAreUniqueInCountryAsync(string name, string code, Guid countryId)
+        // Combined implementation with optional excludeId parameter
+        public Task<Result<(string normalizedName, string normalizedCode)>> EnsureNameAndCodeAreUniqueInCountryAsync(string name, string code, Guid countryId, Guid? excludeId = null)
         {
             return Result.Success((name, code))
                 // Validate name is not empty
@@ -95,58 +96,27 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 // Check uniqueness against database
                 .Bind(async tuple =>
                 {
-                    var nameExists = await _context.States
-                        .AnyAsync(s => s.Name != null &&
-                                  s.Name.ToLower().Trim() == tuple.normalizedName &&
-                                  s.CountryId == countryId &&
-                                  !s.IsDeleted);
+                    var nameQuery = _context.States.Where(s =>
+                        s.Name != null &&
+                        s.Name.ToLower().Trim() == tuple.normalizedName &&
+                        s.CountryId == countryId &&
+                        !s.IsDeleted);
 
-                    var codeExists = await _context.States
-                        .AnyAsync(s => s.Code != null &&
-                                  s.Code.ToLower().Trim() == tuple.normalizedCode &&
-                                  s.CountryId == countryId &&
-                                  !s.IsDeleted);
+                    var codeQuery = _context.States.Where(s =>
+                        s.Code != null &&
+                        s.Code.ToLower().Trim() == tuple.normalizedCode &&
+                        s.CountryId == countryId &&
+                        !s.IsDeleted);
 
-                    if (nameExists && codeExists)
-                        return Result.Failure<(string, string)>($"State with name \"{name}\" and code \"{code}\" already exists in this country.");
-                    else if (nameExists)
-                        return Result.Failure<(string, string)>($"State with name \"{name}\" already exists in this country.");
-                    else if (codeExists)
-                        return Result.Failure<(string, string)>($"State with code \"{code}\" already exists in this country.");
-                    else
-                        return Result.Success(tuple);
-                });
-        }
+                    // Apply ID exclusion if provided
+                    if (excludeId.HasValue)
+                    {
+                        nameQuery = nameQuery.Where(s => s.Id != excludeId.Value);
+                        codeQuery = codeQuery.Where(s => s.Id != excludeId.Value);
+                    }
 
-        // Overload for update operations that excludes a specific ID
-        public Task<Result<(string normalizedName, string normalizedCode)>> EnsureNameAndCodeAreUniqueInCountryAsync(string name, string code, Guid countryId, Guid excludeId)
-        {
-            return Result.Success((name, code))
-                // Validate name is not empty
-                .Ensure(tuple => !string.IsNullOrEmpty(tuple.name?.Trim()), "Name cannot be null or empty.")
-                // Validate code is not empty
-                .Ensure(tuple => !string.IsNullOrEmpty(tuple.code?.Trim()), "Code cannot be null or empty.")
-                // Normalize the inputs
-                .Map(tuple => (
-                    normalizedName: tuple.name.Trim().ToLower(),
-                    normalizedCode: tuple.code.Trim().ToLower()
-                ))
-                // Check uniqueness against database
-                .Bind(async tuple =>
-                {
-                    var nameExists = await _context.States
-                        .AnyAsync(s => s.Name != null &&
-                                  s.Name.ToLower().Trim() == tuple.normalizedName &&
-                                  s.CountryId == countryId &&
-                                  s.Id != excludeId &&
-                                  !s.IsDeleted);
-
-                    var codeExists = await _context.States
-                        .AnyAsync(s => s.Code != null &&
-                                  s.Code.ToLower().Trim() == tuple.normalizedCode &&
-                                  s.CountryId == countryId &&
-                                  s.Id != excludeId &&
-                                  !s.IsDeleted);
+                    var nameExists = await nameQuery.AnyAsync();
+                    var codeExists = await codeQuery.AnyAsync();
 
                     if (nameExists && codeExists)
                         return Result.Failure<(string, string)>($"State with name \"{name}\" and code \"{code}\" already exists in this country.");
@@ -158,6 +128,5 @@ namespace ECommercePlatform.Infrastructure.Repositories
                         return Result.Success(tuple);
                 });
         }
-
     }
 }
