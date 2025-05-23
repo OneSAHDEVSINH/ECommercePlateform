@@ -61,13 +61,20 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId)
         {
             return !await _context.Cities
-                .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == name.ToLower().Trim() && c.StateId == stateId && !c.IsDeleted);
+                .AnyAsync(c => c.Name != null && 
+                c.Name.ToLower().Trim() == name.ToLower().Trim() && 
+                c.StateId == stateId && 
+                !c.IsDeleted);
         }
 
         public async Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId, Guid excludeId)
         {
             return !await _context.Cities
-                .AnyAsync(c => c.Name != null && c.Name.ToLower().Trim() == name.ToLower().Trim() && c.StateId == stateId && c.Id != excludeId && !c.IsDeleted);
+                .AnyAsync(c => c.Name != null && 
+                c.Name.ToLower().Trim() == name.ToLower().Trim() && 
+                c.StateId == stateId && 
+                c.Id != excludeId && 
+                !c.IsDeleted);
         }
 
         // Combined implementation with optional excludeId parameter
@@ -89,9 +96,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
 
                     // Apply ID exclusion if provided
                     if (excludeId.HasValue)
-                    {
-                        query = query.Where(c => c.Id != excludeId.Value);
-                    }
+                        query = query.Where(c => c.Id != excludeId.Value);                    
 
                     var exists = await query.AnyAsync();
 
