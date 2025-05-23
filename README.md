@@ -209,9 +209,23 @@ if (result.IsSuccess)
 
 ## Database Migrations
 
-Migrations are applied automatically on startup. To add new migrations manually:
+Migrations are applied automatically on startup. 
 
-dotnet ef migrations add MigrationName --project ECommercePlatform.Infrastructure dotnet ef database update --project ECommercePlatform.Infrastructure
+- To add new migrations manually:
+
+  - Go to `Tools > NuGet Package Manager > Package Manger Console`
+
+  - Set `ECommercePlatform.Infrastructure` as your Default project.
+
+- Run below Commands:
+
+  To add new migration
+
+  - PM>```Add Migration "Migration Name"```
+
+  To update database
+
+  - PM>```Update Database```
 
 ## API Documentation
 
