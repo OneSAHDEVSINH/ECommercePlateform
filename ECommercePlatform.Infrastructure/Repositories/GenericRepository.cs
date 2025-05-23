@@ -32,6 +32,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             return await _context.Set<T>()
+                .OrderBy(e => EF.Property<object>(e, "Name")) // Assuming all entities have a "Name" property
                 .AsNoTracking()
                 .ToListAsync();
         }
