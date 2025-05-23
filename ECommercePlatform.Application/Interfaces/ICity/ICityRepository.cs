@@ -13,9 +13,7 @@ namespace ECommercePlatform.Application.Interfaces.ICity
         Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId);
         Task<bool> IsNameUniqueInStateAsync(string name, Guid stateId, Guid excludeId);
         Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate);
-        Task<Result<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId);
-        // Version with excludeId for updates
-        Task<Result<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId, Guid excludeId);
+        Task<Result<string>> EnsureNameIsUniqueInStateAsync(string name, Guid stateId, Guid? excludeId = null);
 
     }
 }
