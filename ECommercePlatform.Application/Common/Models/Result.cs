@@ -23,7 +23,6 @@
 
         public static AppResult<T> Failure(string error) =>
             new(false, default!, error);
-
     }
 
     public class AppResult
@@ -46,6 +45,5 @@
 
         public static AppResult Failure(string error) =>
             new(false, error);
-
     }
 }
