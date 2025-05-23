@@ -9,6 +9,7 @@ A clean architecture-based e-commerce API built with ASP.NET Core (.NET 9), Enti
 - [Overview](#overview)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
+- [Advanced Patterns & Libraries](#advanced-patterns--libraries)
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [Database Migrations](#database-migrations)
