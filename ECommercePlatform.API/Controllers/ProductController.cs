@@ -15,6 +15,7 @@ namespace ECommercePlatform.API.Controllers
         public async Task<IActionResult> GetAllProducts()
         {
             var products = await _productService.GetAllProductsAsync();
+
             return Ok(products);
         }
 
@@ -24,6 +25,7 @@ namespace ECommercePlatform.API.Controllers
             try
             {
                 var product = await _productService.GetProductByIdAsync(id);
+
                 return Ok(product);
             }
             catch (KeyNotFoundException ex)
@@ -38,6 +40,7 @@ namespace ECommercePlatform.API.Controllers
             try
             {
                 var product = await _productService.GetProductWithDetailsAsync(id);
+
                 return Ok(product);
             }
             catch (KeyNotFoundException ex)
@@ -50,6 +53,7 @@ namespace ECommercePlatform.API.Controllers
         public async Task<IActionResult> GetProductsByCategory(Guid categoryId)
         {
             var products = await _productService.GetProductsByCategoryAsync(categoryId);
+
             return Ok(products);
         }
 
@@ -58,6 +62,7 @@ namespace ECommercePlatform.API.Controllers
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto createProductDto)
         {
             var product = await _productService.CreateProductAsync(createProductDto);
+
             return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
         }
 

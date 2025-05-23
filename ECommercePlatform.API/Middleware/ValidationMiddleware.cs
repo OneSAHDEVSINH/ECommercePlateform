@@ -8,6 +8,7 @@ namespace ECommercePlatform.API.Middleware
     public class ValidationMiddleware(RequestDelegate next)
     {
         private readonly RequestDelegate _next = next;
+        private static readonly JsonSerializerOptions CachedJsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -26,8 +27,7 @@ namespace ECommercePlatform.API.Middleware
                     if (problemDetailsFeature != null)
                     {
                         // Check if this is a validation problem
-                        var validationProblem = problemDetailsFeature as ValidationProblemDetails;
-                        if (validationProblem != null)
+                        if (problemDetailsFeature is ValidationProblemDetails validationProblem)
                         {
                             // Format the validation error in a consistent way
                             var errors = validationProblem.Errors
@@ -42,8 +42,13 @@ namespace ECommercePlatform.API.Middleware
                             };
 
                             context.Response.ContentType = "application/json";
-                            var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                            var json = JsonSerializer.Serialize(response, jsonOptions);
+                            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+
+                            var json = JsonSerializer.Serialize(response, CachedJsonOptions);
+
+                            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                            context.Response.ContentType = "application/json";
+
                             await context.Response.WriteAsync(json);
                         }
                     }

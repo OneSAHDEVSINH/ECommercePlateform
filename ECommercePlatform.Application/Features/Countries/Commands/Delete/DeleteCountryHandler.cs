@@ -14,15 +14,11 @@ namespace ECommercePlatform.Application.Features.Countries.Commands.Delete
             {
                 var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
                 if (country == null)
-                {
-                    throw new KeyNotFoundException($"Country with ID {request.Id} not found.");
-                }
-
+                    return AppResult.Failure($"Country with ID {request.Id} not found.");
+                
                 var states = await _unitOfWork.States.GetStatesByCountryIdAsync(request.Id);
                 if (states != null && states.Any())
-                {
                     return AppResult.Failure($"Cannot delete country with ID {request.Id} as it has associated states");
-                }
 
                 await _unitOfWork.Countries.DeleteAsync(country);
                 return AppResult.Success();

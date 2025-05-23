@@ -15,6 +15,7 @@ namespace ECommercePlatform.Application.Features.States.Queries.GetAllStates
             {
                 var states = await _unitOfWork.States.GetAllAsync();
                 var stateDtos = states.Select(state => (StateDto)state).ToList();
+
                 return AppResult<List<StateDto>>.Success(stateDtos);
             }
             catch (Exception ex)

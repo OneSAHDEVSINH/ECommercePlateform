@@ -14,11 +14,8 @@ namespace ECommercePlatform.Application.Features.States.Queries.GetStatesByCount
             try
             {
                 var country = await _unitOfWork.Countries.GetByIdAsync(request.CountryId);
-
                 if (country == null)
-                {
                     return AppResult<List<StateDto>>.Failure($"Country with this ID \"{request.CountryId}\" not found.");
-                }
 
                 var states = await _unitOfWork.States.GetStatesByCountryIdAsync(request.CountryId);
                 var statesDto = states.Select(state => (StateDto)state).ToList();

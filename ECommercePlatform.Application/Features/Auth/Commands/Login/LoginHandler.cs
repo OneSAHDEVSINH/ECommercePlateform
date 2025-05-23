@@ -13,10 +13,8 @@ namespace ECommercePlatform.Application.Features.Auth.Commands.Login
         {
             try
             {
-                if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-                {
+                if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))                
                     return AppResult<AuthResultDto>.Failure("Email and password are required");
-                }
 
                 var loginDto = new LoginDto
                 {

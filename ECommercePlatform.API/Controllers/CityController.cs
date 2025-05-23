@@ -55,9 +55,7 @@ namespace ECommercePlatform.API.Controllers
         public async Task<IActionResult> UpdateCity(Guid id, [FromBody] UpdateCityCommand command)
         {
             if (id != command.Id)
-            {
                 return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
-            }
 
             var result = await _mediator.Send(command);
 

@@ -14,10 +14,9 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCityById
             try
             {
                 var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
-                if (city == null)
-                {
+                if (city == null)                
                     return AppResult<CityDto>.Failure($"City with this ID \"{request.Id}\" not found.");
-                }
+                
                 var cityDto = (CityDto)city;
 
                 return AppResult<CityDto>.Success(cityDto);

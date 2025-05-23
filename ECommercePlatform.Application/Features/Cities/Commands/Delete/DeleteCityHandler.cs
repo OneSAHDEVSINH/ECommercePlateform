@@ -13,10 +13,8 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
             try
             {
                 var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
-                if (city == null)
-                {
-                    return AppResult.Failure($"City with ID {request.Id} not found");
-                }
+                if (city == null)                
+                    return AppResult.Failure($"City with ID {request.Id} not found");                
 
                 await _unitOfWork.Cities.DeleteAsync(city);
                 return AppResult.Success();
