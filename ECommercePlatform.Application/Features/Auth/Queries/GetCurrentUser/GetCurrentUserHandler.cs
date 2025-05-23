@@ -18,14 +18,14 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
         {
             try
             {
-                if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))                
-                    return AppResult<UserDto>.Failure("User is not authenticated");                
+                if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))
+                    return AppResult<UserDto>.Failure("User is not authenticated");
 
                 var userId = Guid.Parse(_currentUserService.UserId); // Convert string UserId to Guid
                 var user = await _userRepository.GetByIdAsync(userId);
 
-                if (user == null)                
-                    return AppResult<UserDto>.Failure("User not found");                
+                if (user == null)
+                    return AppResult<UserDto>.Failure("User not found");
 
                 var userDto = new UserDto
                 {

@@ -13,15 +13,15 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.Code))                
-                    return AppResult.Failure("State code cannot be null or empty.");                
+                if (string.IsNullOrWhiteSpace(request.Code))
+                    return AppResult.Failure("State code cannot be null or empty.");
 
-                if (string.IsNullOrWhiteSpace(request.Name))                
-                    return AppResult.Failure("State name cannot be null or empty.");                
+                if (string.IsNullOrWhiteSpace(request.Name))
+                    return AppResult.Failure("State name cannot be null or empty.");
 
                 var state = await _unitOfWork.States.GetByIdAsync(request.Id);
-                if (state == null)                
-                    return AppResult.Failure($"State with this ID \"{request.Id}\" not found.");                
+                if (state == null)
+                    return AppResult.Failure($"State with this ID \"{request.Id}\" not found.");
 
                 var validationResult = await _unitOfWork.States
                     .EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId, request.Id);

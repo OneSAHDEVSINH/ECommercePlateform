@@ -14,9 +14,9 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState
             try
             {
                 var state = await _unitOfWork.States.GetByIdAsync(request.StateId);
-                if (state == null)                
+                if (state == null)
                     return AppResult<List<CityDto>>.Failure($"Cities with this ID \"{request.StateId}\" not found.");
-                
+
                 var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(request.StateId);
                 var citiesDto = cities.Select(city => (CityDto)city).ToList();
 

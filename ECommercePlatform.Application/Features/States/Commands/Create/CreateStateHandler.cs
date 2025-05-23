@@ -33,15 +33,15 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
                 //var stateDto = _mapper.Map<StateDto>(state); // Use the mapper to map the entity to DTO
                 //return AppResult<StateDto>.Success(stateDto);
 
-            var result = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId)
-            .Map(tuple =>
-            {
-                var state = State.Create(request.Name, request.Code, request.CountryId);
-                state.IsActive = true;
-                return state;
-            })
-            .Tap(state => _unitOfWork.States.AddAsync(state))
-            .Map(state => AppResult<StateDto>.Success((StateDto)state));
+                var result = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId)
+                .Map(tuple =>
+                {
+                    var state = State.Create(request.Name, request.Code, request.CountryId);
+                    state.IsActive = true;
+                    return state;
+                })
+                .Tap(state => _unitOfWork.States.AddAsync(state))
+                .Map(state => AppResult<StateDto>.Success((StateDto)state));
 
                 return result.IsSuccess
                     ? result.Value

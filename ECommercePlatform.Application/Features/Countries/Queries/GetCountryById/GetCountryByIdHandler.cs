@@ -14,9 +14,9 @@ namespace ECommercePlatform.Application.Features.Countries.Queries.GetCountryByI
             try
             {
                 var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
-                if (country == null)                
+                if (country == null)
                     return AppResult<CountryDto>.Failure($"Country with this ID \"{request.Id}\" not found");
-                
+
                 var countryDto = (CountryDto)country;
 
                 return AppResult<CountryDto>.Success(countryDto);

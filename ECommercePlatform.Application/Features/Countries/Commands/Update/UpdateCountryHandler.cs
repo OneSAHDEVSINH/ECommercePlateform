@@ -15,14 +15,14 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
         try
         {
             var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
-            if (country == null)    
-                return AppResult.Failure($"Country with this ID \"{request.Id}\" not found.");            
+            if (country == null)
+                return AppResult.Failure($"Country with this ID \"{request.Id}\" not found.");
 
-            if (string.IsNullOrWhiteSpace(request.Code))            
-                return AppResult.Failure("Country code cannot be null or empty.");            
+            if (string.IsNullOrWhiteSpace(request.Code))
+                return AppResult.Failure("Country code cannot be null or empty.");
 
-            if (string.IsNullOrWhiteSpace(request.Name))            
-                return AppResult.Failure("Country name cannot be null or empty.");            
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return AppResult.Failure("Country name cannot be null or empty.");
 
             var validationResult = await _unitOfWork.Countries
                 .EnsureNameAndCodeAreUniqueAsync(request.Name, request.Code, request.Id);

@@ -13,16 +13,16 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.Name))                
-                    return AppResult.Failure("City name cannot be null or empty.");                
+                if (string.IsNullOrWhiteSpace(request.Name))
+                    return AppResult.Failure("City name cannot be null or empty.");
 
                 var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
-                if (city == null)                
-                    return AppResult.Failure($"City with this ID \"{request.Id}\" not found.");                
+                if (city == null)
+                    return AppResult.Failure($"City with this ID \"{request.Id}\" not found.");
 
                 var isNameUniqueInState = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId, request.Id);
-                if (isNameUniqueInState.IsFailure)                
-                    return AppResult.Failure(isNameUniqueInState.Error);                
+                if (isNameUniqueInState.IsFailure)
+                    return AppResult.Failure(isNameUniqueInState.Error);
 
                 var updatedCity = (UpdateCityDto)request;
                 city.Update(request.Name, request.StateId);

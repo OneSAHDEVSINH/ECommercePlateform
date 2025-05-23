@@ -35,34 +35,34 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<bool> IsNameUniqueAsync(string name)
         {
             return !await _context.Countries
-                .AnyAsync(c => c.Name != null && 
-                c.Name.ToLower().Trim() == name.ToLower().Trim() && 
+                .AnyAsync(c => c.Name != null &&
+                c.Name.ToLower().Trim() == name.ToLower().Trim() &&
                 !c.IsDeleted);
         }
 
         public async Task<bool> IsCodeUniqueAsync(string code)
         {
             return !await _context.Countries
-                .AnyAsync(c => c.Code != null && 
-                c.Code.ToLower().Trim() == code.ToLower().Trim() && 
+                .AnyAsync(c => c.Code != null &&
+                c.Code.ToLower().Trim() == code.ToLower().Trim() &&
                 !c.IsDeleted);
         }
 
         public async Task<bool> IsNameUniqueAsync(string name, Guid excludeId)
         {
             return !await _context.Countries
-                .AnyAsync(c => c.Name != null && 
-                c.Name.ToLower().Trim() == name.ToLower().Trim() && 
-                c.Id != excludeId && 
+                .AnyAsync(c => c.Name != null &&
+                c.Name.ToLower().Trim() == name.ToLower().Trim() &&
+                c.Id != excludeId &&
                 !c.IsDeleted);
         }
 
         public async Task<bool> IsCodeUniqueAsync(string code, Guid excludeId)
         {
             return !await _context.Countries
-                .AnyAsync(c => c.Code != null && 
-                c.Code.ToLower().Trim() == code.ToLower().Trim() && 
-                c.Id != excludeId && 
+                .AnyAsync(c => c.Code != null &&
+                c.Code.ToLower().Trim() == code.ToLower().Trim() &&
+                c.Id != excludeId &&
                 !c.IsDeleted);
         }
 

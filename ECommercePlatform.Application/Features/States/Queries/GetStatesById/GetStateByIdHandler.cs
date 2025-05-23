@@ -14,9 +14,9 @@ namespace ECommercePlatform.Application.Features.States.Queries.GetStatesById
             try
             {
                 var state = await _unitOfWork.States.GetByIdAsync(request.Id);
-                if (state == null)                
+                if (state == null)
                     return AppResult<StateDto>.Failure($"State with this ID \"{request.Id}\" not found.");
-                
+
                 var stateDto = (StateDto)state;
 
                 return AppResult<StateDto>.Success(stateDto);
