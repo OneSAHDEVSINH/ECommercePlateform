@@ -23,7 +23,7 @@ namespace ECommercePlatform.API.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Something went wrong: {ex.Message}");
+                _logger.LogError(ex, "An exception occurred while processing the request.");
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
