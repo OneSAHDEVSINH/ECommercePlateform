@@ -30,7 +30,7 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
                 return AppResult.Failure("Country name cannot be null or empty.");
             }
 
-            var validationResult = await _unitOfWork.Countries.EnsureNameAndCodeAreUniqueAsync(request.Name, request.Code);
+            var validationResult = await _unitOfWork.Countries.EnsureNameAndCodeAreUniqueAsync(request.Name, request.Code, request.Id);
 
             if (validationResult.IsFailure)
                 return AppResult.Failure(validationResult.Error);
