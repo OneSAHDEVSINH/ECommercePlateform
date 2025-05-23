@@ -4,7 +4,6 @@ using ECommercePlatform.Application.Features.Cities.Commands.Update;
 using ECommercePlatform.Application.Features.Cities.Queries.GetAllCities;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCityById;
-using ECommercePlatform.Application.Interfaces.IState;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +12,9 @@ namespace ECommercePlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CityController : ControllerBase
+    public class CityController(IMediator mediator) : ControllerBase
     {
-        private readonly IStateService _stateService;
-        private readonly IMediator _mediator;
-
-        public CityController(IStateService stateService, IMediator mediator)
-        {
-            _stateService = stateService;
-            _mediator = mediator;
-        }
+        private readonly IMediator _mediator = mediator;
 
         [HttpGet]
         public async Task<IActionResult> GetAllCities()

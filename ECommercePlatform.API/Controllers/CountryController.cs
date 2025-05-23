@@ -3,7 +3,6 @@ using ECommercePlatform.Application.Features.Countries.Commands.Delete;
 using ECommercePlatform.Application.Features.Countries.Commands.Update;
 using ECommercePlatform.Application.Features.Countries.Queries.GetAllCountries;
 using ECommercePlatform.Application.Features.Countries.Queries.GetCountryById;
-using ECommercePlatform.Application.Interfaces.ICountry;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,16 +11,9 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CountryController : ControllerBase
+    public class CountryController(IMediator mediator) : ControllerBase
     {
-        private readonly ICountryService _countryService;
-        private readonly IMediator _mediator;
-
-        public CountryController(ICountryService countryService, IMediator mediator)
-        {
-            _countryService = countryService;
-            _mediator = mediator;
-        }
+        private readonly IMediator _mediator = mediator;
 
         [HttpGet]
         public async Task<IActionResult> GetAllCountries()
@@ -43,20 +35,6 @@ namespace ECommercePlatform.API.Controllers
                 return Ok(result.Value);
 
             return NotFound(new { message = result.Error });
-        }
-
-        [HttpGet("{id}/states")]
-        public async Task<IActionResult> GetCountryWithStates(Guid id)
-        {
-            try
-            {
-                var country = await _countryService.GetCountryWithStatesAsync(id);
-                return Ok(country);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
         }
 
         [HttpPost]

@@ -5,14 +5,9 @@ using System.Text.Json;
 
 namespace ECommercePlatform.API.Middleware
 {
-    public class ValidationMiddleware
+    public class ValidationMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
-
-        public ValidationMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+        private readonly RequestDelegate _next = next;
 
         public async Task InvokeAsync(HttpContext context)
         {

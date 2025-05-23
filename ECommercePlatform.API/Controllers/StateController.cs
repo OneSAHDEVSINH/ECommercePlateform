@@ -4,7 +4,6 @@ using ECommercePlatform.Application.Features.States.Commands.Update;
 using ECommercePlatform.Application.Features.States.Queries.GetAllStates;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesByCountry;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesById;
-using ECommercePlatform.Application.Interfaces.IState;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +12,9 @@ namespace ECommercePlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StateController : ControllerBase
+    public class StateController(IMediator mediator) : ControllerBase
     {
-        private readonly IStateService _stateService;
-        private readonly IMediator _mediator;
-
-        public StateController(IStateService stateService, IMediator mediator)
-        {
-            _stateService = stateService;
-            _mediator = mediator;
-        }
+        private readonly IMediator _mediator = mediator;
 
         [HttpGet]
         public async Task<IActionResult> GetAllStates()
@@ -44,20 +36,6 @@ namespace ECommercePlatform.API.Controllers
                 return Ok(result.Value);
 
             return NotFound(new { message = result.Error });
-        }
-
-        [HttpGet("{id}/cities")]
-        public async Task<IActionResult> GetStateWithCities(Guid id)
-        {
-            try
-            {
-                var state = await _stateService.GetStateWithCitiesAsync(id);
-                return Ok(state);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
         }
 
         [HttpPost]
