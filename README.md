@@ -24,7 +24,9 @@ A clean architecture-based e-commerce API built with ASP.NET Core (.NET 9), Enti
 
 ECommercePlatform is a full-stack, clean architecture-based e-commerce solution.  
 - **Backend:** ASP.NET Core (.NET 9) Web API  
-- **Frontend:** Angular (located in the `client` project)  
+- **Frontend:** Angular (located in the `client` project)
+- **Database:** Microsoft SQL Server
+
 It provides a modular, scalable foundation for building e-commerce solutions, featuring JWT authentication, role-based authorization, and robust API documentation.
 
 ## Features
@@ -37,6 +39,8 @@ It provides a modular, scalable foundation for building e-commerce solutions, fe
 - Custom middleware for exception and validation handling
 - CORS support
 - Automated database migrations at startup
+- Advanced pattern Mediator
+- Advanced Libraries FluentValidation and CSharp Functional Extension
 - **Angular 19 frontend (ClientApp)**
   
 ## Tech Stack
@@ -52,11 +56,11 @@ It provides a modular, scalable foundation for building e-commerce solutions, fe
 
 *Frontend:*
 - **Angular 19**
-- **Javascript**
-- **Typescript**
 - **HTML**
 - **CSS**
 - **SCSS**
+- **Javascript**
+- **Typescript**
 
 ## Advanced Patterns & Libraries
 
@@ -74,8 +78,11 @@ The application implements the Mediator pattern using [MediatR](https://github.c
 Example usage in controllers:
 
 ```
-// Sending a command var result = await _mediator.Send(new LoginCommand { Email = "user@example.com", Password = "password" });
-// Sending a query var countries = await _mediator.Send(new GetAllCountriesQuery());
+// Sending a command
+var result = await _mediator.Send(new LoginCommand { Email = "user@example.com", Password = "password" });
+
+// Sending a query
+var countries = await _mediator.Send(new GetAllCountriesQuery());
 ```
 
 ### FluentValidation
@@ -89,11 +96,18 @@ Example usage in controllers:
 Example validator:
 
 ```
-public class LoginValidator : AbstractValidator<LoginCommand> { public LoginValidator() { RuleFor(x => x.Email) .NotEmpty().WithMessage("Email is required.") .EmailAddress().WithMessage("Invalid email format.");
+public class LoginValidator : AbstractValidator<LoginCommand>
+{
+  public LoginValidator()
+  {
+    RuleFor(x => x.Email)
+        .NotEmpty().WithMessage("Email is required.")
+        .EmailAddress().WithMessage("Invalid email format.");
+
     RuleFor(x => x.Password)
         .NotEmpty().WithMessage("Password is required.")
         .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
-}
+  }
 }
 ```
 
@@ -108,8 +122,25 @@ The application uses a custom `AppResult<T>` class inspired by [CSharpFunctional
 Example usage:
 
 ```
-// Returning a result public async Task<AppResult<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken) { try { // Process login var result = await _authService.LoginAsync(loginDto); return AppResult<AuthResultDto>.Success(result); } catch (Exception ex) { return AppResult<AuthResultDto>.Failure($"An error occurred: {ex.Message}"); } }
-// Handling a result var result = await _mediator.Send(new LoginCommand { Email = email, Password = password }); if (result.IsSuccess) return Ok(result.Value); else return BadRequest(new { message = result.Error });
+// Returning a result
+public async Task<AppResult<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
+{
+  try
+  {
+    // Process login
+    var result = await _authService.LoginAsync(loginDto);
+    return AppResult<AuthResultDto>.Success(result);
+  }
+  catch (Exception ex)
+  {
+    return AppResult<AuthResultDto>.Failure($"An error occurred: {ex.Message}");
+  }
+}
+
+// Handling a result
+var result = await _mediator.Send(new LoginCommand { Email = email, Password = password });
+if (result.IsSuccess)
+  return Ok(result.Value); else return BadRequest(new { message = result.Error });
 ```
   
 ## Getting Started
@@ -230,6 +261,7 @@ ECommercePlatform.Server
 - **API:** Entry point, middleware, controllers.
 - **Application:** Business logic, service interfaces, DTOs, mappings.
 - **Infrastructure:** Data access, repositories, EF Core context.
+- **Domain:** Entities, Enums, Exceptions.
 
 ## Contributing
 
