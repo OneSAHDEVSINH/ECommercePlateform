@@ -238,40 +238,355 @@ Swagger UI is enabled in development mode.
 
 ```
 ECommercePlatform
-ECommercePlatform.API
-│
-├── Controllers/
-├── Middleware/
-│
-ECommercePlatform.Application
-│
-├── Common/
-├── DTOs/
-├── Features/
-├── Interfaces/
-├── Mappings/
-├── Services/
-│
-ECommercePlatform.client
-│
-├── Whole Angular frontend Project
-│
-ECommercePlatform.Domain
-│
-├── Entities/
-├── Enums/
-├── Exceptions/
-│
-EommercePlateform.Infrastructure
-│
-├── Migrations/
-├── Repositories/
-├── AppDbContext.cs
-├── UnitOfWork.cs
-│
-ECommercePlatform.Server
-│
-└── (Whole Server Project)
+├── ECommercePlatform.API
+│   ├── Controllers
+│   │   ├── AuthController.cs
+│   │   ├── CityController.cs
+│   │   ├── CountryController.cs
+│   │   ├── ProductController.cs
+│   │   └── StateController.cs
+│   ├── Middleware
+│   │   ├── ExceptionMiddleware.cs
+│   │   ├── MiddlewareExtensions.cs
+│   │   └── ValidationMiddleware.cs
+├── ECommercePlatform.Application
+│   ├── Common
+│   │   ├── Behaviors
+│   │   │   ├── AuditBehavior.cs
+│   │   │   ├── TransactionBehavior.cs
+│   │   │   └── ValidationBehavior.cs
+│   │   ├── Interfaces
+│   │   │   ├── IAuditableCreateRequest.cs
+│   │   │   ├── IAuditableUpdateRequest.cs
+│   │   │   └── ITransactionalBehavior.cs
+│   │   ├── Models
+│   │   │   └── Result.cs
+│   │   └── DependencyInjection.cs
+│   ├── DTOs
+│   │   ├── AuthDto.cs
+│   │   ├── CityDto.cs
+│   │   ├── CountryDto.cs
+│   │   ├── ProductDto.cs
+│   │   └── StateDto.cs
+│   ├── Features
+│   │   ├── Auth
+│   │   │   ├── Commands
+│   │   │   │   ├── Login
+│   │   │   │   │   ├── LoginCommand.cs
+│   │   │   │   │   ├── LoginHandler.cs
+│   │   │   │   │   └── LoginValidator.cs
+│   │   │   │   └── Register
+│   │   │   │       ├── RegisterCommand.cs
+│   │   │   │       ├── RegisterHandler.cs
+│   │   │   │       └── RegisterValidator.cs
+│   │   │   └── Queries
+│   │   │       └── GetCurrentUser
+│   │   │           ├── GetCurrentUserHandler.cs
+│   │   │           ├── GetCurrentUserQuery.cs
+│   │   │           └── GetCurrentUserValidator.cs
+│   │   ├── Cities
+│   │   │   ├── Commands
+│   │   │   │   ├── Create
+│   │   │   │   │   ├── CreateCityCommand.cs
+│   │   │   │   │   ├── CreateCityHandler.cs
+│   │   │   │   │   └── CreateCityValidator.cs
+│   │   │   │   ├── Delete
+│   │   │   │   │   ├── DeleteCityCommand.cs
+│   │   │   │   │   ├── DeleteCityHandler.cs
+│   │   │   │   │   └── DeleteCityValidator.cs
+│   │   │   │   └── Update
+│   │   │   │       ├── UpdateCityCommand.cs
+│   │   │   │       ├── UpdateCityHandler.cs
+│   │   │   │       └── UpdateCityValidator.cs
+│   │   │   └── Queries
+│   │   │       ├── GetAllCities
+│   │   │       │   ├── GetAllCitiesHandler.cs
+│   │   │       │   ├── GetAllCitiesQuery.cs
+│   │   │       │   └── GetAllCitiesValidator.cs
+│   │   │       ├── GetCitiesByState
+│   │   │       │   ├── GetCitiesByStateQuery.cs
+│   │   │       │   ├── GetCitysByStateHandler.cs
+│   │   │       │   └── GetCitysByStateValidator.cs
+│   │   │       └── GetCityById
+│   │   │           ├── GetCityByIdHandler.cs
+│   │   │           ├── GetCityByIdQuery.cs
+│   │   │           └── GetCityByIdValidator.cs
+│   │   ├── Countries
+│   │   │   ├── Commands
+│   │   │   │   ├── Create
+│   │   │   │   │   ├── CreateCountryCommand.cs
+│   │   │   │   │   ├── CreateCountryHandler.cs
+│   │   │   │   │   └── CreateCountryValidator.cs
+│   │   │   │   ├── Delete
+│   │   │   │   │   ├── DeleteCountryCommand.cs
+│   │   │   │   │   ├── DeleteCountryHandler.cs
+│   │   │   │   │   └── DeleteCountryValidator.cs
+│   │   │   │   └── Update
+│   │   │   │       ├── UpdateCountryCommand.cs
+│   │   │   │       ├── UpdateCountryHandler.cs
+│   │   │   │       └── UpdateCountryValidator.cs
+│   │   │   └── Queries
+│   │   │       ├── GetAllCountries
+│   │   │       │   ├── GetAllCountriesHandler.cs
+│   │   │       │   ├── GetAllCountriesQuery.cs
+│   │   │       │   └── GetAllCountriesValidator.cs
+│   │   │       └── GetCountryById
+│   │   │           ├── GetCountryByIdHandler.cs
+│   │   │           ├── GetCountryByIdQuery.cs
+│   │   │           └── GetCountryByIdValidator.cs
+│   │   ├── Products
+│   │   │   ├── Commands
+│   │   │   │   ├── Handlers
+│   │   │   │   │   └── CreateProductHandler.cs
+│   │   │   │   ├── Validators
+│   │   │   │   │   └── CreateProductValidator.cs
+│   │   │   │   └── CreateProductCommand.cs
+│   │   │   └── Queries
+│   │   │       ├── Handlers
+│   │   │       │   └── GetProductByIdHandler.cs
+│   │   │       ├── Validators
+│   │   │       │   └── GetProductByIdValidator.cs
+│   │   │       └── GetProductByIdQuery.cs
+│   │   └── States
+│   │       ├── Commands
+│   │       │   ├── Create
+│   │       │   │   ├── CreateStateCommand.cs
+│   │       │   │   ├── CreateStateHandler.cs
+│   │       │   │   └── CreateStateValidator.cs
+│   │       │   ├── Delete
+│   │       │   │   ├── DeleteStateCommand.cs
+│   │       │   │   ├── DeleteStateHandler.cs
+│   │       │   │   └── DeleteStateValidator.cs
+│   │       │   └── Update
+│   │       │       ├── UpdateStateCommand.cs
+│   │       │       ├── UpdateStateHandler.cs
+│   │       │       └── UpdateStateValidator.cs
+│   │       └── Queries
+│   │           ├── GetAllStates
+│   │           │   ├── GetAllStatesHandler.cs
+│   │           │   ├── GetAllStatesQuery.cs
+│   │           │   └── GetAllStatesValidator.cs
+│   │           ├── GetStatesByCountry
+│   │           │   ├── GetStatesByCountryHandler.cs
+│   │           │   ├── GetStatesByCountryQuery.cs
+│   │           │   └── GetStatesByCountryValidator.cs
+│   │           └── GetStatesById
+│   │               ├── GetStateByIdHandler.cs
+│   │               ├── GetStateByIdQuery.cs
+│   │               └── GetStateByIdValidator.cs
+│   ├── Interfaces
+│   │   ├── ICity
+│   │   │   ├── ICityRepository.cs
+│   │   │   └── ICityService.cs
+│   │   ├── ICountry
+│   │   │   ├── ICountryRepository.cs
+│   │   │   └── ICountryService.cs
+│   │   ├── IGeneral
+│   │   │   └── IGenericRepository.cs
+│   │   ├── IProduct
+│   │   │   ├── IProductRepository.cs
+│   │   │   └── IProductService.cs
+│   │   ├── IState
+│   │   │   ├── IStateRepository.cs
+│   │   │   └── IStateService.cs
+│   │   ├── IUserAuth
+│   │   │   ├── IAuthService.cs
+│   │   │   ├── ICurrentUserService.cs
+│   │   │   └── IUserRepository.cs
+│   │   └── IUnitOfWork.cs
+│   ├── Mappings
+│   │   └── MappingProfile.cs
+│   ├── Services
+│   │   ├── AuthService.cs
+│   │   ├── CityService.cs
+│   │   ├── CountryService.cs
+│   │   ├── CurrentUserService.cs
+│   │   ├── ProductService.cs
+│   │   ├── StateService.cs
+│   │   └── ValidationService.cs
+│   └── ECommercePlatform.Application.csproj
+├── ECommercePlatform.client
+│   ├── public
+│   │   ├── cities.png
+│   │   ├── countries.png
+│   │   ├── dashboard.png
+│   │   ├── favicon.ico
+│   │   ├── login.png
+│   │   └── states.png
+│   ├── src
+│   │   ├── app
+│   │   │   ├── admin
+│   │   │   │   ├── city
+│   │   │   │   │   ├── city.component.html
+│   │   │   │   │   ├── city.component.scss
+│   │   │   │   │   ├── city.component.spec.ts
+│   │   │   │   │   └── city.component.ts
+│   │   │   │   ├── country
+│   │   │   │   │   ├── country.component.html
+│   │   │   │   │   ├── country.component.scss
+│   │   │   │   │   ├── country.component.spec.ts
+│   │   │   │   │   └── country.component.ts
+│   │   │   │   ├── dashboard
+│   │   │   │   │   ├── dashboard.component.html
+│   │   │   │   │   ├── dashboard.component.scss
+│   │   │   │   │   ├── dashboard.component.spec.ts
+│   │   │   │   │   └── dashboard.component.ts
+│   │   │   │   ├── login
+│   │   │   │   │   ├── login.component.html
+│   │   │   │   │   ├── login.component.scss
+│   │   │   │   │   ├── login.component.spec.ts
+│   │   │   │   │   └── login.component.ts
+│   │   │   │   ├── navbar
+│   │   │   │   │   ├── navbar.component.html
+│   │   │   │   │   ├── navbar.component.scss
+│   │   │   │   │   ├── navbar.component.spec.ts
+│   │   │   │   │   └── navbar.component.ts
+│   │   │   │   ├── state
+│   │   │   │   │   ├── state.component.html
+│   │   │   │   │   ├── state.component.scss
+│   │   │   │   │   ├── state.component.spec.ts
+│   │   │   │   │   └── state.component.ts
+│   │   │   │   ├── admin-routing.module.ts
+│   │   │   │   └── admin.module.ts
+│   │   │   ├── guards
+│   │   │   │   └── auth.guard.ts
+│   │   │   ├── models
+│   │   │   │   ├── city.model.ts
+│   │   │   │   ├── country.model.ts
+│   │   │   │   ├── state.model.ts
+│   │   │   │   └── user.model.ts
+│   │   │   ├── page-not-found
+│   │   │   │   ├── page-not-found.component.html
+│   │   │   │   ├── page-not-found.component.scss
+│   │   │   │   ├── page-not-found.component.spec.ts
+│   │   │   │   └── page-not-found.component.ts
+│   │   │   ├── services
+│   │   │   │   ├── auth
+│   │   │   │   │   ├── auth.interceptor.ts
+│   │   │   │   │   ├── auth.service.spec.ts
+│   │   │   │   │   └── auth.service.ts
+│   │   │   │   ├── city
+│   │   │   │   │   ├── city.service.spec.ts
+│   │   │   │   │   └── city.service.ts
+│   │   │   │   ├── country
+│   │   │   │   │   ├── country.service.spec.ts
+│   │   │   │   │   └── country.service.ts
+│   │   │   │   ├── custom-validators
+│   │   │   │   │   ├── custom-validators.service.spec.ts
+│   │   │   │   │   └── custom-validators.service.ts
+│   │   │   │   ├── general
+│   │   │   │   │   ├── favicon.service.ts
+│   │   │   │   │   ├── message.service.ts
+│   │   │   │   │   └── theme.service.ts
+│   │   │   │   ├── state
+│   │   │   │   │   ├── state.service.spec.ts
+│   │   │   │   │   └── state.service.ts
+│   │   │   │   ├── no-white-space.service.spec.ts
+│   │   │   │   └── no-white-space.service.ts
+│   │   │   ├── shared
+│   │   │   │   └── message
+│   │   │   │       ├── message.component.css
+│   │   │   │       ├── message.component.html
+│   │   │   │       ├── message.component.spec.ts
+│   │   │   │       └── message.component.ts
+│   │   │   ├── app.component.html
+│   │   │   ├── app.component.scss
+│   │   │   ├── app.component.spec.ts
+│   │   │   ├── app.component.ts
+│   │   │   ├── app.config.ts
+│   │   │   └── app.routes.ts
+│   │   ├── environments
+│   │   │   ├── environment.prod.ts
+│   │   │   └── environment.ts
+│   │   ├── index.html
+│   │   ├── main.ts
+│   │   ├── proxy.conf.js
+│   │   ├── script.js
+│   │   ├── styles.css
+│   │   └── THEME_DOCUMENTATION.md
+│   ├── .editorconfig
+│   ├── .gitignore
+│   ├── angular.json
+│   ├── aspnetcore-https.js
+│   ├── CHANGELOG.md
+│   ├── ecommerceplatform.client.esproj
+│   ├── ECommercePlatform.client.esproj.Backup.tmp
+│   ├── ecommerceplatform.client.esproj.user
+│   ├── karma.conf.js
+│   ├── package-lock.json
+│   ├── package-lock.json~RF5ec1203.TMP
+│   ├── package.json
+│   ├── packages.config
+│   ├── README.md
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   └── tsconfig.spec.json
+├── ECommercePlatform.Domain
+│   ├── Entities
+│   │   ├── Address.cs
+│   │   ├── BaseEntity.cs
+│   │   ├── Category.cs
+│   │   ├── City.cs
+│   │   ├── Country.cs
+│   │   ├── Coupon.cs
+│   │   ├── Order.cs
+│   │   ├── OrderItem.cs
+│   │   ├── Product.cs
+│   │   ├── ProductVariant.cs
+│   │   ├── Review.cs
+│   │   ├── ShippingAddress.cs
+│   │   ├── State.cs
+│   │   └── User.cs
+│   ├── Enums
+│   │   └── Enums.cs
+│   ├── Exceptions
+│   │   └── DuplicateResourceException.cs
+├── ECommercePlatform.Infrastructure
+│   ├── bin
+│   │   └── Debug
+│   │       └── net9.0
+│   │           ├── ECommercePlatform.Application.dll
+│   │           ├── ECommercePlatform.Application.pdb
+│   │           ├── ECommercePlatform.Domain.dll
+│   │           ├── ECommercePlatform.Domain.pdb
+│   │           ├── ECommercePlatform.Infrastructure.deps.json
+│   │           ├── ECommercePlatform.Infrastructure.dll
+│   │           ├── ECommercePlatform.Infrastructure.pdb
+│   │           └── ECommercePlatform.Infrastructure.runtimeconfig.json
+│   ├── Migrations
+│   │   ├── AppDb
+│   │   │   ├── 20250512054037_CleanArchitecture.cs
+│   │   │   └── 20250512054037_CleanArchitecture.Designer.cs
+│   │   ├── 20250502092659_InitialCreate.cs
+│   │   ├── 20250502092659_InitialCreate.Designer.cs
+│   │   ├── 20250502095235_UpdateSeedData.cs
+│   │   ├── 20250502095235_UpdateSeedData.Designer.cs
+│   │   ├── 20250506063456_GeneralChanges.cs
+│   │   ├── 20250506063456_GeneralChanges.Designer.cs
+│   │   └── AppDbContextModelSnapshot.cs
+│   ├── Repositories
+│   │   ├── CityRepository.cs
+│   │   ├── CountryRepository.cs
+│   │   ├── GenericRepository.cs
+│   │   ├── ProductRepository.cs
+│   │   ├── StateRepository.cs
+│   │   └── UserRepository.cs
+│   ├── AppDbContext.cs
+│   ├── ECommercePlatform.Infrastructure.csproj
+│   └── UnitOfWork.cs
+├── ECommercePlatform.Server
+│   ├── Properties
+│   │   └── launchSettings.json
+│   ├── appsettings.Development.json
+│   ├── appsettings.json
+│   ├── CHANGELOG.md
+│   ├── Program.cs
+│   ├── README.md
+│   └── WeatherForecast.cs
+├── ECommercePlatform.sln
+├── ECommercePlatform.slnLaunch.user
+├── LICENSE.txt
+└── README.md
 ```
 
 - **API:** Entry point, middleware, controllers.
