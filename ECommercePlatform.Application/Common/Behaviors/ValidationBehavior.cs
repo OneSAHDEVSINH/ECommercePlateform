@@ -1,6 +1,7 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using FluentValidation;
 using MediatR;
+using System.Reflection;
 using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 
@@ -33,25 +34,35 @@ namespace ECommercePlatform.Application.Common.Behaviors
                         .GroupBy(e => e.PropertyName, e => e.ErrorMessage)
                         .ToDictionary(failureGroup => failureGroup.Key, failureGroup => failureGroup.ToArray());
 
-                    // For AppResult<T> responses, we can create a failure result with the error messages
-                    if (typeof(TResponse).IsGenericType &&
-                        typeof(TResponse).GetGenericTypeDefinition() == typeof(AppResult<>))
-                    {
-                        // Formatting the error message
-                        var formattedError = string.Join("; ",
-                            errorMessages.Select(e => $"{e.Key}: {string.Join(", ", e.Value)}"));
+                    // Formatting the error message
+                    var formattedError = string.Join("; ",
+                        errorMessages.Select(e => $"{e.Key}: {string.Join(", ", e.Value)}"));
+                    // Handle both generic AppResult<T> and non-generic AppResult responses
+                    bool isGenericAppResult = typeof(TResponse).IsGenericType &&
+                                             typeof(TResponse).GetGenericTypeDefinition() == typeof(AppResult<>);
+                    bool isNonGenericAppResult = typeof(TResponse) == typeof(AppResult);
 
-                        // Create a failed AppResult<T> with proper error message
-                        // This uses reflection to create the appropriate AppResult<T> type
+                    if (isGenericAppResult || isNonGenericAppResult)
+                    {
+                        // Get the appropriate Failure method
                         var resultType = typeof(TResponse);
-                        var failureMethod = resultType.GetMethod("Failure");
+                        MethodInfo? failureMethod = null;
+
+                        if (isGenericAppResult)
+                        {
+                            failureMethod = resultType.GetMethod("Failure");
+                        }
+                        else // isNonGenericAppResult
+                        {
+                            failureMethod = typeof(AppResult).GetMethod("Failure", [typeof(string)]);
+                        }
 
                         if (failureMethod != null)
                         {
-                            var result = failureMethod.Invoke(null, new object[] { formattedError });
+                            var result = failureMethod.Invoke(null, [formattedError]);
                             if (result is not null)
                             {
-                                return (TResponse)result; // Fix for CS8600 and CS8603
+                                return (TResponse)result;
                             }
                         }
                     }
