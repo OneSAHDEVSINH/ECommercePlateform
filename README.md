@@ -245,7 +245,9 @@ ECommercePlatform.API
 │
 ECommercePlatform.Application
 │
+├── Common/
 ├── DTOs/
+├── Features/
 ├── Interfaces/
 ├── Mappings/
 ├── Services/
