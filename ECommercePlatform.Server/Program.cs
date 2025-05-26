@@ -54,7 +54,6 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IStateRepository, StateRepository>();
 builder.Services.AddScoped<ICityRepository, CityRepository>();
 
-
 // Register services
 builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -72,7 +71,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "JWTToken_Auth_API",
         Version = "v1",
-        Description = "A clean architecture based e-commerce API"
+        Description = "A clean architecture based ECommercePlatform API"
     });
     c.ResolveConflictingActions(
         apiDescriptions => apiDescriptions.First()
@@ -94,7 +93,7 @@ builder.Services.AddSwaggerGen(c =>
                         Id = "Bearer"
                 }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
