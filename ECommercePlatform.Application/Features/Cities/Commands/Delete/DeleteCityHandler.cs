@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 
@@ -12,12 +13,23 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
         {
             try
             {
-                var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
-                if (city == null)
-                    return AppResult.Failure($"City with ID {request.Id} not found");
+                var result = await Result.Success(request.Id)
+                    // Find the city
+                    .Bind(async id =>
+                    {
+                        var city = await _unitOfWork.Cities.GetByIdAsync(id);
+                        return city == null
+                            ? Result.Failure<Domain.Entities.City>($"City with ID {id} not found.")
+                            : Result.Success(city);
+                    })
+                    // Delete the city
+                    .Tap(async city => await _unitOfWork.Cities.DeleteAsync(city))
+                    // Map to final result
+                    .Map(_ => AppResult.Success());
 
-                await _unitOfWork.Cities.DeleteAsync(city);
-                return AppResult.Success();
+                return result.IsSuccess
+                    ? result.Value
+                    : AppResult.Failure(result.Error);
             }
             catch (Exception ex)
             {
@@ -26,3 +38,12 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
         }
     }
 }
+
+//Old method without using C Sharp Functional Extension
+
+//var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
+//if (city == null)
+//    return AppResult.Failure($"City with ID {request.Id} not found");
+
+//await _unitOfWork.Cities.DeleteAsync(city);
+//return AppResult.Success();

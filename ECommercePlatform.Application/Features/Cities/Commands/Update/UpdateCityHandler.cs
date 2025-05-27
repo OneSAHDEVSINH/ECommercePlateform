@@ -2,6 +2,7 @@
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Update
@@ -22,8 +23,9 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
                     .Bind(async dto =>
                     {
                         var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
+
                         return city == null
-                            ? Result.Failure<(Domain.Entities.City city, UpdateCityDto dto)>($"City with ID \"{request.Id}\" not found.")
+                            ? Result.Failure<(City city, UpdateCityDto dto)>($"City with ID \"{request.Id}\" not found.")
                             : Result.Success((city, dto));
                     })
                     .Bind(async tuple =>
@@ -38,7 +40,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
 
                         return validationResult.IsSuccess
                             ? Result.Success((city, dto))
-                            : Result.Failure<(Domain.Entities.City city, UpdateCityDto dto)>(validationResult.Error);
+                            : Result.Failure<(City city, UpdateCityDto dto)>(validationResult.Error);
                     })
                     .Tap(async tuple =>
                     {

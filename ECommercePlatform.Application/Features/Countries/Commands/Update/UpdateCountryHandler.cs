@@ -2,6 +2,7 @@
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Update;
@@ -22,8 +23,9 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
                 .Bind(async dto =>
                 {
                     var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
+
                     return country == null
-                        ? Result.Failure<(Domain.Entities.Country country, UpdateCountryDto dto)>($"Country with ID \"{request.Id}\" not found.")
+                        ? Result.Failure<(Country country, UpdateCountryDto dto)>($"Country with ID \"{request.Id}\" not found.")
                         : Result.Success((country, dto));
                 })
                 .Bind(async tuple =>
@@ -38,7 +40,7 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
 
                     return validationResult.IsSuccess
                         ? Result.Success((country, dto))
-                        : Result.Failure<(Domain.Entities.Country country, UpdateCountryDto dto)>(validationResult.Error);
+                        : Result.Failure<(Country country, UpdateCountryDto dto)>(validationResult.Error);
                 })
                 .Tap(async tuple =>
                 {
@@ -57,7 +59,6 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
             return result.IsSuccess
                 ? result.Value
                 : AppResult.Failure(result.Error);
-
         }
         catch (Exception ex)
         {

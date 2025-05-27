@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 
@@ -12,16 +13,32 @@ namespace ECommercePlatform.Application.Features.Countries.Commands.Delete
         {
             try
             {
-                var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
-                if (country == null)
-                    return AppResult.Failure($"Country with ID {request.Id} not found.");
+                var result = await Result.Success(request.Id)
+                    // Find the country
+                    .Bind(async id =>
+                    {
+                        var country = await _unitOfWork.Countries.GetByIdAsync(id);
+                        return country == null
+                            ? Result.Failure<Domain.Entities.Country>($"Country with ID {id} not found.")
+                            : Result.Success(country);
+                    })
+                    // Check if there are any associated states
+                    .Bind(async country =>
+                    {
+                        var states = await _unitOfWork.States.GetStatesByCountryIdAsync(country.Id);
+                        return states != null && states.Any()
+                            ? Result.Failure<Domain.Entities.Country>($"Cannot delete country with ID {country.Id} as it has associated states")
+                            : Result.Success(country);
+                    })
+                    // Delete the country
+                    .Tap(async country => await _unitOfWork.Countries.DeleteAsync(country))
+                    // Map to final result
+                    .Map(_ => AppResult.Success());
 
-                var states = await _unitOfWork.States.GetStatesByCountryIdAsync(request.Id);
-                if (states != null && states.Any())
-                    return AppResult.Failure($"Cannot delete country with ID {request.Id} as it has associated states");
+                return result.IsSuccess
+                    ? result.Value
+                    : AppResult.Failure(result.Error);
 
-                await _unitOfWork.Countries.DeleteAsync(country);
-                return AppResult.Success();
             }
             catch (Exception ex)
             {
@@ -30,3 +47,17 @@ namespace ECommercePlatform.Application.Features.Countries.Commands.Delete
         }
     }
 }
+
+// Old Method without C Sharp Functional Extension
+
+
+//var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
+//if (country == null)
+//    return AppResult.Failure($"Country with ID {request.Id} not found.");
+
+//var states = await _unitOfWork.States.GetStatesByCountryIdAsync(request.Id);
+//if (states != null && states.Any())
+//    return AppResult.Failure($"Cannot delete country with ID {request.Id} as it has associated states");
+
+//await _unitOfWork.Countries.DeleteAsync(country);
+//return AppResult.Success();

@@ -83,7 +83,11 @@ export class StateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-        this.messageService.showMessage({ type: 'error', text: 'Failed to load countries' });
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load countries';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
       }
     });
   }
@@ -96,8 +100,12 @@ export class StateComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading states:', error);
-        this.messageService.showMessage({ type: 'error', text: 'Failed to load states' });
+        console.error('Error loading states', error);
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load states';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
         this.loading = false;
       }
     });
@@ -117,7 +125,11 @@ export class StateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading states by country:', error);
-        this.messageService.showMessage({ type: 'error', text: 'Failed to load states for the selected country' });
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load states for the selected country';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
         this.loading = false;
       }
     });
@@ -208,7 +220,11 @@ export class StateComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error deleting state:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to delete state' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to delete State';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });

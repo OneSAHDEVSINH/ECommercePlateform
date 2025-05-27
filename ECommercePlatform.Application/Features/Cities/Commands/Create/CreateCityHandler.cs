@@ -15,18 +15,6 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
         {
             try
             {
-                //var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.StateId);
-                //if (!isNameUnique)
-                //{
-                //    return AppResult<CityDto>.Failure($"City with this name \"{request.Name}\" already exists.");
-                //}
-
-                //var city = City.Create(request.Name, request.StateId); // Use the static Create method
-                //city.IsActive = true;
-
-                //await _unitOfWork.Cities.AddAsync(city);
-                //return AppResult<CityDto>.Success((CityDto)city);
-
                 var result = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId)
                     .Map(_ => // Use _ to ignore the normalized name
                     {
@@ -49,3 +37,17 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
         }
     }
 }
+
+//Old method without CSharp Functional Extension
+
+//var isNameUnique = await _unitOfWork.Cities.IsNameUniqueInStateAsync(request.Name, request.StateId);
+//if (!isNameUnique)
+//{
+//    return AppResult<CityDto>.Failure($"City with this name \"{request.Name}\" already exists.");
+//}
+
+//var city = City.Create(request.Name, request.StateId); // Use the static Create method
+//city.IsActive = true;
+
+//await _unitOfWork.Cities.AddAsync(city);
+//return AppResult<CityDto>.Success((CityDto)city);
