@@ -34,7 +34,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
 
                         // Validation still needs values, extract from DTO
                         var validationResult = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(
-                            dto.Name ?? string.Empty, 
+                            dto.Name ?? string.Empty,
                             request.StateId,
                             request.Id);
 
