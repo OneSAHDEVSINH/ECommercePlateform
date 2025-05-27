@@ -14,7 +14,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Delete
             try
             {
                 var result = await Result.Success(request.Id)
-                    // Find the country
+                    // Find the state
                     .Bind(async id =>
                     {
                         var state = await _unitOfWork.States.GetByIdAsync(id);
@@ -22,7 +22,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Delete
                             ? Result.Failure<Domain.Entities.State>($"State with ID {id} not found.")
                             : Result.Success(state);
                     })
-                    // Check if there are any associated states
+                    // Check if there are any associated cities
                     .Bind(async state =>
                     {
                         var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(state.Id);
@@ -30,7 +30,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Delete
                             ? Result.Failure<Domain.Entities.State>($"Cannot delete state with ID {state.Id} as it has associated states")
                             : Result.Success(state);
                     })
-                    // Delete the country
+                    // Delete the state
                     .Tap(async state => await _unitOfWork.States.DeleteAsync(state))
                     // Map to final result
                     .Map(_ => AppResult.Success());

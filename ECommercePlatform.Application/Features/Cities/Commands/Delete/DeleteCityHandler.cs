@@ -14,7 +14,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
             try
             {
                 var result = await Result.Success(request.Id)
-                    // Find the country
+                    // Find the city
                     .Bind(async id =>
                     {
                         var city = await _unitOfWork.Cities.GetByIdAsync(id);
@@ -22,7 +22,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
                             ? Result.Failure<Domain.Entities.City>($"City with ID {id} not found.")
                             : Result.Success(city);
                     })
-                    // Delete the country
+                    // Delete the city
                     .Tap(async city => await _unitOfWork.Cities.DeleteAsync(city))
                     // Map to final result
                     .Map(_ => AppResult.Success());
