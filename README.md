@@ -156,9 +156,9 @@ if (result.IsSuccess)
 
 1. **Clone the repository:**
 
-   `git clone https://github.com/OneSAHDEVSINH/ECommercePlatform.git`
+     `git clone https://github.com/OneSAHDEVSINH/ECommercePlatform.git`
    
-   `cd ECommercePlatform`
+     `cd ECommercePlatform`
 
 3. **Configure the database connection:**
    
