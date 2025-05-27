@@ -155,9 +155,12 @@ if (result.IsSuccess)
 ### Installation
 
 1. **Clone the repository:**
-   git clone https://github.com/OneSAHDEVSINH/ECommercePlatform.git cd ECommercePlatform
 
-2. **Configure the database connection:**
+   `git clone https://github.com/OneSAHDEVSINH/ECommercePlatform.git`
+   
+   `cd ECommercePlatform`
+
+3. **Configure the database connection:**
    
    - Update the `DefaultConnection` string in `appsettings.json`:
      ```
@@ -177,7 +180,7 @@ if (result.IsSuccess)
  
 
 4. **Restore dependencies:**
-   dotnet restore
+   `dotnet restore`
 
 5. **Run the backend:**
    dotnet run --project ECommercePlatform.Server
