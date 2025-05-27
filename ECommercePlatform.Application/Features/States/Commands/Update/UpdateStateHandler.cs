@@ -25,7 +25,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                         var state = await _unitOfWork.States.GetByIdAsync(request.Id);
 
                         return state == null
-                            ? Result.Failure<(Domain.Entities.State state, UpdateStateDto dto)>($"State with ID \"{request.Id}\" not found.")
+                            ? Result.Failure<(State state, UpdateStateDto dto)>($"State with ID \"{request.Id}\" not found.")
                             : Result.Success((state, dto));
                     })
                     .Bind(async tuple =>
@@ -41,7 +41,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
 
                         return validationResult.IsSuccess
                             ? Result.Success((state, dto))
-                            : Result.Failure<(Domain.Entities.State state, UpdateStateDto dto)>(validationResult.Error);
+                            : Result.Failure<(State state, UpdateStateDto dto)>(validationResult.Error);
                     })
                     .Tap(async tuple =>
                     {
