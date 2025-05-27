@@ -90,7 +90,11 @@ export class CityComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-        this.messageService.showMessage({ type: 'error', text: 'Failed to load countries' });
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load countries';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
       }
     });
   }
@@ -105,7 +109,11 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading states by country:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to load states for the selected country' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to load states for the selected country';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
         }
       });
     } else {
@@ -115,7 +123,11 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading states:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to load states' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to load states';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
         }
       });
     }
@@ -130,7 +142,11 @@ export class CityComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading cities:', error);
-        this.messageService.showMessage({ type: 'error', text: 'Failed to load cities' });
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load cities';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
         this.loading = false;
       }
     });
@@ -150,7 +166,11 @@ export class CityComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading cities by state:', error);
-        this.messageService.showMessage({ type: 'error', text: 'Failed to load cities for the selected state' });
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load cities for the selected state';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
         this.loading = false;
       }
     });
@@ -279,10 +299,11 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading states for city editing:', error);
-          this.messageService.showMessage({
-            type: 'error',
-            text: 'Failed to load states for the selected country'
-          });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to load states for the selected country';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
         }
       });
     } else {
@@ -321,10 +342,11 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading all states for city editing:', error);
-          this.messageService.showMessage({
-            type: 'error',
-            text: 'Failed to load states'
-          });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to load states';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
         }
       });
     }
@@ -342,7 +364,11 @@ export class CityComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error deleting city:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to delete city' });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to delete City';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });

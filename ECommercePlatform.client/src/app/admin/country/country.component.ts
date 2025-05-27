@@ -72,7 +72,16 @@ export class CountryComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-        this.messageService.showMessage({ type: 'error', text: 'Failed to load countries' });
+        // And in the updateCountry method's error handler
+        if (error.error) {
+          console.error('Server validation errors:', error.error);
+        }
+        // Extract the most useful error message
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load countries';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
         this.loading = false;
       }
     });
@@ -183,7 +192,16 @@ export class CountryComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error deleting country:', error);
-          this.messageService.showMessage({ type: 'error', text: 'Failed to delete country' });
+          // Log more details about the error response
+          if (error.error) {
+            console.error('Server validation errors:', error.error);
+          }
+          // Extract the most useful error message
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to delete country';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
