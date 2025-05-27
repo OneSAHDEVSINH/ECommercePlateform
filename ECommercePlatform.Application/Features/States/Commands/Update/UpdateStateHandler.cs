@@ -23,6 +23,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
                     .Bind(async dto =>
                     {
                         var state = await _unitOfWork.States.GetByIdAsync(request.Id);
+
                         return state == null
                             ? Result.Failure<(Domain.Entities.State state, UpdateStateDto dto)>($"State with ID \"{request.Id}\" not found.")
                             : Result.Success((state, dto));

@@ -22,6 +22,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
                     .Bind(async dto =>
                     {
                         var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
+
                         return city == null
                             ? Result.Failure<(Domain.Entities.City city, UpdateCityDto dto)>($"City with ID \"{request.Id}\" not found.")
                             : Result.Success((city, dto));

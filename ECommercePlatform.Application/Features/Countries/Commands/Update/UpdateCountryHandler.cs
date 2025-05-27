@@ -22,6 +22,7 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
                 .Bind(async dto =>
                 {
                     var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
+
                     return country == null
                         ? Result.Failure<(Domain.Entities.Country country, UpdateCountryDto dto)>($"Country with ID \"{request.Id}\" not found.")
                         : Result.Success((country, dto));
@@ -57,7 +58,6 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
             return result.IsSuccess
                 ? result.Value
                 : AppResult.Failure(result.Error);
-
         }
         catch (Exception ex)
         {
