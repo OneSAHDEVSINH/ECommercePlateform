@@ -21,7 +21,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/ECommercePlatform.git`
+2. Clone your fork: `git clone https://github.com/OneSAHDEVSINH/ECommercePlatform.git`
 3. Add the upstream repository: `git remote add upstream https://github.com/OneSAHDEVSINH/ECommercePlatform.git`
 4. Create a new branch for your contribution (see [branch naming convention](#branch-naming-convention))
 5. Make your changes
