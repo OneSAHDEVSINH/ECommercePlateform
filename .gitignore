@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /ECommercePlatform.Server/appsettings.json
 /ECommercePlatform.Server/info.txt
+/ECommercePlatform.Server/Properties/launchSettings.json
