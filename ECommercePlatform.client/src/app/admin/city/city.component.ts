@@ -30,7 +30,6 @@ export class CityComponent implements OnInit, OnDestroy {
   currentCityId: string | null = null;
   loading: boolean = false;
   selectedCountryId: string = '';
-  //stateId: string = '';
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
@@ -253,31 +252,13 @@ export class CityComponent implements OnInit, OnDestroy {
     }
   }
 
-  //editCity(city: City): void {
-  //  this.isEditMode = true;
-  //  this.currentCityId = city.id || null;
-
-  //  // Find the state to get the associated country
-  //  const state = this.states.find(s => s.id === city.stateId);
-  //  if (state) {
-  //    this.selectedCountryId = state.countryId;
-  //    this.loadStates(state.countryId);
-  //    //this.stateId = city.stateId;
-  //  }
-
-  //  this.cityForm.patchValue({
-  //    name: city.name,
-  //    stateId: city.stateId,
-  //    modifiedOn: new Date(),
-  //    modifiedBy: this.getUserIdentifier(),
-  //    isActive: true,
-  //    isDeleted: false
-  //  });
-  //}
-
   editCity(city: City): void {
     this.isEditMode = true;
     this.currentCityId = city.id || null;
+
+    // Always scroll to top immediately when edit button is clicked
+    this.messageService.scrollToTop();
+
 
     // Find the state to get the associated country
     const state = this.states.find(s => s.id === city.stateId);
@@ -307,8 +288,8 @@ export class CityComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      // If we can't find the state in our current list,
-      // we need to load all states first to ensure we have the right data
+      // If can't find the state in current list,
+      // need to load all states first to ensure it has the right data
       this.stateService.getStates().subscribe({
         next: (states) => {
           this.states = states;

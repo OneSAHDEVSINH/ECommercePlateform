@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Country } from '../../models/country.model';
@@ -179,6 +179,9 @@ export class CountryComponent implements OnInit, OnDestroy {
       isActive: true,
       isDeleted: false
     });
+
+    // Use the message service's scrollToTop method
+    this.messageService.scrollToTop();
   }
 
   deleteCountry(id: string): void {

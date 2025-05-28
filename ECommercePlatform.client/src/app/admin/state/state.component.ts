@@ -207,6 +207,9 @@ export class StateComponent implements OnInit {
       isActive: true,
       isDeleted: false
     });
+
+    // Use the message service's scrollToTop method
+    this.messageService.scrollToTop();
   }
 
   deleteState(id: string): void {
