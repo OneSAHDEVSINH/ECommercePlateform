@@ -8,8 +8,16 @@ import { authGuard } from './guards/auth.guard';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'admin/login', pathMatch: 'full' },
-  { path: 'admin/login', component: LoginComponent, title: 'Admin Login' },
+  {
+    path: '',
+    redirectTo: 'admin/login',
+    pathMatch: 'full'
+  },
+  {
+    path: 'admin/login',
+    component: LoginComponent,
+    title: 'Admin Login'
+  },
   { 
     path: 'admin/dashboard', 
     component: DashboardComponent,
@@ -34,5 +42,10 @@ export const routes: Routes = [
     title: 'City Component',
     canActivate: [authGuard] 
   },
-  { path: '**', component: PageNotFoundComponent, pathMatch: 'full', title: '404 - Page not found' }
+  {
+    path: '**',
+    component: PageNotFoundComponent,
+    pathMatch: 'full',
+    title: '404 - Page not found'
+  }
 ];
