@@ -11,4 +11,10 @@ public record CreateCountryCommand : IRequest<AppResult<CountryDto>>, ITransacti
     public required string Code { get; init; }
     public string? CreatedBy { get; set; }
     public DateTime CreatedOn { get; set; } = DateTime.Now;
+
+    public CreateCountryCommand(string name, string code)
+    {
+        Name = name?.Trim() ?? string.Empty;
+        Code = code?.Trim() ?? string.Empty;
+    }
 }

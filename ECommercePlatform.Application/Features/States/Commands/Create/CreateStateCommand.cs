@@ -13,5 +13,11 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         public Guid CountryId { get; init; }
         public bool IsActive { get; init; } = true;
+
+        public CreateStateCommand(string name, string code)
+        {
+            Name = name?.Trim() ?? string.Empty;
+            Code = code?.Trim() ?? string.Empty;
+        }
     }
 }

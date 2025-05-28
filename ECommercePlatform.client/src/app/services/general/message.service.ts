@@ -13,7 +13,7 @@ export class MessageService {
   private messageSource = new BehaviorSubject<Message | null>(null);
   currentMessage = this.messageSource.asObservable();
   private timeout: any;
-  private defaultDuration = 50000; // 2.5 seconds default
+  private defaultDuration = 2500; // 2.5 seconds default
 
   constructor() { }
 

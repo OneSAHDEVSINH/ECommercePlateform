@@ -95,13 +95,9 @@ export class CountryComponent implements OnInit, OnDestroy {
 
     const countryData: Country = {
       ...this.countryForm.value,
-      //createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
-      //modifiedBy: this.getUserIdentifier(),
-      //isActive: true,
-      //isDeleted: false
       id: this.isEditMode && this.currentCountryId ? this.currentCountryId : undefined,
-      //name: this.countryForm.value.name,
-      //code: this.countryForm.value.code,
+      //name: this.countryForm.value.name?.trim(),
+      //code: this.countryForm.value.code?.trim(),
       createdOn: new Date(),
       createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
       //createdBy: "System",

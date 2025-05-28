@@ -12,4 +12,10 @@ public record UpdateCountryCommand : IRequest<AppResult>, ITransactionalBehavior
     public string? ModifiedBy { get; set; }
     public DateTime ModifiedOn { get; set; } = DateTime.Now;
     public bool IsActive { get; init; } = true;
+
+    public UpdateCountryCommand(string name, string code)
+    {
+        Name = name?.Trim() ?? string.Empty;
+        Code = code?.Trim() ?? string.Empty;
+    }
 }

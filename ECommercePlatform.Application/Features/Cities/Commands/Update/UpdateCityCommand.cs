@@ -12,5 +12,10 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
         public DateTime ModifiedOn { get; set; } = DateTime.Now;
         public bool IsActive { get; init; } = true;
         public Guid StateId { get; init; }
+
+        public UpdateCityCommand(string name)
+        {
+            Name = name?.Trim() ?? string.Empty;
+        }
     }
 }
