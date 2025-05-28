@@ -54,6 +54,7 @@ export class AuthService {
       case 'customer':
         return UserRole.Customer;
       case 'vendor':
+        return UserRole.Vendor;
       case 'seller':
         return UserRole.Seller;
       default:
@@ -98,11 +99,11 @@ export class AuthService {
           // Create a properly formatted user object
           const user: User = {
             id: response.user.id,
-            firstName: response.user.firstName || response.user.firstName || '',
-            lastName: response.user.lastName || response.user.lastName || '',
-            email: response.user.email || response.user.email || response.user.email || '',
-            role: this.getRoleFromString(response.user.role) || response.user.role || response.user.role,
-            isActive: response.user.isActive || response.user.isActive || true
+            firstName: response.user.firstName || '',
+            lastName: response.user.lastName || '',
+            email: response.user.email || '',
+            role: this.getRoleFromString(response.user.role) || response.user.role,
+            isActive: response.user.isActive || true
           };
           
           // Store user data
