@@ -82,6 +82,7 @@
               {{ isEditMode ? 'Update' : 'Add' }} State
             </button>
             <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
+            <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode">Reset</button>
           </div>
         </form>
       </div>
