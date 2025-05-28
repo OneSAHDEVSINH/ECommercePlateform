@@ -66,9 +66,9 @@
               {{ isEditMode ? 'Update' : 'Add' }} Country
             </button>
             <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
-            <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode">Reset</button>
+              <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode && (countryForm.get('name')?.touched || countryForm.get('code')?.touched)">Reset</button>
           </div>
-        </form>
+</form>
       </div>
 
       <!-- Countries list -->
