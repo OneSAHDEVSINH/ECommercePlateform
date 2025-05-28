@@ -16,6 +16,7 @@ namespace ECommercePlatform.Application.Common.Validation
 
         [GeneratedRegex(@"^([A-Z][a-z]*)(?: [A-Z][a-z]*)*$", RegexOptions.Compiled)]
         private static partial Regex CapitalizedWordsRegex();
+
         [GeneratedRegex(@"^[A-Z]{1,3}$", RegexOptions.Compiled)]
         private static partial Regex UppercaseLettersRegex();
     }
