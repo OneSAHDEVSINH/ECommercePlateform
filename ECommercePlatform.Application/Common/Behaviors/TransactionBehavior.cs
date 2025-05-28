@@ -28,7 +28,7 @@ namespace ECommercePlatform.Application.Common.Behaviors
                 _logger.LogInformation("Beginning transaction for {RequestType}", typeof(TRequest).Name);
 
                 // Execute the next behavior in the pipeline (which will eventually execute the request handler)
-                var response = await next();
+                var response = await next(cancellationToken);
 
                 // If we get here without exceptions, commit the transaction
                 await _unitOfWork.CompleteAsync();

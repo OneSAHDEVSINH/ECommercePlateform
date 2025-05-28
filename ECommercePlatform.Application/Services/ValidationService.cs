@@ -2,7 +2,7 @@
 
 namespace ECommercePlatform.Application.Services
 {
-    public class ValidationService
+    public partial class ValidationService
     {
         public static bool IsValidNameorCode(string name, out string errorMessage)
         {
@@ -14,7 +14,7 @@ namespace ECommercePlatform.Application.Services
                 return false;
             }
 
-            if (!Regex.IsMatch(name.Trim(), @"^[A-Za-z\s]+$"))
+            if (!NameOrCodeRegex().IsMatch(name.Trim()))
             {
                 errorMessage = "Name or Code can only contain letters and spaces.";
                 return false;
@@ -27,13 +27,13 @@ namespace ECommercePlatform.Application.Services
         {
             errorMessage = string.Empty;
 
-            if (string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(code))
             {
                 errorMessage = "Name or Code cannot be empty or contain only whitespace.";
                 return false;
             }
 
-            if (!Regex.IsMatch(name.Trim(), @"^[A-Za-z\s]+$"))
+            if (!NameOrCodeValidatorRegex().IsMatch(name.Trim()))
             {
                 errorMessage = "Name or Code can only contain letters and spaces.";
                 return false;
@@ -42,5 +42,9 @@ namespace ECommercePlatform.Application.Services
             return true;
         }
 
+        [GeneratedRegex(@"^[A-Za-z\s]+$")]
+        private static partial Regex NameOrCodeRegex();
+        [GeneratedRegex(@"^[A-Za-z\s]+$")]
+        private static partial Regex NameOrCodeValidatorRegex();
     }
 }
