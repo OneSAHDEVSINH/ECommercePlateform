@@ -7,12 +7,10 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
 {
-    public class GetCurrentUserHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IMapper mapper, IUserRepository userRepository) : IRequestHandler<GetCurrentUserQuery, AppResult<UserDto>>
+    public class GetCurrentUserHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService) : IRequestHandler<GetCurrentUserQuery, AppResult<UserDto>>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
         private readonly ICurrentUserService _currentUserService = currentUserService;
-        private readonly IUserRepository _userRepository = userRepository;
 
         public async Task<AppResult<UserDto>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
         {
@@ -22,7 +20,7 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
                     return AppResult<UserDto>.Failure("User is not authenticated");
 
                 var userId = Guid.Parse(_currentUserService.UserId); // Convert string UserId to Guid
-                var user = await _userRepository.GetByIdAsync(userId);
+                var user = await _unitOfWork.Users.GetByIdAsync(userId);
 
                 if (user == null)
                     return AppResult<UserDto>.Failure("User not found");
