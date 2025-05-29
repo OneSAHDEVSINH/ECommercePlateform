@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
-import { Message } from '../../services/general/message.service';
-import { CountryComponent } from '../country/country.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
