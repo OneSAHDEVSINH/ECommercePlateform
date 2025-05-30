@@ -20,7 +20,7 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  
+
   h2 {
     margin: 0;
     font-size: 1.5rem;
@@ -39,19 +39,19 @@
   border-radius: 4px;
   margin-bottom: 20px;
   position: relative;
-  
+
   &.alert-success {
     background-color: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
   }
-  
+
   &.alert-danger {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
   }
-  
+
   .alert-close {
     position: absolute;
     right: 10px;
@@ -61,7 +61,7 @@
     font-size: 1.5rem;
     cursor: pointer;
     opacity: 0.5;
-    
+
     &:hover {
       opacity: 1;
     }
@@ -75,7 +75,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
-  
+
   h3 {
     margin-top: 0;
     margin-bottom: 20px;
@@ -87,69 +87,69 @@
 .data-form {
   .form-group {
     margin-bottom: 20px;
-    
+
     label {
       display: block;
       margin-bottom: 8px;
       color: #333;
       font-weight: 500;
     }
-    
+
     .form-control {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #ddd;
       border-radius: 4px;
       font-size: 1rem;
-      
+
       &:focus {
         outline: none;
         border-color: #4a90e2;
       }
-      
+
       &.is-invalid {
         border-color: #dc3545;
       }
     }
-    
+
     .error-message {
       color: #dc3545;
       font-size: 0.85rem;
       margin-top: 5px;
     }
   }
-  
+
   .form-actions {
     display: flex;
     gap: 10px;
-    
+
     button {
       padding: 10px 15px;
       border-radius: 4px;
       font-weight: 500;
       cursor: pointer;
       transition: background-color 0.3s;
-      
+
       &.btn-primary {
         background-color: #4a90e2;
         color: white;
         border: none;
-        
+
         &:hover {
           background-color: #357abe;
         }
-        
+
         &:disabled {
           background-color: #a9c7e8;
           cursor: not-allowed;
         }
       }
-      
+
       &.btn-secondary {
         background-color: #f1f1f1;
         color: #333;
         border: 1px solid #ddd;
-        
+
         &:hover {
           background-color: #e1e1e1;
         }
@@ -164,7 +164,7 @@
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  
+
   h3 {
     margin-top: 0;
     margin-bottom: 20px;
@@ -189,27 +189,27 @@
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  
+
   th, td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #eee;
   }
-  
+
   th {
     background-color: #f8f9fa;
     font-weight: 600;
     color: #333;
   }
-  
+
   tr:hover {
     background-color: #f5f7fa;
   }
-  
+
   .actions {
     display: flex;
     gap: 8px;
-    
+
     button {
       padding: 6px 12px;
       border-radius: 4px;
@@ -217,20 +217,20 @@
       cursor: pointer;
       transition: background-color 0.3s;
       border: none;
-      
+
       &.btn-edit {
         background-color: #4a90e2;
         color: white;
-        
+
         &:hover {
           background-color: #357abe;
         }
       }
-      
+
       &.btn-delete {
         background-color: #e74c3c;
         color: white;
-        
+
         &:hover {
           background-color: #c0392b;
         }
@@ -245,19 +245,19 @@
     flex-direction: column;
     height: auto;
   }
-  
+
   .sidebar {
     width: 100%;
   }
-  
+
   .data-table {
     display: block;
     overflow-x: auto;
-    
+
     th, td {
       min-width: 120px;
     }
-    
+
     .actions {
       min-width: 150px;
     }

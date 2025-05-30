@@ -3,8 +3,8 @@
 </head>
 
 <div class="admin-container">
-  
-<app-navbar></app-navbar>
+
+  <app-navbar></app-navbar>
   <!-- Main content area -->
   <main class="main-content">
     <!-- Top navigation bar -->
@@ -25,17 +25,15 @@
       <!-- Country Form -->
       <div class="form-container">
         <h3>{{ isEditMode ? 'Edit Country' : 'Add New Country' }}</h3>
-        
+
         <form [formGroup]="countryForm" (ngSubmit)="onSubmit()" class="data-form">
           <div class="form-group">
             <label for="name">Country Name</label>
-            <input 
-              type="text" 
-              id="name" 
-              formControlName="name" 
-              class="form-control"
-              [ngClass]="{'is-invalid': countryForm.get('name')?.touched && countryForm.get('name')?.errors}"
-            >
+            <input type="text"
+                   id="name"
+                   formControlName="name"
+                   class="form-control"
+                   [ngClass]="{'is-invalid': countryForm.get('name')?.touched && countryForm.get('name')?.errors}">
             <div *ngIf="countryForm.get('name')?.touched && countryForm.get('name')?.errors" class="error-message">
               <div *ngIf="countryForm.get('name')?.errors?.['required']">Country name is required</div>
               <div *ngIf="countryForm.get('name')?.errors?.['maxlength']">Country name must be less than 100 characters</div>
@@ -43,16 +41,14 @@
               <div *ngIf="countryForm.get('name')?.errors?.['lettersOnly']">Country name can only contain letters and spaces</div>
             </div>
           </div>
-          
+
           <div class="form-group">
             <label for="code">Country Code</label>
-            <input 
-              type="text" 
-              id="code" 
-              formControlName="code" 
-              class="form-control"
-              [ngClass]="{'is-invalid': countryForm.get('code')?.touched && countryForm.get('code')?.errors}"
-            >
+            <input type="text"
+                   id="code"
+                   formControlName="code"
+                   class="form-control"
+                   [ngClass]="{'is-invalid': countryForm.get('code')?.touched && countryForm.get('code')?.errors}">
             <div *ngIf="countryForm.get('code')?.touched && countryForm.get('code')?.errors" class="error-message">
               <div *ngIf="countryForm.get('code')?.errors?.['required']">Country code is required</div>
               <div *ngIf="countryForm.get('code')?.errors?.['maxlength']">Country code must be less than 10 characters</div>
@@ -60,27 +56,27 @@
               <div *ngIf="countryForm.get('code')?.errors?.['lettersOnly']">Country code can only contain letters and spaces</div>
             </div>
           </div>
-          
+
           <div class="form-actions">
             <button type="submit" class="btn-primary" [disabled]="countryForm.invalid || loading">
               {{ isEditMode ? 'Update' : 'Add' }} Country
             </button>
             <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
-              <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode && (countryForm.get('name')?.touched || countryForm.get('code')?.touched)">Reset</button>
+            <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode && (countryForm.get('name')?.touched || countryForm.get('code')?.touched)">Reset</button>
           </div>
-</form>
+        </form>
       </div>
 
       <!-- Countries list -->
       <div class="table-container">
         <h3>Countries List</h3>
-        
+
         <div *ngIf="loading" class="loading-indicator">Loading...</div>
-        
+
         <div *ngIf="countries.length === 0 && !loading" class="no-data">
           No countries found. Please add a new country.
         </div>
-        
+
         <table *ngIf="countries.length > 0" class="data-table">
           <thead>
             <tr>

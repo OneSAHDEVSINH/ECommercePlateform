@@ -27,6 +27,11 @@ export class CountryService {
     return this.http.post<Country>(this.apiUrl, country);
   }
 
+  createCountriesBulk(countries: Country[]): Observable<Country[]> {
+    return this.http.post<Country[]>(`${this.apiUrl}/bulk`, countries);
+      //, { headers: this.headers });
+  }
+
   updateCountry(id: string, country: Country): Observable<Country> {
     return this.http.put<Country>(`${this.apiUrl}/${id}`, country);
   }
