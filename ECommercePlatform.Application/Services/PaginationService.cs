@@ -67,6 +67,5 @@ namespace ECommercePlatform.Application.Services
 
             return result;
         }
-
     }
 }
