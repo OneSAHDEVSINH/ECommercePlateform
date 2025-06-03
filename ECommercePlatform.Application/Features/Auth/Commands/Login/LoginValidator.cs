@@ -8,7 +8,9 @@ namespace ECommercePlatform.Application.Features.Auth.Commands.Login
         {
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Invalid email format.");
+                .EmailAddress().WithMessage("Invalid email format.")
+                .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                .WithMessage("Email must be in a valid format (example@domain.com).");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
