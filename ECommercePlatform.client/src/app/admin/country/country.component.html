@@ -68,24 +68,57 @@
             <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
               <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode && (countryForm.get('name')?.touched || countryForm.get('code')?.touched)">Reset</button>
           </div>
-</form>
+        </form>
       </div>
 
       <!-- Countries list -->
       <div class="table-container">
         <h3>Countries List</h3>
-        
-        <div *ngIf="loading" class="loading-indicator">Loading...</div>
-        
-        <div *ngIf="countries.length === 0 && !loading" class="no-data">
-          No countries found. Please add a new country.
+
+        <!-- Search and filter controls -->
+        <div class="list-controls">
+          <div class="search-box">
+            <input type="text"
+                   placeholder="Search countries..."
+                   (input)="onSearch($event)"
+                   [value]="pageRequest.searchText || ''"
+                   class="search-input">
+            <i class="search-icon">🔍</i>
+          </div>
+
+          <div class="page-size-selector">
+            Show
+            <select (change)="onPageSizeChange($event)">
+              <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
+              <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
+              <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
+              <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
+            </select>
+            entries
+          </div>
         </div>
-        
+
+        <div *ngIf="loading" class="loading-indicator">Loading...</div>
+
+        <div *ngIf="countries.length === 0 && !loading" class="no-data">
+          No countries found. Please add a new country or adjust your search criteria.
+        </div>
+
         <table *ngIf="countries.length > 0" class="data-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Code</th>
+              <th (click)="onSortChange('name')" class="sortable">
+                Name
+                <span *ngIf="pageRequest.sortColumn === 'name'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
+              <th (click)="onSortChange('code')" class="sortable">
+                Code
+                <span *ngIf="pageRequest.sortColumn === 'code'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -100,6 +133,20 @@
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination component -->
+        <app-pagination *ngIf="pagedResponse && pagedResponse.totalPages > 1"
+                        [totalPages]="pagedResponse.totalPages"
+                        [currentPage]="pagedResponse.pageNumber"
+                        (pageChange)="onPageChange($event)">
+        </app-pagination>
+
+        <!-- Pagination info -->
+        <div *ngIf="pagedResponse && countries.length > 0" class="pagination-info">
+          Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
+          to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
+          of {{ pagedResponse.totalCount }} entries
+        </div>
       </div>
     </div>
   </main>

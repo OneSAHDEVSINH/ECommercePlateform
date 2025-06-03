@@ -1,5 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces.ICity;
+using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -104,6 +106,101 @@ namespace ECommercePlatform.Infrastructure.Repositories
                         ? Result.Failure<string>($"City with name \"{name}\" already exists in this state.")
                         : Result.Success(normalizedName);
                 });
+        }
+
+        // Search function for cities (searching by name)
+        private static IQueryable<City> ApplyCitySearch(IQueryable<City> query, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(c =>
+                c.Name != null && EF.Functions.Like(c.Name.ToLower(), $"%{searchTerm}%"));
+        }
+
+        // Get paginated cities with optional state filter
+        public async Task<PagedResponse<City>> GetPagedCitiesAsync(
+            PagedRequest request,
+            Guid? stateId = null,
+            Guid? countryId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            // Create base filter
+            Expression<Func<City, bool>> baseFilter;
+
+            // Determine the filter based on provided parameters
+            if (stateId.HasValue)
+            {
+                // If state is specified, filter by state (the most specific filter)
+                baseFilter = activeOnly
+                    ? c => c.IsActive && !c.IsDeleted && c.StateId == stateId.Value
+                    : c => !c.IsDeleted && c.StateId == stateId.Value;
+            }
+            else if (countryId.HasValue)
+            {
+                // If country is specified but no state, filter by country
+                // This requires checking the country ID of the related state
+                baseFilter = activeOnly
+                    ? c => c.IsActive && !c.IsDeleted && c.State!.CountryId == countryId.Value
+                    : c => !c.IsDeleted && c.State!.CountryId == countryId.Value;
+            }
+            else
+            {
+                // No filtering by state or country
+                baseFilter = activeOnly
+                    ? c => c.IsActive && !c.IsDeleted
+                    : c => !c.IsDeleted;
+            }
+
+            // Define a search function that also includes the State and Country navigation properties
+            Func<IQueryable<City>, string?, IQueryable<City>> searchWithInclude = (query, searchText) => {
+                // First include related entities
+                var queryWithInclude = query
+                    .Include(c => c.State)
+                    .ThenInclude(s => s!.Country);
+
+                // Then apply search if text is provided
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    return ApplyCitySearch(queryWithInclude, searchText);
+
+                return queryWithInclude;
+            };
+
+            // Use the updated GetPagedAsync method with the correct parameter signature
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                searchWithInclude,
+                cancellationToken);
+        }
+
+        // Get paginated city DTOs
+        public async Task<PagedResponse<CityDto>> GetPagedCityDtosAsync(
+            PagedRequest request,
+            Guid? stateId = null,
+            Guid? countryId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedCitiesAsync(
+                request,
+                stateId,
+                countryId,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to DTOs with state and country information
+            var dtos = pagedEntities.Items.Select(c => (CityDto)c).ToList();
+
+            return new PagedResponse<CityDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
         }
     }
 }

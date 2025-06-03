@@ -13,13 +13,16 @@ import { MessageService, Message } from '../../services/general/message.service'
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from "../navbar/navbar.component";
 import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
+import { PagedResponse, PagedRequest } from '../../models/pagination.model';
+import { ListService } from '../../services/general/list.service';
 
 @Component({
   selector: 'app-city',
   templateUrl: './city.component.html',
   styleUrls: ['./city.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent, PaginationComponent]
 })
 export class CityComponent implements OnInit, OnDestroy {
   cities: City[] = [];
@@ -33,15 +36,23 @@ export class CityComponent implements OnInit, OnDestroy {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+  private searchSubscription!: Subscription;
+  Math = Math; // Make Math available to the template
+  selectedStateId = 'all';
+  selectedCountryIdFilter: string = 'all';
+  filteredStates: State[] = [];
+  allStates: State[] = [];
 
-  noWhitespaceValidator(): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      // Check if the value exists and if it contains only whitespace
-      const isWhitespace = control.value && control.value.trim().length === 0;
-      // Return validation error if true, otherwise null
-      return isWhitespace ? { 'whitespace': true } : null;
-    };
-  }
+  // Pagination properties
+  pagedResponse: PagedResponse<City> | null = null;
+  pageRequest: PagedRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    searchText: '',
+    sortColumn: 'name',
+    sortDirection: 'asc'
+  };
+    
 
   constructor(
     private cityService: CityService,
@@ -49,13 +60,15 @@ export class CityComponent implements OnInit, OnDestroy {
     private countryService: CountryService,
     private authService: AuthService,
     private messageService: MessageService,
+    private listService: ListService,
     private fb: FormBuilder
   ) { }
 
   ngOnInit(): void {
     this.initForm();
     this.loadCountries();
-    this.loadStates();
+    this.loadAllStates();
+    //this.loadStates();
     this.loadCities();
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
@@ -65,12 +78,22 @@ export class CityComponent implements OnInit, OnDestroy {
     this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
     });
+
+    // Subscribe to search changes with debounce
+    this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
+      this.pageRequest.searchText = term;
+      this.pageRequest.pageNumber = 1; // Reset to first page when search changes
+      this.loadCities();
+    });
   }
 
   ngOnDestroy(): void {
     // Clean up subscriptions
     if (this.messageSubscription) {
       this.messageSubscription.unsubscribe();
+    }
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
     }
   }
 
@@ -81,6 +104,22 @@ export class CityComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadAllStates(): void {
+    this.stateService.getStates().subscribe({
+      next: (states) => {
+        this.allStates = states;
+        this.filteredStates = states; // Initially all states are shown
+      },
+      error: (error) => {
+        console.error('Error loading states:', error);
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load states';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
+      }
+    });
+  }
 
   loadCountries(): void {
     this.countryService.getCountries().subscribe({
@@ -134,9 +173,23 @@ export class CityComponent implements OnInit, OnDestroy {
 
   loadCities(): void {
     this.loading = true;
-    this.cityService.getCities().subscribe({
-      next: (cities) => {
-        this.cities = cities;
+    //this.cityService.getCities().subscribe({
+    //  next: (cities) => {
+    //    this.cities = cities;
+    //    this.loading = false;
+    //  },
+    const stateId = this.selectedStateId === 'all' ? undefined : this.selectedStateId;
+    let countryId = this.selectedCountryIdFilter === 'all' ? undefined : this.selectedCountryIdFilter;
+
+    // If a specific state is selected, we don't need to filter by country since states belong to one country
+    if (stateId) {
+      countryId = undefined;
+    }
+
+    this.cityService.getPagedCities(this.pageRequest, stateId, countryId).subscribe({
+      next: (response) => {
+        this.cities = response.items;
+        this.pagedResponse = response;
         this.loading = false;
       },
       error: (error) => {
@@ -149,49 +202,6 @@ export class CityComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
-  }
-
-  filterCitiesByState(stateId: string): void {
-    if (!stateId || stateId === 'all') {
-      this.loadCities();
-      return;
-    }
-
-    this.loading = true;
-    this.cityService.getCitiesByState(stateId).subscribe({
-      next: (cities) => {
-        this.cities = cities;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading cities by state:', error);
-        const errorMessage = error.error?.message ||
-          error.error?.title ||
-          error.message ||
-          'Failed to load cities for the selected state';
-        this.messageService.showMessage({ type: 'error', text: errorMessage });
-        this.loading = false;
-      }
-    });
-  }
-
-  onStateFilterChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.filterCitiesByState(select.value);
-  }
-
-  onCountryChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const countryId = select.value;
-    this.selectedCountryId = countryId;
-    if (countryId) {
-      this.loadStates(countryId);
-      this.cityForm.get('stateId')?.enable(); // Enable the state dropdown
-    } else {
-      this.states = [];
-      this.cityForm.get('stateId')?.setValue('');
-      this.cityForm.get('stateId')?.disable(); // Disable the state dropdown
-    }
   }
 
   onSubmit(): void {
@@ -211,7 +221,7 @@ export class CityComponent implements OnInit, OnDestroy {
     };
 
     this.loading = true;
-    
+
     if (this.isEditMode && this.currentCityId) {
       this.cityService.updateCity(this.currentCityId, cityData).subscribe({
         next: () => {
@@ -364,20 +374,123 @@ export class CityComponent implements OnInit, OnDestroy {
   }
 
   getStateName(stateId: string): string {
-    const state = this.states.find(s => s.id === stateId);
+    const state = this.allStates.find(s => s.id === stateId);
     return state ? state.name : 'Unknown';
   }
 
   getCountryForState(stateId: string): string {
-    const state = this.states.find(s => s.id === stateId);
+    const state = this.allStates.find(s => s.id === stateId);
     if (!state) return 'Unknown';
-    
+
     const country = this.countries.find(c => c.id === state.countryId);
     return country ? country.name : 'Unknown';
+  }
+
+  onStateFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.filterCitiesByState(select.value);
+  }
+
+  filterCitiesByState(stateId: string): void {
+    this.selectedStateId = stateId;
+    this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
+    this.loadCities();
+    //if (!stateId || stateId === 'all') {
+    //  this.loadCities();
+    //  return;
+    //}
+
+    //this.loading = true;
+    //this.cityService.getCitiesByState(stateId).subscribe({
+    //  next: (cities) => {
+    //    this.cities = cities;
+    //    this.loading = false;
+    //  },
+    //  error: (error) => {
+    //    console.error('Error loading cities by state:', error);
+    //    const errorMessage = error.error?.message ||
+    //      error.error?.title ||
+    //      error.message ||
+    //      'Failed to load cities for the selected state';
+    //    this.messageService.showMessage({ type: 'error', text: errorMessage });
+    //    this.loading = false;
+    //  }
+    //});
+  }
+
+  onCountryChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const countryId = select.value;
+    this.selectedCountryId = countryId;
+    if (countryId) {
+      this.loadStates(countryId);
+      this.cityForm.get('stateId')?.enable(); // Enable the state dropdown
+    } else {
+      this.states = [];
+      this.cityForm.get('stateId')?.setValue('');
+      this.cityForm.get('stateId')?.disable(); // Disable the state dropdown
+    }
+  }
+
+  // Add country filter change handler
+  onCountryFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.filterCitiesByCountry(select.value);
+  }
+
+  // Add method to filter cities by country
+  filterCitiesByCountry(countryId: string): void {
+    this.selectedCountryIdFilter = countryId;
+
+    // Reset state filter when country changes
+    this.selectedStateId = 'all';
+
+    // Update the states dropdown based on selected country
+    if (countryId === 'all') {
+      this.filteredStates = this.allStates;
+    } else {
+      this.filteredStates = this.allStates.filter(state => state.countryId === countryId);
+    }
+
+    // Reset to first page when filter changes
+    this.pageRequest.pageNumber = 1;
+
+    // Load cities with the new filters
+    this.loadCities();
   }
 
   // Helper method to get user identifier for creation/modification tracking
   private getUserIdentifier(): string {
     return this.currentUser ? this.currentUser.id || this.currentUser.email : 'system';
+  }
+
+  // Pagination methods
+  onPageChange(page: number): void {
+    this.pageRequest.pageNumber = page;
+    this.loadCities();
+  }
+
+  onPageSizeChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.pageRequest.pageSize = +selectElement.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page when changing page size
+    this.loadCities();
+  }
+
+  onSortChange(column: string): void {
+    // If clicking the same column, toggle direction
+    if (this.pageRequest.sortColumn === column) {
+      this.pageRequest.sortDirection =
+        this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.pageRequest.sortColumn = column;
+      this.pageRequest.sortDirection = 'asc';
+    }
+    this.loadCities();
+  }
+
+  onSearch(event: Event): void {
+    const searchTerm = (event.target as HTMLInputElement).value;
+    this.listService.search(searchTerm);
   }
 }

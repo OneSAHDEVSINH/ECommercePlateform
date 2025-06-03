@@ -11,15 +11,18 @@ import { MessageService, Message } from '../../services/general/message.service'
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
+import { PagedResponse, PagedRequest } from '../../models/pagination.model';
+import { ListService } from '../../services/general/list.service';
 
 @Component({
   selector: 'app-state',
   templateUrl: './state.component.html',
   styleUrls: ['./state.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent, PaginationComponent]
 })
-export class StateComponent implements OnInit {
+export class StateComponent implements OnInit, OnDestroy {
   states: State[] = [];
   countries: Country[] = [];
   stateForm!: FormGroup;
@@ -29,21 +32,26 @@ export class StateComponent implements OnInit {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+  private searchSubscription!: Subscription;
+  Math = Math; // Make Math available to the template
+  selectedCountryId = 'all';
 
-  noWhitespaceValidator(): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      // Check if the value exists and if it contains only whitespace
-      const isWhitespace = control.value && control.value.trim().length === 0;
-      // Return validation error if true, otherwise null
-      return isWhitespace ? { 'whitespace': true } : null;
-    };
-  }
+  // Pagination properties
+  pagedResponse: PagedResponse<State> | null = null;
+  pageRequest: PagedRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    searchText: '',
+    sortColumn: 'name',
+    sortDirection: 'asc'
+  };
 
   constructor(
     private stateService: StateService,
     private countryService: CountryService,
     private authService: AuthService,
     private messageService: MessageService,
+    private listService: ListService,
     private fb: FormBuilder
   ) { }
 
@@ -59,12 +67,22 @@ export class StateComponent implements OnInit {
     this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
     });
+
+    // Subscribe to search changes with debounce
+    this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
+      this.pageRequest.searchText = term;
+      this.pageRequest.pageNumber = 1; // Reset to first page when search changes
+      this.loadStates();
+    });
   }
 
   ngOnDestroy(): void {
     // Clean up subscriptions
     if (this.messageSubscription) {
       this.messageSubscription.unsubscribe();
+    }
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
     }
   }
 
@@ -92,11 +110,15 @@ export class StateComponent implements OnInit {
     });
   }
 
+  // Replace the loadStates method in the StateComponent class
   loadStates(): void {
     this.loading = true;
-    this.stateService.getStates().subscribe({
-      next: (states) => {
-        this.states = states;
+    const countryId = this.selectedCountryId === 'all' ? undefined : this.selectedCountryId;
+
+    this.stateService.getPagedStates(this.pageRequest, countryId).subscribe({
+      next: (response) => {
+        this.states = response.items;
+        this.pagedResponse = response;
         this.loading = false;
       },
       error: (error) => {
@@ -109,35 +131,6 @@ export class StateComponent implements OnInit {
         this.loading = false;
       }
     });
-  }
-
-  filterStatesByCountry(countryId: string): void {
-    if (!countryId || countryId === 'all') {
-      this.loadStates();
-      return;
-    }
-
-    this.loading = true;
-    this.stateService.getStatesByCountry(countryId).subscribe({
-      next: (states) => {
-        this.states = states;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading states by country:', error);
-        const errorMessage = error.error?.message ||
-          error.error?.title ||
-          error.message ||
-          'Failed to load states for the selected country';
-        this.messageService.showMessage({ type: 'error', text: errorMessage });
-        this.loading = false;
-      }
-    });
-  }
-
-  onCountryFilterChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.filterStatesByCountry(select.value);
   }
 
   onSubmit(): void {
@@ -245,8 +238,76 @@ export class StateComponent implements OnInit {
     return country ? country.name : 'Unknown';
   }
 
+  onCountryFilterChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.filterStatesByCountry(select.value);
+  }
+
+  filterStatesByCountry(countryId: string): void {
+    this.selectedCountryId = countryId;
+    this.pageRequest.pageNumber = 1; // Reset to first page when changing filter
+    this.loadStates(); // Use the main loadStates method which supports pagination and search
+    //if (!countryId || countryId === 'all') {
+    //  this.loadStates();
+    //  return;
+    //}
+
+    //this.loading = true;
+    //this.stateService.getStatesByCountry(countryId).subscribe({
+    //  next: (states) => {
+    //    this.states = states;
+    //    this.loading = false;
+    //  },
+    //  error: (error) => {
+    //    console.error('Error loading states by country:', error);
+    //    const errorMessage = error.error?.message ||
+    //      error.error?.title ||
+    //      error.message ||
+    //      'Failed to load states for the selected country';
+    //    this.messageService.showMessage({ type: 'error', text: errorMessage });
+    //    this.loading = false;
+    //  }
+    //});
+  }
+
   // Helper method to get user identifier for creation/modification tracking
   private getUserIdentifier(): string {
     return this.currentUser ? this.currentUser.id || this.currentUser.email : 'system';
+  }
+
+  // Pagination methods
+  onPageChange(page: number): void {
+    this.pageRequest.pageNumber = page;
+    this.loadStates();
+  }
+
+  onPageSizeChange(event: Event): void {
+    //const target = event.target as HTMLSelectElement;
+    //this.pageRequest.pageSize = parseInt(target.value, 10);
+    //this.pageRequest.pageNumber = 1; // Reset to page 1 when changing page size
+    const selectElement = event.target as HTMLSelectElement;
+    this.pageRequest.pageSize = +selectElement.value;
+    this.pageRequest.pageNumber = 1;
+    this.loadStates();
+  }
+
+  onSortChange(column: string): void {
+    if (this.pageRequest.sortColumn === column) {
+      // Toggle direction if same column is clicked
+      this.pageRequest.sortDirection = this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Set new column and default to ascending
+      this.pageRequest.sortColumn = column;
+      this.pageRequest.sortDirection = 'asc';
+    }
+    this.loadStates();
+  }
+
+  onSearch(event: Event): void {
+    //const target = event.target as HTMLInputElement;
+    //this.pageRequest.searchText = target.value;
+    //this.searchTerms.next(target.value);
+    const searchTerm = (event.target as HTMLInputElement).value;
+    this.listService.search(searchTerm);
   }
 }

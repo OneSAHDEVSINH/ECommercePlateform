@@ -1,5 +1,8 @@
 using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Extensions;
+using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces.ICountry;
+using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -11,6 +14,11 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate)
         {
             return await _context.Countries.AnyAsync(predicate);
+        }
+
+        public IQueryable<Country> AsQueryable()
+        {
+            return _context.Countries;
         }
 
         public async Task<IReadOnlyList<Country>> GetActiveCountriesAsync()
@@ -118,6 +126,57 @@ namespace ECommercePlatform.Infrastructure.Repositories
                     else
                         return Result.Success(tuple);
                 });
+        }
+
+        // Search function for countries (specifically searching name and code)
+        private static IQueryable<Country> ApplyCountrySearch(IQueryable<Country> query, string? searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(c =>
+                (c.Name != null && EF.Functions.Like(c.Name.ToLower(), $"%{searchTerm}%")) ||
+                (c.Code != null && EF.Functions.Like(c.Code.ToLower(), $"%{searchTerm}%")));
+        }
+
+        // Get paginated countries
+        public async Task<PagedResponse<Country>> GetPagedCountriesAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            // Create base filter
+            Expression<Func<Country, bool>> baseFilter = activeOnly
+                ? c => c.IsActive && !c.IsDeleted
+                : c => !c.IsDeleted;
+
+            // Use base paging with country-specific search
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                ApplyCountrySearch,
+                cancellationToken);
+        }
+
+        // Get paginated country DTOs
+        public async Task<PagedResponse<CountryDto>> GetPagedCountryDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedCountriesAsync(request, activeOnly, cancellationToken);
+
+            // Map entities to DTOs
+            var dtos = pagedEntities.Items.Select(c => (CountryDto)c).ToList();
+
+            return new PagedResponse<CountryDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
         }
     }
 }

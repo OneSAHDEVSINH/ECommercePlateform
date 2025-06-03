@@ -1,6 +1,9 @@
+using ECommercePlatform.Application.Common.Extensions;
 using ECommercePlatform.Application.Interfaces.IGeneral;
+using ECommercePlatform.Application.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
@@ -32,7 +35,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             return await _context.Set<T>()
-                .OrderBy(e => EF.Property<object>(e, "Name"))
+                .OrderByDescending(e => EF.Property<object>(e, "CreatedOn"))
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -55,6 +58,56 @@ namespace ECommercePlatform.Infrastructure.Repositories
         {
             var entity = await _context.Set<T>().FindAsync(id);
             return entity != null;
+        }
+
+        // Implement the new method
+        public IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null)
+        {
+            return predicate == null
+                ? _context.Set<T>().AsQueryable()
+                : _context.Set<T>().Where(predicate);
+        }
+
+        // Streamlined paging method with support for search
+        public async Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default)
+        {
+            // Start with base query
+            var query = _context.Set<T>().AsQueryable();
+
+            // Apply base filter if provided
+            if (baseFilter != null)
+                query = query.Where(baseFilter);
+
+            // Apply search if provided
+            if (searchFunction != null && !string.IsNullOrWhiteSpace(request.SearchText))
+                query = searchFunction(query, request.SearchText);
+
+            // Get total count before pagination
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            // Apply sorting or use default
+            if (!string.IsNullOrWhiteSpace(request.SortColumn))
+                query = query.ApplyDynamicOrderBy(request.SortColumn, request.SortDirection ?? "asc");
+
+            // Apply pagination
+            var items = await query
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            // Return paged response
+            return new PagedResponse<T>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
+            };
         }
     }
 }

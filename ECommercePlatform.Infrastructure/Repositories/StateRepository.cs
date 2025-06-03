@@ -1,5 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces.IState;
+using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -127,6 +129,86 @@ namespace ECommercePlatform.Infrastructure.Repositories
                     else
                         return Result.Success(tuple);
                 });
+        }
+
+       // Search function for states (searching by name and code)
+        private static IQueryable<State> ApplyStateSearch(IQueryable<State> query, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(s =>
+                (s.Name != null && EF.Functions.Like(s.Name.ToLower(), $"%{searchTerm}%")) ||
+                (s.Code != null && EF.Functions.Like(s.Code.ToLower(), $"%{searchTerm}%")));
+        }
+
+        // Get paginated states with optional country filter
+        public async Task<PagedResponse<State>> GetPagedStatesAsync(
+            PagedRequest request,
+            Guid? countryId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            // Create base filter
+            Expression<Func<State, bool>> baseFilter;
+
+            if (countryId.HasValue)
+            {
+                baseFilter = activeOnly
+                    ? s => s.IsActive && !s.IsDeleted && s.CountryId == countryId.Value
+                    : s => !s.IsDeleted && s.CountryId == countryId.Value;
+            }
+            else
+            {
+                baseFilter = activeOnly
+                    ? s => s.IsActive && !s.IsDeleted
+                    : s => !s.IsDeleted;
+            }
+
+            // Define a search function that also includes the Country navigation property
+            Func<IQueryable<State>, string?, IQueryable<State>> searchWithInclude = (query, searchText) => {
+                // First include the Country
+                var queryWithInclude = query.Include(s => s.Country);
+
+                // Then apply search if text is provided
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    return ApplyStateSearch(queryWithInclude, searchText);
+
+                return queryWithInclude;
+            };
+
+            // Use the updated GetPagedAsync method with the correct parameter signature
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                searchWithInclude,
+                cancellationToken);
+        }
+
+        // Get paginated state DTOs
+        public async Task<PagedResponse<StateDto>> GetPagedStateDtosAsync(
+            PagedRequest request,
+            Guid? countryId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedStatesAsync(
+                request,
+                countryId,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to DTOs with country information
+            var dtos = pagedEntities.Items.Select(c => (StateDto)c).ToList();
+
+            return new PagedResponse<StateDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Features.States.Commands.Create;
+﻿using ECommercePlatform.Application.Features.States.Queries.GetPagedStates;
+using ECommercePlatform.Application.Features.States.Commands.Create;
 using ECommercePlatform.Application.Features.States.Commands.Delete;
 using ECommercePlatform.Application.Features.States.Commands.Update;
 using ECommercePlatform.Application.Features.States.Queries.GetAllStates;
@@ -20,6 +21,17 @@ namespace ECommercePlatform.API.Controllers
         public async Task<IActionResult> GetAllStates()
         {
             var result = await _mediator.Send(new GetAllStatesQuery());
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPagedStates([FromQuery] GetPagedStatesQuery query)
+        {
+            var result = await _mediator.Send(query);
 
             if (result.IsSuccess)
                 return Ok(result.Value);

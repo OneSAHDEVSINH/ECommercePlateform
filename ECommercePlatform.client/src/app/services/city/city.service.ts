@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { City } from '../../models/city.model';
 import { environment } from '../../../environments/environment';
+import { PagedRequest, PagedResponse } from '../../models/pagination.model';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,32 @@ export class CityService {
 
   getCities(): Observable<City[]> {
     return this.http.get<City[]>(this.apiUrl);
+  }
+
+  // Add to city.service.ts
+  getPagedCities(request: PagedRequest, stateId?: string, countryId?: string): Observable<PagedResponse<City>> {
+    let params = new HttpParams()
+      .set('pageNumber', request.pageNumber.toString())
+      .set('pageSize', request.pageSize.toString());
+
+    if (request.searchText) {
+      params = params.set('searchText', request.searchText);
+    }
+
+    if (request.sortColumn) {
+      params = params.set('sortColumn', request.sortColumn);
+      params = params.set('sortDirection', request.sortDirection || 'asc');
+    }
+
+    if (stateId) {
+      params = params.set('stateId', stateId);
+    }
+
+    if (countryId) {
+      params = params.set('countryId', countryId);
+    }
+
+    return this.http.get<PagedResponse<City>>(`${this.apiUrl}/paged`, { params });
   }
 
   getCitiesByState(stateId: string): Observable<City[]> {

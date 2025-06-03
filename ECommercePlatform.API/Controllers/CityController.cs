@@ -4,6 +4,8 @@ using ECommercePlatform.Application.Features.Cities.Commands.Update;
 using ECommercePlatform.Application.Features.Cities.Queries.GetAllCities;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCityById;
+using ECommercePlatform.Application.Features.Cities.Queries.GetPagedCities;
+using ECommercePlatform.Application.Features.Countries.Queries.GetPagedCountries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +22,17 @@ namespace ECommercePlatform.API.Controllers
         public async Task<IActionResult> GetAllCities()
         {
             var result = await _mediator.Send(new GetAllCitiesQuery());
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPagedCities([FromQuery] GetPagedCitiesQuery query)
+        {
+            var result = await _mediator.Send(query);
 
             if (result.IsSuccess)
                 return Ok(result.Value);

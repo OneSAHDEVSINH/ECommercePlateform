@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Country } from '../../models/country.model';
 import { environment } from '../../../environments/environment';
+import { PagedRequest, PagedResponse } from '../../models/pagination.model';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,23 @@ export class CountryService {
 
   getCountries(): Observable<Country[]> {
     return this.http.get<Country[]>(this.apiUrl);
+  }
+
+  getPagedCountries(request: PagedRequest): Observable<PagedResponse<Country>> {
+    let params = new HttpParams()
+      .set('pageNumber', request.pageNumber.toString())
+      .set('pageSize', request.pageSize.toString());
+
+    if (request.searchText) {
+      params = params.set('searchText', request.searchText);
+    }
+
+    if (request.sortColumn) {
+      params = params.set('sortColumn', request.sortColumn);
+      params = params.set('sortDirection', request.sortDirection || 'asc');
+    }
+
+    return this.http.get<PagedResponse<Country>>(`${this.apiUrl}/paged`, { params });
   }
 
   getCountry(id: string): Observable<Country> {

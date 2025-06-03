@@ -9,13 +9,16 @@ import { MessageService, Message } from '../../services/general/message.service'
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from "../navbar/navbar.component";
 import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
+import { PagedResponse, PagedRequest } from '../../models/pagination.model';
+import { ListService } from '../../services/general/list.service';
 
 @Component({
   selector: 'app-country',
   templateUrl: './country.component.html',
   styleUrls: ['./country.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, PaginationComponent]
 })
 
 export class CountryComponent implements OnInit, OnDestroy {
@@ -27,12 +30,24 @@ export class CountryComponent implements OnInit, OnDestroy {
   message: Message | null = null;
   private currentUser: any = null;
   private messageSubscription!: Subscription;
+  private searchSubscription!: Subscription;
+  Math = Math; // Make Math available to the template
 
+  // Pagination properties
+  pagedResponse: PagedResponse<Country> | null = null;
+  pageRequest: PagedRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    searchText: '',
+    sortColumn: 'name',
+    sortDirection: 'asc'
+  };
 
   constructor(
     private countryService: CountryService,
     private authService: AuthService,
     private messageService: MessageService,
+    private listService: ListService,
     private fb: FormBuilder
   ) { }
 
@@ -47,12 +62,22 @@ export class CountryComponent implements OnInit, OnDestroy {
     this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
     });
+
+    // Subscribe to search changes with debounce
+    this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
+      this.pageRequest.searchText = term;
+      this.pageRequest.pageNumber = 1; // Reset to first page when search changes
+      this.loadCountries();
+    });
   }
 
   ngOnDestroy(): void {
     // Clean up subscriptions
     if (this.messageSubscription) {
       this.messageSubscription.unsubscribe();
+    }
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
     }
   }
 
@@ -65,18 +90,17 @@ export class CountryComponent implements OnInit, OnDestroy {
 
   loadCountries(): void {
     this.loading = true;
-    this.countryService.getCountries().subscribe({
-      next: (countries) => {
-        this.countries = countries;
+    this.countryService.getPagedCountries(this.pageRequest).subscribe({
+      next: (response) => {
+        this.pagedResponse = response;
+        this.countries = response.items;
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading countries:', error);
-        // And in the updateCountry method's error handler
         if (error.error) {
           console.error('Server validation errors:', error.error);
         }
-        // Extract the most useful error message
         const errorMessage = error.error?.message ||
           error.error?.title ||
           error.message ||
@@ -86,7 +110,7 @@ export class CountryComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   onSubmit(): void {
 
     if (this.countryForm.invalid) {
@@ -109,8 +133,6 @@ export class CountryComponent implements OnInit, OnDestroy {
     };
 
     this.loading = true;
-
-    console.log('Country data being sent:', JSON.stringify(countryData));
 
     if (this.isEditMode && this.currentCountryId) {
       this.countryService.updateCountry(this.currentCountryId, countryData).subscribe({
@@ -217,4 +239,35 @@ export class CountryComponent implements OnInit, OnDestroy {
   private getUserIdentifier(): string {
     return this.currentUser ? this.currentUser.id || this.currentUser.email : 'system';
   }
-} 
+
+  // Pagination methods
+  onPageChange(page: number): void {
+    this.pageRequest.pageNumber = page;
+    this.loadCountries();
+  }
+
+  onPageSizeChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.pageRequest.pageSize = +selectElement.value; 
+    this.pageRequest.pageNumber = 1;
+    this.loadCountries();
+  }
+
+  onSortChange(column: string): void {
+    // If clicking the same column, toggle direction
+    if (this.pageRequest.sortColumn === column) {
+      this.pageRequest.sortDirection =
+        this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.pageRequest.sortColumn = column;
+      this.pageRequest.sortDirection = 'asc';
+    }
+    this.loadCountries();
+  }
+
+  // Update onSearch method to properly type the event
+  onSearch(event: Event): void {
+    const searchTerm = (event.target as HTMLInputElement).value;
+    this.listService.search(searchTerm);
+  }
+}

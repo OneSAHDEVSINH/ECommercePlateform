@@ -25,7 +25,7 @@
       <!-- City Form -->
       <div class="form-container">
         <h3>{{ isEditMode ? 'Edit City' : 'Add New City' }}</h3>
-        
+
         <form [formGroup]="cityForm" (ngSubmit)="onSubmit()" class="data-form">
           <div class="form-group">
             <label for="countrySelect">Country</label>
@@ -45,14 +45,12 @@
 
           <div class="form-group">
             <label for="stateId">State</label>
-            <select 
-              id="stateId" 
-              formControlName="stateId" 
-              class="form-control"
-              [ngClass]="{'is-invalid': cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors}"
-            >
+            <select id="stateId"
+                    formControlName="stateId"
+                    class="form-control"
+                    [ngClass]="{'is-invalid': cityForm.get('stateId')?.touched && cityForm.get('stateId')?.errors}">
               <!--[disabled]="!selectedCountryId || states.length === 0"-->
-            
+
               <option value="">Select State</option>
               <option *ngFor="let state of states" [value]="state.id">{{ state.name }}</option>
             </select>
@@ -60,13 +58,11 @@
 
           <div class="form-group">
             <label for="name">City Name</label>
-            <input 
-              type="text" 
-              id="name" 
-              formControlName="name" 
-              class="form-control"
-              [ngClass]="{'is-invalid': cityForm.get('name')?.touched && cityForm.get('name')?.errors}"
-            >
+            <input type="text"
+                   id="name"
+                   formControlName="name"
+                   class="form-control"
+                   [ngClass]="{'is-invalid': cityForm.get('name')?.touched && cityForm.get('name')?.errors}">
             <div *ngIf="cityForm.get('name')?.touched && cityForm.get('name')?.errors" class="error-message">
               <div *ngIf="cityForm.get('name')?.errors?.['required']">City name is required</div>
               <div *ngIf="cityForm.get('name')?.errors?.['maxlength']">City name must be less than 100 characters</div>
@@ -74,7 +70,7 @@
               <div *ngIf="cityForm.get('name')?.errors?.['lettersOnly']">City name can only contain letters and spaces</div>
             </div>
           </div>
-          
+
           <div class="form-actions">
             <button type="submit" class="btn-primary" [disabled]="cityForm.invalid || loading">
               {{ isEditMode ? 'Update' : 'Add' }} City
@@ -89,30 +85,78 @@
       <div class="table-container">
         <div class="table-header">
           <h3>Cities List</h3>
-          
+
+          <!--<div class="filter-controls">
+    <label for="stateFilter">Filter by State:</label>
+    <select id="stateFilter"
+            class="form-control"
+            (change)="onStateFilterChange($event)">
+      <option value="all">All States</option>
+      <option *ngFor="let state of states" [value]="state.id">{{ state.name }} ({{ getCountryForState(state.id || '') }})</option>
+    </select>
+  </div>-->
           <div class="filter-controls">
-            <label for="stateFilter">Filter by State:</label>
-            <select 
-              id="stateFilter" 
-              class="form-control" 
-              (change)="onStateFilterChange($event)"
-            >
-              <option value="all">All States</option>
-              <option *ngFor="let state of states" [value]="state.id">{{ state.name }} ({{ getCountryForState(state.id || '') }})</option>
-            </select>
+            <!-- Add Country Filter -->
+            <div class="filter-group">
+              <label for="countryFilter">Filter by Country:</label>
+              <select id="countryFilter"
+                      class="form-control"
+                      (change)="onCountryFilterChange($event)">
+                <option value="all">All Countries</option>
+                <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+              </select>
+            </div>
+
+            <!-- Existing State Filter -->
+            <div class="filter-group">
+              <label for="stateFilter">Filter by State:</label>
+              <select id="stateFilter"
+                      class="form-control"
+                      (change)="onStateFilterChange($event)">
+                <option value="all">All States</option>
+                <option *ngFor="let state of filteredStates" [value]="state.id">{{ state.name }} ({{ getCountryForState(state.id || '') }})</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="list-controls">
+            <div class="search-box">
+              <input type="text"
+                     placeholder="Search cities..."
+                     (input)="onSearch($event)"
+                     [value]="pageRequest.searchText || ''"
+                     class="search-input">
+              <i class="search-icon">🔍</i>
+            </div>
+
+            <div class="page-size-selector">
+              Show
+              <select (change)="onPageSizeChange($event)">
+                <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
+                <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
+                <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
+                <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
+              </select>
+              entries
+            </div>
           </div>
         </div>
-        
+
         <div *ngIf="loading" class="loading-indicator">Loading...</div>
-        
+
         <div *ngIf="cities.length === 0 && !loading" class="no-data">
-          No cities found. Please add a new city.
+          No cities found. Please add a new city or adjust your search criteria.
         </div>
-        
+
         <table *ngIf="cities.length > 0" class="data-table">
           <thead>
             <tr>
-              <th>Name</th>
+              <th (click)="onSortChange('name')" class="sortable">
+                Name
+                <span *ngIf="pageRequest.sortColumn === 'name'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
               <th>State</th>
               <th>Country</th>
               <th>Actions</th>
@@ -130,6 +174,20 @@
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination component -->
+        <app-pagination *ngIf="pagedResponse && pagedResponse.totalPages > 1"
+                        [totalPages]="pagedResponse.totalPages"
+                        [currentPage]="pagedResponse.pageNumber"
+                        (pageChange)="onPageChange($event)">
+        </app-pagination>
+
+        <!-- Pagination info -->
+        <div *ngIf="pagedResponse && cities.length > 0" class="pagination-info">
+          Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
+          to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
+          of {{ pagedResponse.totalCount }} entries
+        </div>
       </div>
     </div>
   </main>

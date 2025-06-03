@@ -1,4 +1,6 @@
 ﻿using ECommercePlatform.Application.Common.Behaviors;
+using ECommercePlatform.Application.Interfaces.Pagination;
+using ECommercePlatform.Application.Services;
 using FluentValidation;
 using MediatR;
 //using MediatR.Extensions.FluentValidation.AspNetCore;
@@ -11,6 +13,8 @@ namespace ECommercePlatform.Application.Common
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
+            // Add pagination service
+            services.AddScoped<IPaginationService, PaginationService>();
             //Register MediatR
             services.AddMediatR(cfg =>
             {

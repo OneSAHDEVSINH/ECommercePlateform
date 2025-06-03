@@ -1,3 +1,4 @@
+using ECommercePlatform.Application.Models;
 using System.Linq.Expressions;
 
 namespace ECommercePlatform.Application.Interfaces.IGeneral
@@ -11,5 +12,16 @@ namespace ECommercePlatform.Application.Interfaces.IGeneral
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
         Task<bool> ExistsAsync(Guid id);
+
+        // Add pagination method
+        IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null);
+
+        // Unified paging method with support for search
+        Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default);
+
     }
 }
