@@ -1,7 +1,6 @@
 ﻿using ECommercePlatform.Application.Common.Interfaces;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
-using FluentAssertions.Equivalency;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Create

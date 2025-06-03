@@ -155,7 +155,8 @@ namespace ECommercePlatform.Infrastructure.Repositories
             }
 
             // Define a search function that also includes the State and Country navigation properties
-            Func<IQueryable<City>, string?, IQueryable<City>> searchWithInclude = (query, searchText) => {
+            Func<IQueryable<City>, string?, IQueryable<City>> searchWithInclude = (query, searchText) =>
+            {
                 // First include related entities
                 var queryWithInclude = query
                     .Include(c => c.State)

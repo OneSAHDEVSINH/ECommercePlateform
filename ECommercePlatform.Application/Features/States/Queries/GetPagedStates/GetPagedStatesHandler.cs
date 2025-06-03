@@ -1,15 +1,8 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Features.Countries.Queries.GetPagedCountries;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.Pagination;
 using ECommercePlatform.Application.Models;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Features.States.Queries.GetPagedStates
 {

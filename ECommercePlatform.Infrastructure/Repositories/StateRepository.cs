@@ -131,7 +131,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 });
         }
 
-       // Search function for states (searching by name and code)
+        // Search function for states (searching by name and code)
         private static IQueryable<State> ApplyStateSearch(IQueryable<State> query, string searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))
@@ -167,7 +167,8 @@ namespace ECommercePlatform.Infrastructure.Repositories
             }
 
             // Define a search function that also includes the Country navigation property
-            Func<IQueryable<State>, string?, IQueryable<State>> searchWithInclude = (query, searchText) => {
+            Func<IQueryable<State>, string?, IQueryable<State>> searchWithInclude = (query, searchText) =>
+            {
                 // First include the Country
                 var queryWithInclude = query.Include(s => s.Country);
 

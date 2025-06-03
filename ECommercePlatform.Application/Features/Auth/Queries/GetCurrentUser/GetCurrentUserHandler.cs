@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IUserAuth;

@@ -5,7 +5,6 @@ using ECommercePlatform.Application.Features.Cities.Queries.GetAllCities;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCityById;
 using ECommercePlatform.Application.Features.Cities.Queries.GetPagedCities;
-using ECommercePlatform.Application.Features.Countries.Queries.GetPagedCountries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

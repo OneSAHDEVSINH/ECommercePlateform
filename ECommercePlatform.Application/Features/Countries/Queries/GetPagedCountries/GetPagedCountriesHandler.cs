@@ -1,15 +1,8 @@
-﻿using ECommercePlatform.Application.Common.Extensions;
-using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.Pagination;
 using ECommercePlatform.Application.Models;
-using ECommercePlatform.Application.Services;
-using ECommercePlatform.Domain.Entities;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
-using System.Reflection;
 
 namespace ECommercePlatform.Application.Features.Countries.Queries.GetPagedCountries
 {

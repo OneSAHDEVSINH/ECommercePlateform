@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ECommercePlatform.Application.Models
+﻿namespace ECommercePlatform.Application.Models
 {
     public class PagedResponse<T>
     {
