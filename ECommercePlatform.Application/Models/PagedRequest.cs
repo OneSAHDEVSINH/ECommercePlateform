@@ -26,6 +26,10 @@ namespace ECommercePlatform.Application.Models
         public string? SortColumn { get; set; }
         public string? SortDirection { get; set; }
 
+        // Add date range properties for filtering
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+
         // Dictionary for dynamic filters - key is property name, value is filter value
         [JsonExtensionData]
         public Dictionary<string, object>? Filters { get; set; }

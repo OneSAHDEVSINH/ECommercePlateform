@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, Observable, tap, throwError } from 'rxjs';
 import { Country } from '../../models/country.model';
 import { environment } from '../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../models/pagination.model';
@@ -25,6 +25,14 @@ export class CountryService {
       .set('pageNumber', request.pageNumber.toString())
       .set('pageSize', request.pageSize.toString());
 
+    if (request.sortColumn) {
+      params = params.set('sortColumn', request.sortColumn);
+    }
+
+    if (request.sortDirection) {
+      params = params.set('sortDirection', request.sortDirection);
+    }
+
     if (request.searchText) {
       params = params.set('searchText', request.searchText);
     }
@@ -32,6 +40,16 @@ export class CountryService {
     if (request.sortColumn) {
       params = params.set('sortColumn', request.sortColumn);
       params = params.set('sortDirection', request.sortDirection || 'asc');
+    }
+
+    // Format dates in ISO format for ASP.NET Core
+    if (request.startDate) {
+      // Ensure we send the ISO string format that .NET can parse
+      params = params.set('startDate', request.startDate);
+    }
+
+    if (request.endDate) {
+      params = params.set('endDate', request.endDate);
     }
 
     return this.http.get<PagedResponse<Country>>(`${this.apiUrl}/paged`, { params });

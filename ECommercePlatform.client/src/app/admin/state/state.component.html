@@ -86,6 +86,8 @@
         <div class="table-header">
           <h3>States List</h3>
 
+          <app-date-range-filter></app-date-range-filter>
+
           <div class="filter-controls">
             <label for="countryFilter">Filter by Country:</label>
             <select id="countryFilter"
@@ -140,8 +142,18 @@
               <span *ngIf="pageRequest.sortColumn === 'code'" class="sort-indicator">
                 {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
               </span>
+            <th (click)="onSortChange('createdOn')" class="sortable">
+              Created On
+              <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
+                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+              </span>
             </th>
-            <th>Country</th>
+            <th (click)="onSortChange('country')" class="sortable">
+              Country
+              <span *ngIf="pageRequest.sortColumn === 'country'" class="sort-indicator">
+                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -149,6 +161,7 @@
           <tr *ngFor="let state of states">
             <td>{{ state.name }}</td>
             <td>{{ state.code }}</td>
+            <td>{{ state.createdOn | date:'medium' }}</td>
             <td>{{ getCountryName(state.countryId) }}</td>
             <td class="actions">
               <button class="btn-edit" (click)="editState(state)">Edit</button>

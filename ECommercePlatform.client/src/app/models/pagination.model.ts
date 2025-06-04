@@ -5,6 +5,8 @@ export interface PagedRequest {
   sortColumn?: string;
   sortDirection?: 'asc' | 'desc';
   filters?: { [key: string]: any };
+  startDate?: string | null; // ISO format date string
+  endDate?: string | null;   // ISO format date string
 }
 
 export interface PagedResponse<T> {

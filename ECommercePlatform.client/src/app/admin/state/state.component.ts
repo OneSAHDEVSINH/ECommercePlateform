@@ -14,13 +14,16 @@ import { CustomValidatorsService } from '../../services/custom-validators/custom
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { ListService } from '../../services/general/list.service';
+import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
+import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+
 
 @Component({
   selector: 'app-state',
   templateUrl: './state.component.html',
   styleUrls: ['./state.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent, PaginationComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent, PaginationComponent, DateRangeFilterComponent]
 })
 export class StateComponent implements OnInit, OnDestroy {
   states: State[] = [];
@@ -33,6 +36,7 @@ export class StateComponent implements OnInit, OnDestroy {
   private currentUser: any = null;
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
   Math = Math; // Make Math available to the template
   selectedCountryId = 'all';
 
@@ -52,6 +56,7 @@ export class StateComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private messageService: MessageService,
     private listService: ListService,
+    private dateFilterService: DateFilterService,
     private fb: FormBuilder
   ) { }
 
@@ -74,6 +79,15 @@ export class StateComponent implements OnInit, OnDestroy {
       this.pageRequest.pageNumber = 1; // Reset to first page when search changes
       this.loadStates();
     });
+
+    // Subscribe to date range changes
+    this.dateRangeSubscription = this.dateFilterService.getDateRangeObservable()
+      .subscribe((dateRange: DateRange) => {
+        this.pageRequest.startDate = dateRange.startDate ? dateRange.startDate.toISOString() : null;
+        this.pageRequest.endDate = dateRange.endDate ? dateRange.endDate.toISOString() : null;
+        this.pageRequest.pageNumber = 1; // Reset to first page when date filter changes
+        this.loadStates();
+      });
   }
 
   ngOnDestroy(): void {
@@ -83,6 +97,9 @@ export class StateComponent implements OnInit, OnDestroy {
     }
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
+    }
+    if (this.dateRangeSubscription) {
+      this.dateRangeSubscription.unsubscribe();
     }
   }
 

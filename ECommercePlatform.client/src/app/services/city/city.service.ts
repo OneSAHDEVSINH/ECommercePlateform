@@ -24,7 +24,9 @@ export class CityService {
   getPagedCities(request: PagedRequest, stateId?: string, countryId?: string): Observable<PagedResponse<City>> {
     let params = new HttpParams()
       .set('pageNumber', request.pageNumber.toString())
-      .set('pageSize', request.pageSize.toString());
+      .set('pageSize', request.pageSize.toString())
+      .set('sortColumn', request.sortColumn || '')
+      .set('sortDirection', request.sortDirection || '');
 
     if (request.searchText) {
       params = params.set('searchText', request.searchText);
@@ -33,6 +35,15 @@ export class CityService {
     if (request.sortColumn) {
       params = params.set('sortColumn', request.sortColumn);
       params = params.set('sortDirection', request.sortDirection || 'asc');
+    }
+
+    // Add date range parameters if they exist
+    if (request.startDate) {
+      params = params.set('startDate', request.startDate);
+    }
+
+    if (request.endDate) {
+      params = params.set('endDate', request.endDate);
     }
 
     if (stateId) {

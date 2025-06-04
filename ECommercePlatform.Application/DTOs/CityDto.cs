@@ -12,6 +12,7 @@ namespace ECommercePlatform.Application.DTOs
         public Guid CountryId { get; init; }
         public string? CountryName { get; init; }
         public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
 
         // Explicit conversion operator from Country to CountryDto
         public static explicit operator CityDto(City city)
@@ -21,6 +22,7 @@ namespace ECommercePlatform.Application.DTOs
                 Id = city.Id,
                 Name = city.Name,
                 IsActive = city.IsActive,
+                CreatedOn = city.CreatedOn,
                 StateId = city.StateId,
                 StateName = city.State?.Name,
                 CountryId = city.State?.CountryId ?? Guid.Empty,

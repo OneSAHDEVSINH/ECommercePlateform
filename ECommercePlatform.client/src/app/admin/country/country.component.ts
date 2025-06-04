@@ -12,13 +12,16 @@ import { CustomValidatorsService } from '../../services/custom-validators/custom
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { ListService } from '../../services/general/list.service';
+import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
+import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+
 
 @Component({
   selector: 'app-country',
   templateUrl: './country.component.html',
   styleUrls: ['./country.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, PaginationComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, PaginationComponent, DateRangeFilterComponent]
 })
 
 export class CountryComponent implements OnInit, OnDestroy {
@@ -31,6 +34,7 @@ export class CountryComponent implements OnInit, OnDestroy {
   private currentUser: any = null;
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
   Math = Math; // Make Math available to the template
 
   // Pagination properties
@@ -48,6 +52,7 @@ export class CountryComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private messageService: MessageService,
     private listService: ListService,
+    private dateFilterService: DateFilterService,
     private fb: FormBuilder
   ) { }
 
@@ -69,6 +74,15 @@ export class CountryComponent implements OnInit, OnDestroy {
       this.pageRequest.pageNumber = 1; // Reset to first page when search changes
       this.loadCountries();
     });
+
+    // Subscribe to date range changes
+    this.dateRangeSubscription = this.dateFilterService.getDateRangeObservable()
+      .subscribe((dateRange: DateRange) => {
+        this.pageRequest.startDate = dateRange.startDate ? dateRange.startDate.toISOString() : null;
+        this.pageRequest.endDate = dateRange.endDate ? dateRange.endDate.toISOString() : null;
+        this.pageRequest.pageNumber = 1;
+        this.loadCountries();
+      });
   }
 
   ngOnDestroy(): void {
@@ -78,6 +92,9 @@ export class CountryComponent implements OnInit, OnDestroy {
     }
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
+    }
+    if (this.dateRangeSubscription) {
+      this.dateRangeSubscription.unsubscribe();
     }
   }
 

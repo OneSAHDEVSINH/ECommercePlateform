@@ -77,6 +77,10 @@
 
         <!-- Search and filter controls -->
         <div class="list-controls">
+
+          <!-- Add Date Range Filter -->
+          <app-date-range-filter></app-date-range-filter>
+
           <div class="search-box">
             <input type="text"
                    placeholder="Search countries..."
@@ -119,6 +123,12 @@
                   {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
                 </span>
               </th>
+              <th (click)="onSortChange('createdOn')" class="sortable">
+                Created On
+                <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -126,6 +136,7 @@
             <tr *ngFor="let country of countries">
               <td>{{ country.name }}</td>
               <td>{{ country.code }}</td>
+              <td>{{ country.createdOn | date:'medium' }}</td>
               <td class="actions">
                 <button class="btn-edit" (click)="editCountry(country)">Edit</button>
                 <button class="btn-delete" (click)="deleteCountry(country.id!)">Delete</button>

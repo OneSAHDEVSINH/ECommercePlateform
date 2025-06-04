@@ -86,6 +86,8 @@
         <div class="table-header">
           <h3>Cities List</h3>
 
+          <app-date-range-filter></app-date-range-filter>
+
           <!--<div class="filter-controls">
     <label for="stateFilter">Filter by State:</label>
     <select id="stateFilter"
@@ -157,14 +159,31 @@
                   {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
                 </span>
               </th>
-              <th>State</th>
-              <th>Country</th>
+              <th (click)="onSortChange('createdOn')" class="sortable">
+                Created On
+                <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
+              <th (click)="onSortChange('state')" class="sortable">
+                State
+                <span *ngIf="pageRequest.sortColumn === 'state'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
+              <th (click)="onSortChange('country')" class="sortable">
+                Country
+                <span *ngIf="pageRequest.sortColumn === 'country'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let city of cities">
               <td>{{ city.name }}</td>
+              <td>{{ city.createdOn | date:'medium' }}</td>
               <td>{{ getStateName(city.stateId) }}</td>
               <td>{{ getCountryForState(city.stateId) }}</td>
               <td class="actions">

@@ -1,0 +1,22 @@
+<div class="date-filter-container">
+  <form [formGroup]="dateRangeForm">
+    <div class="date-filter-header">Filter by Creation Date</div>
+    <div class="date-filter-inputs">
+      <div class="date-input-group">
+        <label for="startDate">From:</label>
+        <input type="datetime-local"
+               id="startDate"
+               formControlName="startDate"
+               class="form-control">
+      </div>
+      <div class="date-input-group">
+        <label for="endDate">To:</label>
+        <input type="datetime-local"
+               id="endDate"
+               formControlName="endDate"
+               class="form-control">
+      </div>
+      <button type="button" class="btn-clear" (click)="clearDateRange()">Clear</button>
+    </div>
+  </form>
+</div>
