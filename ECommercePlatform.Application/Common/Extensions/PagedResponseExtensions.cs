@@ -16,7 +16,7 @@ namespace ECommercePlatform.Application.Common.Extensions
         {
             return new PagedResponse<TTarget>
             {
-                Items = source.Items.Select(mapFunction).ToList(),
+                Items = [.. source.Items.Select(mapFunction)],
                 TotalCount = source.TotalCount,
                 PageNumber = source.PageNumber,
                 PageSize = source.PageSize

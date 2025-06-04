@@ -70,8 +70,8 @@ namespace ECommercePlatform.Application.Services
         public async Task<IReadOnlyList<CityDto>> GetCitiesByStateIdAsync(Guid stateId)
         {
             // Verify that the state exists first
-            var state = await _unitOfWork.States.GetByIdAsync(stateId)
-                ?? throw new KeyNotFoundException($"State with ID {stateId} not found");
+            //var state = await _unitOfWork.States.GetByIdAsync(stateId)
+            //    ?? throw new KeyNotFoundException($"State with ID {stateId} not found");
 
             // Get cities by state ID using the repository method
             var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(stateId);

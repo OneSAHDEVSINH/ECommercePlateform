@@ -12,7 +12,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .Where(p => p.CategoryId == categoryId && p.IsActive && !p.IsDeleted)
                 .Include(p => p.Category)
                 .AsNoTracking()
-                .ToListAsync() ?? new List<Product>();
+                .ToListAsync() ?? [];
         }
 
         public async Task<Product> GetProductWithDetailsAsync(Guid id)

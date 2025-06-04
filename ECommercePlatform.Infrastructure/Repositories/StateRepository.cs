@@ -167,7 +167,12 @@ namespace ECommercePlatform.Infrastructure.Repositories
             }
 
             // Define a search function that also includes the Country navigation property
-            Func<IQueryable<State>, string?, IQueryable<State>> searchWithInclude = (query, searchText) =>
+
+            // Use the updated GetPagedAsync method with the correct parameter signature
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                (query, searchText) =>
             {
                 // First include the Country
                 var queryWithInclude = query.Include(s => s.Country);
@@ -177,13 +182,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                     return ApplyStateSearch(queryWithInclude, searchText);
 
                 return queryWithInclude;
-            };
-
-            // Use the updated GetPagedAsync method with the correct parameter signature
-            return await GetPagedAsync(
-                request,
-                baseFilter,
-                searchWithInclude,
+            },
                 cancellationToken);
         }
 

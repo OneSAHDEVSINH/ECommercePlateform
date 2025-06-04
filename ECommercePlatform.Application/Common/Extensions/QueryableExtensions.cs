@@ -29,14 +29,13 @@ namespace ECommercePlatform.Application.Common.Extensions
             foreach (var selector in propertySelectors)
             {
                 // Get the property from the selector
-                var memberExpression = selector.Body as MemberExpression;
-                if (memberExpression == null) continue;
+                if (selector.Body is not MemberExpression memberExpression) continue;
 
                 // Build x => x.Property != null && x.Property.ToLower().Contains(searchTerm)
                 var property = Expression.Property(parameter, memberExpression.Member.Name);
                 var notNull = Expression.NotEqual(property, Expression.Constant(null, typeof(string)));
                 var toLower = Expression.Call(property, typeof(string).GetMethod("ToLower", Type.EmptyTypes)!);
-                var contains = Expression.Call(toLower, typeof(string).GetMethod("Contains", new[] { typeof(string) })!, Expression.Constant(searchTerm));
+                var contains = Expression.Call(toLower, typeof(string).GetMethod("Contains", [typeof(string)])!, Expression.Constant(searchTerm));
                 var condition = Expression.AndAlso(notNull, contains);
 
                 // Combine with OR
@@ -103,7 +102,7 @@ namespace ECommercePlatform.Application.Common.Extensions
                 .First(m => m.Name == methodName && m.GetParameters().Length == 2);
             var genericMethod = orderByMethod.MakeGenericMethod(entityType, sortProperty.PropertyType);
 
-            return (IQueryable<T>)genericMethod.Invoke(null, new object[] { query, lambda })!;
+            return (IQueryable<T>)genericMethod.Invoke(null, [query, lambda])!;
         }
 
         //new
@@ -168,7 +167,7 @@ namespace ECommercePlatform.Application.Common.Extensions
             var genericMethod = orderByMethod.MakeGenericMethod(typeof(T), propertyInfo.PropertyType);
 
             // Execute the sorting
-            return (IQueryable<T>)genericMethod.Invoke(null, new object[] { source, lambda })!;
+            return (IQueryable<T>)genericMethod.Invoke(null, [source, lambda])!;
         }
 
         public static IQueryable<T> ApplySearch<T>(this IQueryable<T> source, string? searchText, params string[] searchProperties)
@@ -197,7 +196,7 @@ namespace ECommercePlatform.Application.Common.Extensions
                         typeof(string).GetMethod("ToLower", Type.EmptyTypes)!);
 
                     var contains = Expression.Call(toLower,
-                        typeof(string).GetMethod("Contains", new[] { typeof(string) })!,
+                        typeof(string).GetMethod("Contains", [typeof(string)])!,
                         Expression.Constant(searchLower));
 
                     var propertyExpression = Expression.AndAlso(nullCheck, contains);
@@ -220,7 +219,7 @@ namespace ECommercePlatform.Application.Common.Extensions
 
         public static IQueryable<T> ApplyFilters<T>(this IQueryable<T> source, Dictionary<string, object>? filters)
         {
-            if (filters == null || !filters.Any())
+            if (filters == null || filters.Count == 0)
                 return source;
 
             var parameter = Expression.Parameter(typeof(T), "x");
@@ -343,7 +342,7 @@ namespace ECommercePlatform.Application.Common.Extensions
             var genericMethod = orderByMethod.MakeGenericMethod(typeof(T), propInfo.PropertyType);
 
             // Invoke method and return result
-            return (IOrderedQueryable<T>)genericMethod.Invoke(null, new object[] { query, lambda })!;
+            return (IOrderedQueryable<T>)genericMethod.Invoke(null, [query, lambda])!;
         }
 
         /// <summary>
@@ -370,7 +369,7 @@ namespace ECommercePlatform.Application.Common.Extensions
                 var nullCheck = Expression.NotEqual(property, Expression.Constant(null, typeof(string)));
 
                 var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes)!;
-                var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
+                var containsMethod = typeof(string).GetMethod("Contains", [typeof(string)])!;
 
                 var toLower = Expression.Call(property, toLowerMethod);
                 var contains = Expression.Call(toLower, containsMethod, Expression.Constant(searchText));
@@ -399,16 +398,10 @@ namespace ECommercePlatform.Application.Common.Extensions
             return Expression.Lambda<Func<T, bool>>(newBody, parameter);
         }
 
-        private class ParameterReplacer : ExpressionVisitor
+        private class ParameterReplacer(ParameterExpression oldParam, ParameterExpression newParam) : ExpressionVisitor
         {
-            private readonly ParameterExpression _oldParam;
-            private readonly ParameterExpression _newParam;
-
-            public ParameterReplacer(ParameterExpression oldParam, ParameterExpression newParam)
-            {
-                _oldParam = oldParam;
-                _newParam = newParam;
-            }
+            private readonly ParameterExpression _oldParam = oldParam;
+            private readonly ParameterExpression _newParam = newParam;
 
             protected override Expression VisitParameter(ParameterExpression node)
             {
