@@ -159,12 +159,6 @@
                   {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
                 </span>
               </th>
-              <th (click)="onSortChange('createdOn')" class="sortable">
-                Created On
-                <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
-                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
-                </span>
-              </th>
               <th (click)="onSortChange('state')" class="sortable">
                 State
                 <span *ngIf="pageRequest.sortColumn === 'state'" class="sort-indicator">
@@ -177,15 +171,21 @@
                   {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
                 </span>
               </th>
+              <th (click)="onSortChange('createdOn')" class="sortable">
+                Created On
+                <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
+                  {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                </span>
+              </th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let city of cities">
               <td>{{ city.name }}</td>
-              <td>{{ city.createdOn | date:'medium' }}</td>
               <td>{{ getStateName(city.stateId) }}</td>
               <td>{{ getCountryForState(city.stateId) }}</td>
+              <td>{{ city.createdOn | date:'medium' }}</td>
               <td class="actions">
                 <button class="btn-edit" (click)="editCity(city)">Edit</button>
                 <button class="btn-delete" (click)="deleteCity(city.id!)">Delete</button>

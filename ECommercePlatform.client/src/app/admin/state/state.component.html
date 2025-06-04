@@ -142,15 +142,16 @@
               <span *ngIf="pageRequest.sortColumn === 'code'" class="sort-indicator">
                 {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
               </span>
-            <th (click)="onSortChange('createdOn')" class="sortable">
-              Created On
-              <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
-                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
-              </span>
             </th>
             <th (click)="onSortChange('country')" class="sortable">
               Country
               <span *ngIf="pageRequest.sortColumn === 'country'" class="sort-indicator">
+                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th (click)="onSortChange('createdOn')" class="sortable">
+              Created On
+              <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
                 {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
               </span>
             </th>
@@ -161,8 +162,8 @@
           <tr *ngFor="let state of states">
             <td>{{ state.name }}</td>
             <td>{{ state.code }}</td>
-            <td>{{ state.createdOn | date:'medium' }}</td>
             <td>{{ getCountryName(state.countryId) }}</td>
+            <td>{{ state.createdOn | date:'medium' }}</td>
             <td class="actions">
               <button class="btn-edit" (click)="editState(state)">Edit</button>
               <button class="btn-delete" (click)="deleteState(state.id!)">Delete</button>
