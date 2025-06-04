@@ -134,25 +134,25 @@
             <th (click)="onSortChange('name')" class="sortable">
               Name
               <span *ngIf="pageRequest.sortColumn === 'name'" class="sort-indicator">
-                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
               </span>
             </th>
             <th (click)="onSortChange('code')" class="sortable">
               Code
               <span *ngIf="pageRequest.sortColumn === 'code'" class="sort-indicator">
-                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
               </span>
             </th>
             <th (click)="onSortChange('country')" class="sortable">
               Country
               <span *ngIf="pageRequest.sortColumn === 'country'" class="sort-indicator">
-                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
               </span>
             </th>
             <th (click)="onSortChange('createdOn')" class="sortable">
               Created On
               <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
-                {{ pageRequest.sortDirection === 'asc' ? '↑' : '↓' }}
+                {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
               </span>
             </th>
             <th>Actions</th>
