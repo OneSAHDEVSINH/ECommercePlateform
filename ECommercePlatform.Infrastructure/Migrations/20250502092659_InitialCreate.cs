@@ -7,6 +7,9 @@ namespace ECommercePlatform.Server.Migrations
     /// <inheritdoc />
     public partial class InitialCreate : Migration
     {
+        private static readonly string[] columns = ["Name", "CountryId"];
+        private static readonly string[] columnsArray = ["Code", "CountryId"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -1915,10 +1918,11 @@ namespace ECommercePlatform.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            string[] columns1 = ["Id", "AddressId", "Avatar", "Bio", "CartId", "ConfirmPassword", "CreatedBy", "CreatedOn", "DateOfBirth", "Email", "FirstName", "Gender", "IsActive", "IsDeleted", "LastName", "ModifiedBy", "ModifiedOn", "OrderId", "Password", "PhoneNumber", "ReviewId", "Role", "ShippingAddressId"];
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "AddressId", "Avatar", "Bio", "CartId", "ConfirmPassword", "CreatedBy", "CreatedOn", "DateOfBirth", "Email", "FirstName", "Gender", "IsActive", "IsDeleted", "LastName", "ModifiedBy", "ModifiedOn", "OrderId", "Password", "PhoneNumber", "ReviewId", "Role", "ShippingAddressId" },
-                values: new object[] { new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"), null, null, "System Administrator", null, "Admin@123", "System", new DateTime(2025, 5, 2, 14, 56, 57, 234, DateTimeKind.Local).AddTicks(4047), new DateOnly(1990, 1, 1), "admin@admin.com", "Admin", 0, true, false, "User", "System", new DateTime(2025, 5, 2, 14, 56, 57, 234, DateTimeKind.Local).AddTicks(4297), null, "Admin@123", "1234567890", null, 0, null });
+                columns: columns1,
+                values: [new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"), null, null, "System Administrator", null, "Admin@123", "System", new DateTime(2025, 5, 2, 14, 56, 57, 234, DateTimeKind.Local).AddTicks(4047), new DateOnly(1990, 1, 1), "admin@admin.com", "Admin", 0, true, false, "User", "System", new DateTime(2025, 5, 2, 14, 56, 57, 234, DateTimeKind.Local).AddTicks(4297), null, "Admin@123", "1234567890", null, 0, null]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AddressCart_CartsId",
@@ -2128,7 +2132,7 @@ namespace ECommercePlatform.Server.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Cities_Name_StateId",
                 table: "Cities",
-                columns: new[] { "Name", "StateId" },
+                columns: ["Name", "StateId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -2194,7 +2198,7 @@ namespace ECommercePlatform.Server.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Countries_Name_Code",
                 table: "Countries",
-                columns: new[] { "Name", "Code" },
+                columns: ["Name", "Code"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -2571,13 +2575,13 @@ namespace ECommercePlatform.Server.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_States_Code_CountryId",
                 table: "States",
-                columns: new[] { "Code", "CountryId" },
+                columns: columnsArray,
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_States_Code_Name_CountryId",
                 table: "States",
-                columns: new[] { "Code", "Name", "CountryId" },
+                columns: ["Code", "Name", "CountryId"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -2588,7 +2592,7 @@ namespace ECommercePlatform.Server.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_States_Name_CountryId",
                 table: "States",
-                columns: new[] { "Name", "CountryId" },
+                columns: columns,
                 unique: true);
 
             migrationBuilder.CreateIndex(

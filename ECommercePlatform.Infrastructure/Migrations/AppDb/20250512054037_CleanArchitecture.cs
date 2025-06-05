@@ -7,6 +7,8 @@ namespace ECommercePlatform.Server.Migrations.AppDb
     /// <inheritdoc />
     public partial class CleanArchitecture : Migration
     {
+        private static readonly string[] columns = ["Id", "Avatar", "Bio", "CreatedBy", "CreatedOn", "DateOfBirth", "Email", "FirstName", "Gender", "IsActive", "IsDeleted", "LastName", "ModifiedBy", "ModifiedOn", "Password", "PhoneNumber", "Role"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -455,8 +457,8 @@ namespace ECommercePlatform.Server.Migrations.AppDb
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Avatar", "Bio", "CreatedBy", "CreatedOn", "DateOfBirth", "Email", "FirstName", "Gender", "IsActive", "IsDeleted", "LastName", "ModifiedBy", "ModifiedOn", "Password", "PhoneNumber", "Role" },
-                values: new object[] { new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"), null, "System Administrator", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new DateOnly(1990, 1, 1), "admin@admin.com", "Admin", 0, true, false, "User", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Admin@123", "1234567890", 0 });
+                columns: columns,
+                values: [new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"), null, "System Administrator", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new DateOnly(1990, 1, 1), "admin@admin.com", "Admin", 0, true, false, "User", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Admin@123", "1234567890", 0]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Addresses_CityId",
