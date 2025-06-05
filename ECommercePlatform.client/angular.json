@@ -37,10 +37,15 @@
               }
             ],
             "styles": [
+              "node_modules/admin-lte/plugins/fontawesome-free/css/all.min.css",
+              "node_modules/admin-lte/plugins/icheck-bootstrap/icheck-bootstrap.min.css",
+              "node_modules/admin-lte/dist/css/adminlte.min.css",
               "src/styles.css"
             ],
             "scripts": [
-              "src/script.js"
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+              "node_modules/admin-lte/dist/js/adminlte.min.js"
             ]
           },
           "configurations": {
@@ -101,10 +106,15 @@
               }
             ],
             "styles": [
+              "node_modules/admin-lte/plugins/fontawesome-free/css/all.min.css",
+              "node_modules/admin-lte/plugins/icheck-bootstrap/icheck-bootstrap.min.css",
+              "node_modules/admin-lte/dist/css/adminlte.min.css",
               "src/styles.css"
             ],
             "scripts": [
-              "src/script.js"
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+              "node_modules/admin-lte/dist/js/adminlte.min.js"
             ],
             "karmaConfig": "karma.conf.js"
           }
