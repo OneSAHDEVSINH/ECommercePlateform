@@ -8,6 +8,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { CountryComponent } from './country/country.component';
 import { StateComponent } from './state/state.component';
 import { CityComponent } from './city/city.component';
+import { AdminLayoutComponent } from '../shared/admin-layout/admin-layout.component';
 
 @NgModule({
   imports: [
@@ -20,7 +21,8 @@ import { CityComponent } from './city/city.component';
     DashboardComponent,
     CountryComponent,
     StateComponent,
-    CityComponent
+    CityComponent,
+    AdminLayoutComponent
   ]
 })
 export class AdminModule { }

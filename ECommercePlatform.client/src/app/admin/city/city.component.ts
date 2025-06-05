@@ -25,7 +25,7 @@ import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-ra
   templateUrl: './city.component.html',
   styleUrls: ['./city.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, NavbarComponent, PaginationComponent, DateRangeFilterComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent]
 })
 export class CityComponent implements OnInit, OnDestroy {
   cities: City[] = [];

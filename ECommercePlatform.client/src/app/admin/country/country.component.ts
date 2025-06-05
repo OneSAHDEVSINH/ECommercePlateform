@@ -21,7 +21,7 @@ import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-ra
   templateUrl: './country.component.html',
   styleUrls: ['./country.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent, PaginationComponent, DateRangeFilterComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PaginationComponent, DateRangeFilterComponent]
 })
 
 export class CountryComponent implements OnInit, OnDestroy {
