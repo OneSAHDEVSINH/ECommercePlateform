@@ -1,9 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { ThemeService } from '../../services/general/theme.service';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-layout',
@@ -13,12 +11,12 @@ import { Router } from '@angular/router';
   imports: [CommonModule, RouterModule]
 })
 export class AdminLayoutComponent implements OnInit {
-  userName: string = '';
+  userName: string = 'Admin';
   currentTheme: string = 'light-mode';
+  isUserDropdownOpen: boolean = false;
 
   constructor(
-    private themeService: ThemeService,
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) { }
 
@@ -28,41 +26,35 @@ export class AdminLayoutComponent implements OnInit {
       if (user) {
         const firstName = user.firstName || user['firstName'] || '';
         const lastName = user.lastName || user['lastName'] || '';
-        this.userName = `${firstName} ${lastName}`.trim() || user.email;
-        console.log('User name set to:', this.userName);
+        this.userName = `${firstName} ${lastName}`.trim() || user.email || 'Admin';
       }
     });
 
-    // Subscribe to theme changes
-    this.themeService.theme$.subscribe(theme => {
-      this.currentTheme = theme === 'modern' ? 'dark-mode' : 'light-mode';
-      document.body.className = this.currentTheme;
-    });
+    // Initialize theme
+    const savedTheme = localStorage.getItem('admin-theme');
+    if (savedTheme) {
+      this.currentTheme = savedTheme;
+    }
+  }
 
-    // Initialize AdminLTE
-    this.setupAdminLTE();
+  toggleTheme(): void {
+    this.currentTheme = this.currentTheme === 'light-mode' ? 'dark-mode' : 'light-mode';
+    localStorage.setItem('admin-theme', this.currentTheme);
+  }
+
+  toggleUserDropdown(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isUserDropdownOpen = !this.isUserDropdownOpen;
+  }
+
+  @HostListener('document:click')
+  closeDropdown(): void {
+    this.isUserDropdownOpen = false;
   }
 
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/admin/login']);
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggleTheme();
-  }
-
-  private setupAdminLTE(): void {
-    // This will be called after the view is initialized to activate AdminLTE features
-    // We would normally use jQuery here, but we'll use setTimeout to wait for DOM to be ready
-    setTimeout(() => {
-      // @ts-ignore - AdminLTE is loaded globally
-      if (window.$.fn.pushMenu) {
-        // @ts-ignore
-        $('[data-widget="pushmenu"]').pushMenu();
-      }
-
-      // Additional AdminLTE initializations can go here
-    }, 100);
   }
 }

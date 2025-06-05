@@ -1,3 +1,77 @@
+<body class="hold-transition login-page">
+  <div class="login-box">
+    <!-- Logo -->
+    <div class="login-logo">
+      <a href="#"><b>Admin</b> Portal</a>
+    </div>
+
+    <!-- Login Card -->
+    <div class="card">
+      <div class="card-body login-card-body">
+        <p class="login-box-msg">Sign in to start your session</p>
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <!-- Email -->
+          <div class="input-group mb-3">
+            <input type="email"
+                   formControlName="email"
+                   class="form-control"
+                   placeholder="Email"
+                   [class.is-invalid]="f['email'].touched && f['email'].errors">
+            <div class="input-group-append">
+              <div class="input-group-text">
+                <span class="fas fa-envelope"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="input-group mb-3">
+            <input [type]="showPassword ? 'text' : 'password'"
+                   formControlName="password"
+                   class="form-control"
+                   placeholder="Password"
+                   [class.is-invalid]="f['password'].touched && f['password'].errors">
+            <div class="input-group-append">
+              <div class="input-group-text"
+                   style="cursor: pointer;"
+                   (click)="togglePasswordVisibility()">
+                <span class="fas"
+                      [class.fa-eye]="!showPassword"
+                      [class.fa-eye-slash]="showPassword"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Alert -->
+          <div *ngIf="errorMessage" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Submit Button -->
+          <div class="row">
+            <div class="col-12">
+              <button type="submit"
+                      class="btn btn-primary btn-block"
+                      [disabled]="loginForm.invalid || loading">
+                <span *ngIf="!loading">Sign In</span>
+                <span *ngIf="loading">
+                  <i class="fas fa-spinner fa-spin"></i> Loading...
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+
+
+
+
+<!------------------------------------------------------------------------------>
 <!--<div class="login-container" [ngClass]="currentTheme">
   <div class="theme-toggle">
     <button (click)="toggleTheme()" class="theme-toggle-btn" title="Toggle Theme">
@@ -49,9 +123,9 @@
             [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].errors }"
             placeholder="Enter your password"
           />
-          <button 
-            type="button" 
-            class="password-toggle" 
+          <button
+            type="button"
+            class="password-toggle"
             (click)="togglePasswordVisibility()"
             title="Toggle Password Visibility"
           >
@@ -92,116 +166,109 @@
     <div class="particle" *ngFor="let i of particles"></div>
   </div>
 </div>-->
-
-<head>
+<!------------------------------------------------------------------------------>
+<!--<head>
   <meta name="description" content="Admin Login Page">
 </head>
 
-<div class="login-container" [ngClass]="currentTheme">
-  <!-- Theme Toggle Button -->
-  <div class="theme-toggle">
-    <button (click)="toggleTheme()" class="theme-toggle-btn" title="Toggle Theme" [@rotateAnimation]="currentTheme">
-      <span *ngIf="currentTheme === 'classic'" class="toggle-icon">🌙</span>
-      <span *ngIf="currentTheme === 'modern'" class="toggle-icon">☀️</span>
+<div class="login-container" [ngClass]="currentTheme">-->
+<!-- Theme Toggle Button -->
+<!--<div class="theme-toggle">
+  <button (click)="toggleTheme()" class="theme-toggle-btn" title="Toggle Theme" [@rotateAnimation]="currentTheme">
+    <span *ngIf="currentTheme === 'classic'" class="toggle-icon">🌙</span>
+    <span *ngIf="currentTheme === 'modern'" class="toggle-icon">☀️</span>
+  </button>
+</div>-->
+<!-- Main Form Container -->
+<!--<div class="login-form-container" [@fadeIn]>-->
+<!-- Header Section -->
+<!--<div class="login-header">
+  <div class="logo-container">
+    <div class="logo" [@pulseAnimation]="'active'">
+      <span class="logo-icon">🛒</span>
+      <div class="logo-glow"></div>
+    </div>
+  </div>
+  <h2 [@slideInFromTop]>Admin Login</h2>
+  <p [@slideInFromTop]="{ value: '', params: { delay: 200 } }">Enter your credentials to access the admin dashboard</p>
+</div>-->
+<!-- Login Form -->
+<!--<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">-->
+<!-- Email Field -->
+<!--<div class="form-group" [@formControls]>
+  <label for="email">Email</label>
+  <div class="input-group" [ngClass]="{ 'focus': emailFocused, 'is-invalid': f['email'].touched && f['email'].errors }">
+    <span class="input-icon">📧</span>
+    <input type="email"
+           id="email"
+           formControlName="email"
+           class="form-control"
+           placeholder="Enter your email"
+           (focus)="emailFocused = true"
+           (blur)="emailFocused = false" />
+  </div>
+  <div *ngIf="f['email'].touched && f['email'].errors" class="error-message" [@fadeIn]>
+    <div *ngIf="f['email'].errors['required']">Email is required</div>
+    <div *ngIf="f['email'].errors['email']">Enter a valid email address</div>
+  </div>
+</div>-->
+<!-- Password Field -->
+<!--<div class="form-group" [@formControls]="{ value: '', params: { delay: 100 } }">
+  <label for="password">Password</label>
+  <div class="input-group" [ngClass]="{ 'focus': passwordFocused, 'is-invalid': f['password'].touched && f['password'].errors }">
+    <span class="input-icon">🔒</span>
+    <input [type]="showPassword ? 'text' : 'password'"
+           id="password"
+           formControlName="password"
+           class="form-control"
+           placeholder="Enter your password"
+           (focus)="passwordFocused = true"
+           (blur)="passwordFocused = false" />
+    <button type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            title="Toggle Password Visibility"
+            [@fadeIn]>
+      <span *ngIf="!showPassword">👁️</span>
+      <span *ngIf="showPassword">🔒</span>
     </button>
   </div>
-
-  <!-- Main Form Container -->
-  <div class="login-form-container" [@fadeIn]>
-    <!-- Header Section -->
-    <div class="login-header">
-      <div class="logo-container">
-        <div class="logo" [@pulseAnimation]="'active'">
-          <span class="logo-icon">🛒</span>
-          <div class="logo-glow"></div>
-        </div>
-      </div>
-      <h2 [@slideInFromTop]>Admin Login</h2>
-      <p [@slideInFromTop]="{ value: '', params: { delay: 200 } }">Enter your credentials to access the admin dashboard</p>
+  <div *ngIf="f['password'].touched && f['password'].errors" class="error-message" [@fadeIn]>
+    <div *ngIf="f['password'].errors['required']">Password is required</div>
+    <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
+  </div>
+</div>-->
+<!-- Error Message Display -->
+<!--<div *ngIf="errorMessage" class="alert alert-danger" [@fadeIn]>
+  {{ errorMessage }}
+</div>-->
+<!-- Submit Button -->
+<!--<div class="form-group" [@formControls]="{ value: '', params: { delay: 200 } }">
+  <button type="submit"
+          class="btn-login"
+          [disabled]="loginForm.invalid || loading"
+          [@buttonPulse]="buttonState">
+    <div *ngIf="loading" class="spinner-container">
+      <span class="spinner"></span>
+      <span class="login-text">Logging in...</span>
     </div>
-
-    <!-- Login Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <!-- Email Field -->
-      <div class="form-group" [@formControls]>
-        <label for="email">Email</label>
-        <div class="input-group" [ngClass]="{ 'focus': emailFocused, 'is-invalid': f['email'].touched && f['email'].errors }">
-          <span class="input-icon">📧</span>
-          <input type="email"
-                 id="email"
-                 formControlName="email"
-                 class="form-control"
-                 placeholder="Enter your email"
-                 (focus)="emailFocused = true"
-                 (blur)="emailFocused = false" />
-        </div>
-        <div *ngIf="f['email'].touched && f['email'].errors" class="error-message" [@fadeIn]>
-          <div *ngIf="f['email'].errors['required']">Email is required</div>
-          <div *ngIf="f['email'].errors['email']">Enter a valid email address</div>
-        </div>
-      </div>
-
-      <!-- Password Field -->
-      <div class="form-group" [@formControls]="{ value: '', params: { delay: 100 } }">
-        <label for="password">Password</label>
-        <div class="input-group" [ngClass]="{ 'focus': passwordFocused, 'is-invalid': f['password'].touched && f['password'].errors }">
-          <span class="input-icon">🔒</span>
-          <input [type]="showPassword ? 'text' : 'password'"
-                 id="password"
-                 formControlName="password"
-                 class="form-control"
-                 placeholder="Enter your password"
-                 (focus)="passwordFocused = true"
-                 (blur)="passwordFocused = false" />
-          <button type="button"
-                  class="password-toggle"
-                  (click)="togglePasswordVisibility()"
-                  title="Toggle Password Visibility"
-                  [@fadeIn]>
-            <span *ngIf="!showPassword">👁️</span>
-            <span *ngIf="showPassword">🔒</span>
-          </button>
-        </div>
-        <div *ngIf="f['password'].touched && f['password'].errors" class="error-message" [@fadeIn]>
-          <div *ngIf="f['password'].errors['required']">Password is required</div>
-          <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
-        </div>
-      </div>
-
-      <!-- Error Message Display -->
-      <div *ngIf="errorMessage" class="alert alert-danger" [@fadeIn]>
-        {{ errorMessage }}
-      </div>
-
-      <!-- Submit Button -->
-      <div class="form-group" [@formControls]="{ value: '', params: { delay: 200 } }">
-        <button type="submit"
-                class="btn-login"
-                [disabled]="loginForm.invalid || loading"
-                [@buttonPulse]="buttonState">
-          <div *ngIf="loading" class="spinner-container">
-            <span class="spinner"></span>
-            <span class="login-text">Logging in...</span>
-          </div>
-          <span *ngIf="!loading" class="login-text">Login</span>
-          <div class="btn-login-effect"></div>
-        </button>
-      </div>
-
-      <!-- Form Footer -->
-      <div class="form-footer" [@fadeIn]="{ value: '', params: { delay: 300 } }">
-        <p class="help-text">Having trouble logging in? Contact the system administrator.</p>
-      </div>
-    </form>
-  </div>
-
-  <!-- Modern Theme Background Animation -->
-  <div class="animated-background" *ngIf="currentTheme === 'modern'">
-    <div class="particle" *ngFor="let i of particles"></div>
-  </div>
-
-  <!-- Classic Theme Background Animation -->
-  <div class="classic-background" *ngIf="currentTheme === 'classic'">
+    <span *ngIf="!loading" class="login-text">Login</span>
+    <div class="btn-login-effect"></div>
+  </button>
+</div>-->
+<!-- Form Footer -->
+<!--<div class="form-footer" [@fadeIn]="{ value: '', params: { delay: 300 } }">
+      <p class="help-text">Having trouble logging in? Contact the system administrator.</p>
+    </div>
+  </form>
+</div>-->
+<!-- Modern Theme Background Animation -->
+<!--<div class="animated-background" *ngIf="currentTheme === 'modern'">
+  <div class="particle" *ngFor="let i of particles"></div>
+</div>-->
+<!-- Classic Theme Background Animation -->
+<!--<div class="classic-background" *ngIf="currentTheme === 'classic'">
     <div class="geometric-shape" *ngFor="let i of geometricShapes"></div>
   </div>
-</div>
+</div>-->
+<!------------------------------------------------------------------------------>
