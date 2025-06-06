@@ -1,5 +1,6 @@
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Domain.Entities;
+using ECommercePlatform.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure
@@ -249,9 +250,9 @@ namespace ECommercePlatform.Infrastructure
 
         private static void ConfigureUserRoleRelationships(ModelBuilder modelBuilder)
         {
-            // Explicitly ignore the problematic property
-            modelBuilder.Entity<User>()
-                .Ignore(u => u.Role);
+            //// Explicitly ignore the problematic property
+            //modelBuilder.Entity<User>()
+            //    .Ignore(u => u.Role);
 
             // Configure the many-to-many relationship through UserRole entity
             modelBuilder.Entity<UserRole>(entity =>
@@ -311,31 +312,65 @@ namespace ECommercePlatform.Infrastructure
 
         private static void SeedDefaultAdmin(ModelBuilder modelBuilder)
         {
-            // Create a default admin user  
-            var adminId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F"); // Fixed GUID for admin  
+            // Create fixed GUIDs for entities
+            var adminUserId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F");
+            var adminRoleId = Guid.Parse("D4DE1B4D-B43B-4A55-B47A-1E92E71C3143");
+            var userRoleId = Guid.Parse("F8B7B597-14FF-4B33-A8B3-0EA4DE9F9DAE");
 
-            // Use a specific fixed date instead of DateTime.Now  
-            var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0); // Year, Month, Day, Hour, Minute, Second  
+            var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0);
 
+            // Seed admin role - added IsActive property
+            modelBuilder.Entity<Role>().HasData(
+                new
+                {
+                    Id = adminRoleId,
+                    Name = "Admin",
+                    Description = "Administrator role with all permissions",
+                    IsActive = true,  // Added missing required property
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                }
+            );
+
+            // Seed admin user (without setting the Role navigation property)
             modelBuilder.Entity<User>().HasData(
-                //User.AdminCreate(
-                //    id: adminId,
-                //    firstName: "Admin",
-                //    lastName: "User",
-                //    gender: Gender.Male,
-                //    dateOfBirth: new DateOnly(1990, 1, 1),
-                //    phoneNumber: "1234567890",
-                //    email: "admin@admin.com",
-                //    password: "Admin@123",
-                //    bio: "System Administrator",
-                //    userRole: Domain.Enums.UserRole.Admin, // Corrected type to match the expected enum  
-                //    isActive: true,
-                //    isDeleted: false,
-                //    createdOn: fixedDate,
-                //    createdBy: "System",
-                //    modifiedOn: fixedDate,
-                //    modifiedBy: "System"
-                //)
+                new
+                {
+                    Id = adminUserId,
+                    FirstName = "Admin",
+                    LastName = "User",
+                    Gender = Gender.Male,
+                    DateOfBirth = new DateOnly(1990, 1, 1),
+                    PhoneNumber = "1234567890",
+                    Email = "admin@admin.com",
+                    Password = "Admin@123",
+                    Bio = "System Administrator",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                }
+            );
+
+            // Seed the user-role relationship separately
+            modelBuilder.Entity<UserRole>().HasData(
+                new
+                {
+                    Id = userRoleId,
+                    UserId = adminUserId,
+                    RoleId = adminRoleId,
+                    IsActive = true,  // Added missing required property
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                }
             );
         }
     }

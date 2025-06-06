@@ -14,7 +14,6 @@ namespace ECommercePlatform.Domain.Entities
         public string? Email { get; private set; }
         public string? Password { get; private set; }
         public string? Bio { get; private set; }
-        [NotMapped]
         public UserRole? Role { get; private set; }
         public ICollection<Address>? Addresses { get; set; }
         public ICollection<Order>? Orders { get; set; }

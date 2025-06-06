@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialBaseline : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -214,6 +214,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ModifiedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -236,6 +237,11 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserRoles_Users_UserId1",
+                        column: x => x.UserId1,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -585,6 +591,21 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "CreatedBy", "CreatedOn", "Description", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "Name" },
+                values: new object[] { new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Administrator role with all permissions", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Admin" });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "Avatar", "Bio", "CreatedBy", "CreatedOn", "DateOfBirth", "Email", "FirstName", "Gender", "IsActive", "IsDeleted", "LastName", "ModifiedBy", "ModifiedOn", "Password", "PhoneNumber" },
+                values: new object[] { new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"), null, "System Administrator", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new DateOnly(1990, 1, 1), "admin@admin.com", "Admin", 0, true, false, "User", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Admin@123", "1234567890" });
+
+            migrationBuilder.InsertData(
+                table: "UserRoles",
+                columns: new[] { "Id", "CreatedBy", "CreatedOn", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "RoleId", "UserId", "UserId1" },
+                values: new object[] { new Guid("f8b7b597-14ff-4b33-a8b3-0ea4de9f9dae"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"), new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"), null });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Addresses_CityId",
                 table: "Addresses",
@@ -724,6 +745,13 @@ namespace ECommercePlatform.Infrastructure.Migrations
                 name: "IX_UserRoles_UserId",
                 table: "UserRoles",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRoles_UserId1",
+                table: "UserRoles",
+                column: "UserId1",
+                unique: true,
+                filter: "[UserId1] IS NOT NULL");
         }
 
         /// <inheritdoc />

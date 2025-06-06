@@ -708,6 +708,20 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Administrator role with all permissions",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Admin"
+                        });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.RolePermission", b =>
@@ -927,6 +941,26 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"),
+                            Bio = "System Administrator",
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            DateOfBirth = new DateOnly(1990, 1, 1),
+                            Email = "admin@admin.com",
+                            FirstName = "Admin",
+                            Gender = 0,
+                            IsActive = true,
+                            IsDeleted = false,
+                            LastName = "User",
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Password = "Admin@123",
+                            PhoneNumber = "1234567890"
+                        });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.UserRole", b =>
@@ -959,13 +993,34 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("UserId1")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("UserId1")
+                        .IsUnique()
+                        .HasFilter("[UserId1] IS NOT NULL");
+
                     b.ToTable("UserRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("f8b7b597-14ff-4b33-a8b3-0ea4de9f9dae"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"),
+                            UserId = new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f")
+                        });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Address", b =>
@@ -1219,6 +1274,10 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", null)
+                        .WithOne("Role")
+                        .HasForeignKey("ECommercePlatform.Domain.Entities.UserRole", "UserId1");
+
                     b.Navigation("Role");
 
                     b.Navigation("User");
@@ -1305,6 +1364,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("Role");
 
                     b.Navigation("UserRoles");
                 });
