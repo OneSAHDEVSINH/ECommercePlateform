@@ -256,11 +256,47 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
 
     // Get return URL
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
+    //this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
+
+    // Get return URL with validation
+    this.returnUrl = this.getValidReturnUrl();
 
     // Check if already logged in
     if (this.authService.isAuthenticated() && this.authService.isAdmin()) {
       this.router.navigate([this.returnUrl]);
+    }
+  }
+
+  // Add this new method
+  private getValidReturnUrl(): string {
+    const defaultUrl = '/admin/dashboard';
+    const queryReturnUrl = this.route.snapshot.queryParams['returnUrl'];
+
+    if (!queryReturnUrl) {
+      return defaultUrl;
+    }
+
+    try {
+      // Try to decode the URL to check if it's valid
+      const decodedUrl = decodeURIComponent(queryReturnUrl);
+
+      // Additional validation - ensure it starts with /
+      if (!decodedUrl.startsWith('/')) {
+        console.warn('Invalid return URL - must start with /:', decodedUrl);
+        return defaultUrl;
+      }
+
+      // Prevent open redirect vulnerabilities
+      if (decodedUrl.includes('//') || decodedUrl.includes('\\')) {
+        console.warn('Invalid return URL - possible redirect attack:', decodedUrl);
+        return defaultUrl;
+      }
+
+      return decodedUrl;
+    } catch (e) {
+      console.error('Malformed return URL:', queryReturnUrl);
+      // If URL is malformed, return to default
+      return defaultUrl;
     }
   }
 
@@ -290,7 +326,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (response) => {
         if (response.user.role === 'Admin') {
-          this.router.navigate([this.returnUrl]);
+          // Ensure returnUrl is valid before navigating
+          try {
+            // This will throw if URL is malformed
+            const url = new URL(this.returnUrl, window.location.origin);
+            this.router.navigate([this.returnUrl]);
+          } catch (e) {
+            // If URL is malformed, go to default dashboard
+            console.error('Invalid return URL:', this.returnUrl);
+            this.router.navigate(['/admin/dashboard']);
+          }
         } else {
           this.loading = false;
           this.errorMessage = 'Access denied. Administrators only.';

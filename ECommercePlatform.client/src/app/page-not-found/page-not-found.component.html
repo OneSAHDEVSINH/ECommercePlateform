@@ -1,40 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Page not found">
-  <title>404 - Page Not Found</title>
-</head>
-<body>
-  <!-- Stars background -->
-  <div class="page-not-found-container">
-    <div class="stars"></div>
+<div class="page-not-found-container">
+  <div class="stars"></div>
 
-    <!-- Floating asteroids -->
-    <div class="asteroid"></div>
-    <div class="asteroid"></div>
-    <div class="asteroid"></div>
-    <div class="asteroid"></div>
-    <div class="asteroid"></div>
+  <!-- Floating asteroids -->
+  <div class="asteroid asteroid-1"></div>
+  <div class="asteroid asteroid-2"></div>
+  <div class="asteroid asteroid-3"></div>
+  <div class="asteroid asteroid-4"></div>
+  <div class="asteroid asteroid-5"></div>
 
-    <!-- Spacecraft -->
-    <div class="spacecraft">
-      <div class="spacecraft-body">
-        <div class="spacecraft-window"></div>
-        <div class="spacecraft-window"></div>
-        <div class="spacecraft-window"></div>
-      </div>
-      <div class="spacecraft-light"></div>
+  <!-- Spacecraft -->
+  <div class="spacecraft">
+    <div class="spacecraft-body">
+      <div class="spacecraft-window"></div>
+      <div class="spacecraft-window"></div>
+      <div class="spacecraft-window"></div>
+    </div>
+    <div class="spacecraft-light"></div>
+  </div>
+
+  <!-- 404 Content -->
+  <div class="error-container">
+    <h1 class="error-title">404</h1>
+    <h2 class="error-subtitle">Lost in Space</h2>
+    <p class="error-message">
+      The page you are looking for might have been removed, had its name changed,
+      or is temporarily unavailable in this galaxy.
+    </p>
+
+    <!-- Malformed URL info (only shows when applicable) -->
+    <div *ngIf="hasMalformedUrl" class="malformed-url-info">
+      <p>We detected an issue with the URL:</p>
+      <div class="code-block">{{ originalUrl }}</div>
     </div>
 
-    <!-- 404 Content -->
-    <div class="error-container">
-      <h1 class="error-title">404</h1>
-      <h2 class="error-subtitle">Lost in Space</h2>
-      <p class="error-message">The page you are looking for might have been removed, had its name changed, or is temporarily unavailable in this galaxy.</p>
-      <a routerLink="/admin/dashboard" class="home-button">Return to Earth</a>
+    <div class="button-container">
+      <a routerLink="/admin/dashboard" class="home-button primary-button">
+        <i class="fas fa-home"></i> Return to Dashboard
+      </a>
+      <a routerLink="/admin/login" class="home-button secondary-button">
+        <i class="fas fa-sign-in-alt"></i> Go to Login
+      </a>
     </div>
   </div>
-</body>
-</html>
+</div>

@@ -1,239 +1,240 @@
-:host {
-  display: block;
-  width: 100%;
-  height: 100vh;
-}
-
 .page-not-found-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #0a0a1f;
+  background-color: #0a1128;
   color: #fff;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
   position: relative;
-}
-
-/* Floating asteroid elements */
-.asteroid {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #555, #222);
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
-  z-index: 1;
-  animation: float 30s infinite linear;
-}
-
-.asteroid:nth-child(1) {
-  width: 120px;
-  height: 120px;
-  top: 15%;
-  left: 10%;
-  animation-duration: 45s;
-}
-
-.asteroid:nth-child(2) {
-  width: 80px;
-  height: 80px;
-  top: 65%;
-  left: 20%;
-  animation-duration: 50s;
-}
-
-.asteroid:nth-child(3) {
-  width: 100px;
-  height: 100px;
-  top: 25%;
-  right: 25%;
-  animation-duration: 55s;
-}
-
-.asteroid:nth-child(4) {
-  width: 60px;
-  height: 60px;
-  top: 70%;
-  right: 10%;
-  animation-duration: 40s;
-}
-
-.asteroid:nth-child(5) {
-  width: 40px;
-  height: 40px;
-  top: 40%;
-  left: 40%;
-  animation-duration: 35s;
 }
 
 /* Stars background */
 .stars {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.stars:before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image: radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)), radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 90px 40px, #ddd, rgba(0,0,0,0)), radial-gradient(2px 2px at 160px 120px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 200px 80px, #eee, rgba(0,0,0,0)), radial-gradient(1px 1px at 300px 50px, #fff, rgba(0,0,0,0)), radial-gradient(2px 2px at 350px 180px, #ddd, rgba(0,0,0,0)), radial-gradient(1px 1px at 400px 220px, #fff, rgba(0,0,0,0)), radial-gradient(2px 2px at 450px 70px, #eee, rgba(0,0,0,0)), radial-gradient(1px 1px at 500px 130px, #ddd, rgba(0,0,0,0)), radial-gradient(2px 2px at 550px 200px, #fff, rgba(0,0,0,0));
+  background-image: radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)), radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)), radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
   background-repeat: repeat;
-  background-size: 550px 350px;
-  animation: twinkle 8s ease-in-out infinite alternate;
+  background-size: 200px 200px;
+  animation: twinkle 5s ease-in-out infinite;
 }
 
-.stars:after {
-  content: '';
+/* Asteroids */
+.asteroid {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image: radial-gradient(2px 2px at 25px 35px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 45px 75px, #eee, rgba(0,0,0,0)), radial-gradient(2px 2px at 95px 45px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 165px 125px, #ddd, rgba(0,0,0,0)), radial-gradient(2px 2px at 205px 85px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 305px 55px, #eee, rgba(0,0,0,0)), radial-gradient(2px 2px at 355px 185px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 405px 225px, #ddd, rgba(0,0,0,0)), radial-gradient(2px 2px at 455px 75px, #fff, rgba(0,0,0,0)), radial-gradient(1px 1px at 505px 135px, #eee, rgba(0,0,0,0)), radial-gradient(2px 2px at 555px 205px, #ddd, rgba(0,0,0,0));
-  background-repeat: repeat;
-  background-size: 550px 350px;
-  animation: twinkle 10s ease-in-out infinite alternate-reverse;
+  width: 20px;
+  height: 20px;
+  background-color: #726f6f;
+  border-radius: 50%;
+  box-shadow: inset -5px -5px 10px #444, 2px 2px 10px rgba(0,0,0,0.5);
+  opacity: 0.7;
 }
 
-/* Spacecraft element */
+.asteroid-1 {
+  top: 20%;
+  left: 15%;
+  width: 15px;
+  height: 15px;
+  animation: float 20s linear infinite;
+}
+
+.asteroid-2 {
+  top: 65%;
+  left: 75%;
+  width: 10px;
+  height: 10px;
+  animation: float 15s linear infinite reverse;
+}
+
+.asteroid-3 {
+  top: 35%;
+  right: 20%;
+  width: 25px;
+  height: 25px;
+  animation: float 25s linear infinite;
+}
+
+.asteroid-4 {
+  bottom: 20%;
+  left: 30%;
+  width: 18px;
+  height: 18px;
+  animation: float 18s linear infinite reverse;
+}
+
+.asteroid-5 {
+  top: 15%;
+  right: 35%;
+  width: 12px;
+  height: 12px;
+  animation: float 22s linear infinite;
+}
+
+/* Spacecraft */
 .spacecraft {
   position: absolute;
-  width: 120px;
-  height: 60px;
-  bottom: 15%;
-  right: 15%;
-  z-index: 5;
-  animation: hover 4s ease-in-out infinite;
-  transform-origin: center bottom;
+  top: 30%;
+  left: 25%;
+  animation: hover 6s ease-in-out infinite;
 }
 
 .spacecraft-body {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 40px;
-  background: linear-gradient(to bottom, #5c86c1, #2a4b8d);
-  border-radius: 50px;
-  box-shadow: 0 5px 15px rgba(42, 75, 141, 0.7);
+  width: 80px;
+  height: 30px;
+  background-color: #ddd;
+  border-radius: 40px 40px 0 0;
+  position: relative;
 }
 
 .spacecraft-window {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  background: #a3f7ff;
+  width: 12px;
+  height: 12px;
+  background-color: #00a8ff;
   border-radius: 50%;
-  top: 10px;
-  left: 25px;
-  box-shadow: 0 0 10px #a3f7ff;
+  top: 8px;
+  box-shadow: 0 0 10px #00a8ff;
+}
+
+.spacecraft-window:nth-child(1) {
+  left: 15px;
 }
 
 .spacecraft-window:nth-child(2) {
-  left: 55px;
+  left: 35px;
 }
 
 .spacecraft-window:nth-child(3) {
-  left: 85px;
+  left: 55px;
 }
 
 .spacecraft-light {
   position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 15px;
-  background: linear-gradient(to bottom, rgba(163, 247, 255, 0.8), rgba(163, 247, 255, 0));
-  border-radius: 50% 50% 0 0;
-  animation: pulse 2s ease-in-out infinite alternate;
+  bottom: -10px;
+  left: 35px;
+  width: 10px;
+  height: 10px;
+  background-color: #ff6b6b;
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* 404 content */
+/* Error content */
 .error-container {
   position: relative;
   z-index: 10;
   text-align: center;
-  padding: 2rem;
-  background: rgba(25, 25, 50, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
-  max-width: 500px;
-  width: 90%;
+  max-width: 600px;
+  padding: 30px;
+  background-color: rgba(16, 24, 52, 0.85);
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+  margin: 0 20px;
 }
 
 .error-title {
   font-size: 8rem;
-  font-weight: 900;
   margin: 0;
-  background: linear-gradient(45deg, #00e1ff, #7d00ff);
+  background: linear-gradient(45deg, #00a8ff, #4facfe);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  line-height: 1;
-  filter: drop-shadow(0 2px 5px rgba(0, 225, 255, 0.4));
+  text-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
 }
 
 .error-subtitle {
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin: 1rem 0;
+  font-size: 2.5rem;
+  margin: 0 0 1rem;
   color: #fff;
+  font-weight: 300;
 }
 
 .error-message {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  line-height: 1.6;
   margin-bottom: 2rem;
   color: #ccc;
-  line-height: 1.6;
+}
+
+.malformed-url-info {
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.code-block {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 5px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .home-button {
   display: inline-block;
-  padding: 12px 30px;
-  background: linear-gradient(45deg, #00e1ff, #7d00ff);
-  color: white;
-  text-decoration: none;
+  padding: 10px 20px;
   border-radius: 30px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  box-shadow: 0 5px 15px rgba(0, 225, 255, 0.4);
+  text-decoration: none;
+  font-weight: 500;
   transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
 }
 
-.home-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 225, 255, 0.6);
+.primary-button {
+  background: linear-gradient(45deg, #00a8ff, #4facfe);
+  color: white;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+.primary-button:hover {
+  box-shadow: 0 7px 15px rgba(79, 172, 254, 0.6);
+  transform: translateY(-2px);
+}
+
+.secondary-button {
+  background: transparent;
+  color: #4facfe;
+  border: 1px solid #4facfe;
+}
+
+.secondary-button:hover {
+  background: rgba(79, 172, 254, 0.1);
+  box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
 }
 
 /* Animations */
-@keyframes float {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-
-  50% {
-    transform: translate(-30px, 20px) rotate(180deg);
-  }
-
-  100% {
-    transform: translate(0, 0) rotate(360deg);
-  }
-}
-
 @keyframes twinkle {
-  0% {
+  0%, 100% {
     opacity: 0.7;
   }
 
-  100% {
+  50% {
     opacity: 1;
+  }
+}
+
+@keyframes float {
+  from {
+    transform: translateX(-100px) rotate(0deg);
+  }
+
+  to {
+    transform: translateX(calc(100vw + 100px)) rotate(360deg);
   }
 }
 
@@ -248,70 +249,46 @@
 }
 
 @keyframes pulse {
-  0% {
+  0%, 100% {
     opacity: 0.5;
-    height: 15px;
+    box-shadow: 0 0 5px #ff6b6b;
   }
 
-  100% {
-    opacity: 0.9;
-    height: 25px;
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 15px #ff6b6b;
   }
 }
 
-/* Responsive styles */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .error-title {
     font-size: 6rem;
   }
 
   .error-subtitle {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
   .spacecraft {
-    width: 90px;
-    height: 45px;
-    right: 10%;
-  }
-
-  .spacecraft-body {
-    height: 30px;
-  }
-
-  .spacecraft-window {
-    width: 15px;
-    height: 15px;
-    top: 8px;
-  }
-
-  .spacecraft-window:nth-child(1) {
-    left: 15px;
-  }
-
-  .spacecraft-window:nth-child(2) {
-    left: 40px;
-  }
-
-  .spacecraft-window:nth-child(3) {
-    left: 65px;
+    transform: scale(0.8);
   }
 }
 
 @media (max-width: 480px) {
   .error-title {
-    font-size: 5rem;
+    font-size: 4.5rem;
   }
 
   .error-subtitle {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
   }
 
   .error-message {
     font-size: 1rem;
   }
 
-  .asteroid {
-    opacity: 0.5;
+  .spacecraft {
+    transform: scale(0.7);
   }
 }

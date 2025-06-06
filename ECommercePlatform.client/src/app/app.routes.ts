@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import { Routes, UrlSegment } from '@angular/router';
 import { LoginComponent } from './admin/login/login.component';
 import { DashboardComponent } from './admin/dashboard/dashboard.component';
 import { CountryComponent } from './admin/country/country.component';
@@ -8,7 +8,32 @@ import { authGuard } from './guards/auth.guard';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { AdminLayoutComponent } from './shared/admin-layout/admin-layout.component';
 
+
+// Custom matcher to catch malformed URLs
+function malformedUrlMatcher(url: UrlSegment[]) {
+  const fullUrl = url.map(segment => segment.path).join('/');
+
+  // Check if URL contains malformed encoding
+  if (fullUrl.includes('%F') ||
+    fullUrl.includes('%f') ||
+    fullUrl.match(/%[0-9A-F]([^0-9A-F]|$)/i)) {
+    return {
+      consumed: url,
+      posParams: {
+        malformedUrl: new UrlSegment(fullUrl, {})
+      }
+    };
+  }
+
+  return null;
+}
+
 export const routes: Routes = [
+
+  {
+    matcher: malformedUrlMatcher,
+    component: PageNotFoundComponent
+  },
   {
     path: '',
     redirectTo: 'admin/login',

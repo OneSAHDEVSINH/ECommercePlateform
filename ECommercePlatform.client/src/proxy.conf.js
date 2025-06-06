@@ -7,19 +7,45 @@ const PROXY_CONFIG = [
   {
     context: [
       "/weatherforecast",
-      "/api",
-      "/auth",
-      "/Auth"
+      "/api/**",
+      "/auth/**",
+      "/Auth/**"
     ],
-    target: 'https://localhost:44362',
+    target: target,
     secure: false,
     logLevel: "debug",
     changeOrigin: true,
-    onProxyRes: function (proxyRes, req, res) {
-      // For debugging purposes
-      console.log('Response from backend:', proxyRes.statusCode);
+    headers: {
+      Connection: 'Keep-Alive'
+    },
+    onProxyReq: function (proxyReq, req, res) {
+      // Log the original URL
+      console.log('Proxying:', req.url);
+
+      // Fix malformed URLs before sending to backend
+      if (req.url && req.url.includes('%')) {
+        try {
+          // Attempt to decode
+          decodeURIComponent(req.url);
+        } catch (e) {
+          console.error('Malformed URL detected in proxy:', req.url);
+          // Send 302 redirect to 404 page
+          res.writeHead(302, {
+            'Location': '/404?error=malformed'
+          });
+          res.end();
+          return;
+        }
+      }
+    },
+    onError: function (err, req, res) {
+      console.error('Proxy error:', err);
+      res.writeHead(500, {
+        'Content-Type': 'text/plain'
+      });
+      res.end('Proxy error: ' + err.message);
     }
   }
-]
+];
 
 module.exports = PROXY_CONFIG;

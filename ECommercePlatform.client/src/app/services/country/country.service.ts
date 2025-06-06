@@ -37,11 +37,6 @@ export class CountryService {
       params = params.set('searchText', request.searchText);
     }
 
-    if (request.sortColumn) {
-      params = params.set('sortColumn', request.sortColumn);
-      params = params.set('sortDirection', request.sortDirection || 'asc');
-    }
-
     // Format dates in ISO format for ASP.NET Core
     if (request.startDate) {
       // Ensure we send the ISO string format that .NET can parse
@@ -55,19 +50,31 @@ export class CountryService {
     return this.http.get<PagedResponse<Country>>(`${this.apiUrl}/paged`, { params });
   }
 
+  //getCountry(id: string): Observable<Country> {
+  //  return this.http.get<Country>(`${this.apiUrl}/${id}`);
+  //}
+
   getCountry(id: string): Observable<Country> {
-    return this.http.get<Country>(`${this.apiUrl}/${id}`);
+    return this.http.get<Country>(`${this.apiUrl}/${encodeURIComponent(id)}`);
   }
 
   createCountry(country: Country): Observable<Country> {
     return this.http.post<Country>(this.apiUrl, country);
   }
 
+  //updateCountry(id: string, country: Country): Observable<Country> {
+  //  return this.http.put<Country>(`${this.apiUrl}/${id}`, country);
+  //}
+
+  //deleteCountry(id: string): Observable<void> {
+  //  return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  //}
+
   updateCountry(id: string, country: Country): Observable<Country> {
-    return this.http.put<Country>(`${this.apiUrl}/${id}`, country);
+    return this.http.put<Country>(`${this.apiUrl}/${encodeURIComponent(id)}`, country);
   }
 
   deleteCountry(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${encodeURIComponent(id)}`);
   }
 }
