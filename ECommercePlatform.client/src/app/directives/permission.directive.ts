@@ -1,0 +1,63 @@
+import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { PermissionType } from '../models/role.model';
+import { AuthService } from '../services/auth/auth.service';
+
+@Directive({
+  selector: '[appPermission]',
+  standalone: true
+})
+export class PermissionDirective implements OnInit, OnDestroy {
+  @Input() appPermission!: { moduleRoute: string, type: PermissionType };
+
+  private hasView = false;
+  private subscription: Subscription = new Subscription();
+  private routerSubscription: Subscription = new Subscription();
+
+  constructor(
+    private templateRef: TemplateRef<any>,
+    private viewContainer: ViewContainerRef,
+    private authService: AuthService,
+    private router: Router
+  ) { }
+
+  ngOnInit() {
+    this.checkPermission();
+
+    // Listen for route changes to re-evaluate permissions
+    this.routerSubscription = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => this.checkPermission());
+  }
+
+  private checkPermission() {
+    if (!this.appPermission) {
+      return;
+    }
+
+    // Replace this with your actual permission check logic
+    const hasPermission = this.authService.hasPermission(
+      this.appPermission.moduleRoute,
+      this.appPermission.type
+    );
+
+    if (hasPermission && !this.hasView) {
+      this.viewContainer.createEmbeddedView(this.templateRef);
+      this.hasView = true;
+    } else if (!hasPermission && this.hasView) {
+      this.viewContainer.clear();
+      this.hasView = false;
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
+  }
+}

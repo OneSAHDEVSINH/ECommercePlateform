@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap, of } from 'rxjs';
 import { LoginRequest, LoginResponse, User, UserRole } from '../../models/user.model';
 import { environment } from '../../../environments/environment';
+import { PagedRequest, PagedResponse } from '../../models/pagination.model';
+import { PermissionType } from '../../models/role.model';
 
 @Injectable({
   providedIn: 'root'
@@ -143,5 +145,34 @@ export class AuthService {
   isAdmin(): boolean {
     const user = this.currentUserSubject.value;
     return !!user && user.role === UserRole.Admin;
+  }
+
+  // Check if user has permission
+  hasPermission(moduleRoute: string, permissionType: PermissionType): boolean {
+    // This is a placeholder. Implement your actual permission check logic
+    // For now, returning true to make development easier
+    return true;
+  }
+
+  // Get users with paging (or use a separate UserService)
+  getUsers(pageRequest: PagedRequest): Observable<PagedResponse<User>> {
+    return this.http.get<PagedResponse<User>>(`${this.apiUrl}/users`, {
+      params: { ...pageRequest as any }
+    });
+  }
+
+  // Create user
+  createUser(userData: User): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/users`, userData);
+  }
+
+  // Update user
+  updateUser(userId: string, userData: User): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/users/${userId}`, userData);
+  }
+
+  // Delete user
+  deleteUser(userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/${userId}`);
   }
 }

@@ -6,11 +6,4 @@ namespace ECommercePlatform.Domain.Enums
         Female,
         Other
     }
-
-    public enum UserRole
-    {
-        Admin,
-        Customer,
-        Vendor
-    }
 }

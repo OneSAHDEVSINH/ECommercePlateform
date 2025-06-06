@@ -224,11 +224,11 @@ Migrations are applied automatically on startup.
 
   To add new migration
 
-  - PM>```Add Migration "Migration Name"```
+  - PM>```Add-Migration migrationname -Project ECommercePlatform.Infrastructure -StartupProject ECommercePlatform.Server```
 
   To update database
 
-  - PM>```Update Database```
+  - PM>```Update-Database -Project ECommercePlatform.Infrastructure -StartupProject ECommercePlatform.Server```
 
 ## API Documentation
 

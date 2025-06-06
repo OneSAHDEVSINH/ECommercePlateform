@@ -29,9 +29,9 @@
     </div>
 
     <!-- Small boxes (Stat box) -->
-    <div class="row">
+    <!--<div class="row">-->
       <!-- Countries Box -->
-      <div class="col-lg-4 col-md-6 col-sm-12">
+      <!--<div class="col-lg-4 col-md-6 col-sm-12">
         <div class="small-box bg-info">
           <div class="inner">
             <h3>Countries</h3>
@@ -44,10 +44,10 @@
             View Countries <i class="fas fa-arrow-circle-right"></i>
           </a>
         </div>
-      </div>
+      </div>-->
 
       <!-- States Box -->
-      <div class="col-lg-4 col-md-6 col-sm-12">
+      <!--<div class="col-lg-4 col-md-6 col-sm-12">
         <div class="small-box bg-success">
           <div class="inner">
             <h3>States</h3>
@@ -60,10 +60,10 @@
             View States <i class="fas fa-arrow-circle-right"></i>
           </a>
         </div>
-      </div>
+      </div>-->
 
       <!-- Cities Box -->
-      <div class="col-lg-4 col-md-6 col-sm-12">
+      <!--<div class="col-lg-4 col-md-6 col-sm-12">
         <div class="small-box bg-warning">
           <div class="inner">
             <h3>Cities</h3>
@@ -77,7 +77,7 @@
           </a>
         </div>
       </div>
-    </div>
+    </div>-->
 
     <!-- Alternative Card Design (if you prefer cards over small-boxes) -->
     <div class="row mt-4">
@@ -127,6 +127,44 @@
               <i class="fas fa-eye"></i> View Cities
             </a>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Add below the existing Cards section -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <h5 class="mb-3">Access Management</h5>
+    </div>
+
+    <!-- Users Management Card -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card card-primary card-outline">
+        <div class="card-body box-profile">
+          <div class="text-center">
+            <i class="fas fa-users fa-3x text-primary mb-3"></i>
+          </div>
+          <h3 class="profile-username text-center">Users</h3>
+          <p class="text-muted text-center">Manage user accounts and permissions</p>
+          <a routerLink="/admin/users" class="btn btn-primary btn-block">
+            <i class="fas fa-eye"></i> Manage Users
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roles Management Card -->
+    <div class="col-lg-4 col-md-6">
+      <div class="card card-danger card-outline">
+        <div class="card-body box-profile">
+          <div class="text-center">
+            <i class="fas fa-user-shield fa-3x text-danger mb-3"></i>
+          </div>
+          <h3 class="profile-username text-center">Roles & Permissions</h3>
+          <p class="text-muted text-center">Configure system roles and access rights</p>
+          <a routerLink="/admin/roles" class="btn btn-danger btn-block">
+            <i class="fas fa-eye"></i> Manage Roles
+          </a>
         </div>
       </div>
     </div>

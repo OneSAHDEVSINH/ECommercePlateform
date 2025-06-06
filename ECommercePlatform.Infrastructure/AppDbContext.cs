@@ -1,6 +1,5 @@
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Domain.Entities;
-using ECommercePlatform.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommercePlatform.Infrastructure
@@ -22,6 +21,11 @@ namespace ECommercePlatform.Infrastructure
         public DbSet<ShippingAddress> ShippingAddresses { get; set; }
         public DbSet<State> States { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Module> Modules { get; set; }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
@@ -86,6 +90,10 @@ namespace ECommercePlatform.Infrastructure
             ConfigureOrderEntity(modelBuilder);
             ConfigureProductEntity(modelBuilder);
             ConfigureCategoryEntity(modelBuilder);
+            ConfigureUserRoleRelationships(modelBuilder);
+            ConfigureCouponEntity(modelBuilder);
+            ConfigureOrderItemEntity(modelBuilder);
+            ConfigureProductVariantEntity(modelBuilder);
             // Add more configuration methods as needed
         }
 
@@ -239,6 +247,68 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
+        private static void ConfigureUserRoleRelationships(ModelBuilder modelBuilder)
+        {
+            // Explicitly ignore the problematic property
+            modelBuilder.Entity<User>()
+                .Ignore(u => u.Role);
+
+            // Configure the many-to-many relationship through UserRole entity
+            modelBuilder.Entity<UserRole>(entity =>
+            {
+                entity.HasKey(ur => ur.Id);
+
+                entity.HasOne(ur => ur.User)
+                      .WithMany(u => u.UserRoles)
+                      .HasForeignKey(ur => ur.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ur => ur.Role)
+                      .WithMany(r => r.UserRoles)
+                      .HasForeignKey(ur => ur.RoleId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
+
+        private static void ConfigureCouponEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Coupon>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired();
+                entity.Property(e => e.Code).IsRequired();
+
+                // Add precision/scale to decimal properties
+                entity.Property(e => e.DiscountValue).HasPrecision(18, 2);
+                entity.Property(e => e.MinimumValue).HasPrecision(18, 2);
+                entity.Property(e => e.MaximumValue).HasPrecision(18, 2);
+            });
+        }
+
+        private static void ConfigureOrderItemEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Add precision/scale to decimal properties
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.Property(e => e.Discount).HasPrecision(18, 2);
+                entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+            });
+        }
+
+        private static void ConfigureProductVariantEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ProductVariant>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Add precision/scale to decimal properties
+                entity.Property(e => e.Price).HasPrecision(18, 2);
+            });
+        }
+
         private static void SeedDefaultAdmin(ModelBuilder modelBuilder)
         {
             // Create a default admin user  
@@ -248,24 +318,24 @@ namespace ECommercePlatform.Infrastructure
             var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0); // Year, Month, Day, Hour, Minute, Second  
 
             modelBuilder.Entity<User>().HasData(
-                User.AdminCreate(
-                    id: adminId,
-                    firstName: "Admin",
-                    lastName: "User",
-                    gender: Gender.Male,
-                    dateOfBirth: new DateOnly(1990, 1, 1),
-                    phoneNumber: "1234567890",
-                    email: "admin@admin.com",
-                    password: "Admin@123",
-                    bio: "System Administrator",
-                    userRole: UserRole.Admin,
-                    isActive: true,
-                    isDeleted: false,
-                    createdOn: fixedDate,
-                    createdBy: "System",
-                    modifiedOn: fixedDate,
-                    modifiedBy: "System"
-                )
+                //User.AdminCreate(
+                //    id: adminId,
+                //    firstName: "Admin",
+                //    lastName: "User",
+                //    gender: Gender.Male,
+                //    dateOfBirth: new DateOnly(1990, 1, 1),
+                //    phoneNumber: "1234567890",
+                //    email: "admin@admin.com",
+                //    password: "Admin@123",
+                //    bio: "System Administrator",
+                //    userRole: Domain.Enums.UserRole.Admin, // Corrected type to match the expected enum  
+                //    isActive: true,
+                //    isDeleted: false,
+                //    createdOn: fixedDate,
+                //    createdBy: "System",
+                //    modifiedOn: fixedDate,
+                //    modifiedBy: "System"
+                //)
             );
         }
     }

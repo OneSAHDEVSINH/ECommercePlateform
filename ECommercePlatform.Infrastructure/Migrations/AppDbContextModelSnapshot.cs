@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ECommercePlatform.Server.Migrations.AppDb
+namespace ECommercePlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
@@ -17,12 +17,12 @@ namespace ECommercePlatform.Server.Migrations.AppDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Address", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Address", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,7 +92,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Category", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -135,7 +135,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.City", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.City", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -174,7 +174,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Cities");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Country", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Country", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -213,7 +213,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Countries");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Coupon", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Coupon", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -236,6 +236,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                         .HasColumnType("int");
 
                     b.Property<decimal>("DiscountValue")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsActive")
@@ -245,9 +246,11 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                         .HasColumnType("bit");
 
                     b.Property<decimal>("MaximumValue")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("MinimumValue")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ModifiedBy")
@@ -281,7 +284,55 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Coupons");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Order", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Module", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Route")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Modules");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -356,7 +407,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.OrderItem", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.OrderItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -369,7 +420,14 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Discount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
@@ -393,9 +451,11 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("VariantName")
@@ -412,7 +472,52 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleId");
+
+                    b.ToTable("Permissions");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -473,7 +578,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.ProductVariant", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.ProductVariant", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -501,10 +606,10 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("ProductId")
@@ -523,7 +628,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("ProductVariants");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Review", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Review", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -568,7 +673,83 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("Reviews");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.ShippingAddress", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.RolePermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RolePermissions");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.ShippingAddress", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -596,7 +777,6 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                         .HasColumnType("bit");
 
                     b.Property<string>("Line1")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Line2")
@@ -639,7 +819,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("ShippingAddresses");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.State", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.State", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -683,7 +863,7 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.ToTable("States");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.User", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -744,56 +924,71 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"),
-                            Bio = "System Administrator",
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            DateOfBirth = new DateOnly(1990, 1, 1),
-                            Email = "admin@admin.com",
-                            FirstName = "Admin",
-                            Gender = 0,
-                            IsActive = true,
-                            IsDeleted = false,
-                            LastName = "User",
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Password = "Admin@123",
-                            PhoneNumber = "1234567890",
-                            Role = 0
-                        });
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Address", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.UserRole", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.City", "City")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Address", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.City", "City")
                         .WithMany("Addresses")
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Country", "Country")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Country", "Country")
                         .WithMany("Addresses")
                         .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.State", "State")
+                    b.HasOne("ECommercePlatform.Domain.Entities.State", "State")
                         .WithMany("Addresses")
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.User", "User")
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
                         .WithMany("Addresses")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -808,9 +1003,9 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Category", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Category", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Category", "ParentCategory")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Category", "ParentCategory")
                         .WithMany("Subcategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -818,9 +1013,9 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("ParentCategory");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.City", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.City", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.State", "State")
+                    b.HasOne("ECommercePlatform.Domain.Entities.State", "State")
                         .WithMany("Cities")
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -829,13 +1024,13 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("State");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Coupon", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Coupon", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Product", "Product")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Product", "Product")
                         .WithMany("Coupons")
                         .HasForeignKey("ProductId");
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.ProductVariant", "ProductVariant")
+                    b.HasOne("ECommercePlatform.Domain.Entities.ProductVariant", "ProductVariant")
                         .WithMany()
                         .HasForeignKey("ProductVariantId");
 
@@ -844,19 +1039,19 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Order", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Coupon", "Coupon")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Coupon", "Coupon")
                         .WithMany("Orders")
                         .HasForeignKey("CouponId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.ShippingAddress", "ShippingAddress")
+                    b.HasOne("ECommercePlatform.Domain.Entities.ShippingAddress", "ShippingAddress")
                         .WithMany("Orders")
                         .HasForeignKey("ShippingAddressId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.User", "User")
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -869,21 +1064,21 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.OrderItem", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.OrderItem", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Order", "Order")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Product", "Product")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Product", "Product")
                         .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.ProductVariant", "ProductVariant")
+                    b.HasOne("ECommercePlatform.Domain.Entities.ProductVariant", "ProductVariant")
                         .WithMany("OrderItems")
                         .HasForeignKey("ProductVariantId");
 
@@ -894,9 +1089,20 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Permission", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Category", "Category")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Module", "Module")
+                        .WithMany("Permissions")
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Module");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Product", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -904,9 +1110,9 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.ProductVariant", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.ProductVariant", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Product", "Product")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Product", "Product")
                         .WithMany("Variants")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -915,15 +1121,15 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Review", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Review", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Product", "Product")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.User", "User")
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -934,27 +1140,46 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.ShippingAddress", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.RolePermission", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.City", "City")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ECommercePlatform.Domain.Entities.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.ShippingAddress", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Country", "Country")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Country", "Country")
                         .WithMany()
                         .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.State", "State")
+                    b.HasOne("ECommercePlatform.Domain.Entities.State", "State")
                         .WithMany()
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.User", "User")
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -969,9 +1194,9 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.State", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.State", b =>
                 {
-                    b.HasOne("ECommercePlatform.Server.Core.Domain.Entities.Country", "Country")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Country", "Country")
                         .WithMany("States")
                         .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -980,36 +1205,65 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("Country");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Category", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.UserRole", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.Role", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
 
                     b.Navigation("Subcategories");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.City", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.City", b =>
                 {
                     b.Navigation("Addresses");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Country", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Country", b =>
                 {
                     b.Navigation("Addresses");
 
                     b.Navigation("States");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Coupon", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Coupon", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Order", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Module", b =>
+                {
+                    b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.Product", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Product", b =>
                 {
                     b.Navigation("Coupons");
 
@@ -1020,30 +1274,39 @@ namespace ECommercePlatform.Server.Migrations.AppDb
                     b.Navigation("Variants");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.ProductVariant", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.ProductVariant", b =>
                 {
                     b.Navigation("OrderItems");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.ShippingAddress", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.ShippingAddress", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.State", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.State", b =>
                 {
                     b.Navigation("Addresses");
 
                     b.Navigation("Cities");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Server.Core.Domain.Entities.User", b =>
+            modelBuilder.Entity("ECommercePlatform.Domain.Entities.User", b =>
                 {
                     b.Navigation("Addresses");
 
                     b.Navigation("Orders");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

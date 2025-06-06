@@ -7,6 +7,8 @@ import { CityComponent } from './admin/city/city.component';
 import { authGuard } from './guards/auth.guard';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { AdminLayoutComponent } from './shared/admin-layout/admin-layout.component';
+import { RoleManagementComponent } from './admin/role-management/role-management.component';
+import { UserManagementComponent } from './admin/user-management/user-management.component';
 
 
 // Custom matcher to catch malformed URLs
@@ -71,6 +73,16 @@ export const routes: Routes = [
             path: 'cities',
             component: CityComponent,
             title: 'City Management'
+          },
+          {
+            path: 'roles',
+            component: RoleManagementComponent,
+            title: 'Role Management'
+          },
+          {
+            path: 'users',
+            component: UserManagementComponent,
+            title: 'User Management'
           },
           {
             path: '',

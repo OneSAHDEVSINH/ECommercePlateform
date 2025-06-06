@@ -1,4 +1,5 @@
 using ECommercePlatform.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommercePlatform.Domain.Entities
 {
@@ -13,10 +14,13 @@ namespace ECommercePlatform.Domain.Entities
         public string? Email { get; private set; }
         public string? Password { get; private set; }
         public string? Bio { get; private set; }
-        public UserRole Role { get; private set; }
+        [NotMapped]
+        public UserRole? Role { get; private set; }
         public ICollection<Address>? Addresses { get; set; }
         public ICollection<Order>? Orders { get; set; }
         public ICollection<Review>? Reviews { get; set; }
+        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
 
         // Replace 'With' method with a proper implementation  
         public User With(

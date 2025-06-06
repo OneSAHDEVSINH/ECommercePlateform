@@ -1,0 +1,299 @@
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Manage Users</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Users</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <!-- User Form Card -->
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit User' : 'Add New User' }}</h3>
+      </div>
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
+          <div class="row">
+            <!-- First Name -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text"
+                       id="firstName"
+                       formControlName="firstName"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('firstName')?.touched && userForm.get('firstName')?.errors}"
+                       placeholder="Enter first name">
+                <span *ngIf="userForm.get('firstName')?.touched && userForm.get('firstName')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('firstName')?.errors?.['required']">First name is required</span>
+                  <span *ngIf="userForm.get('firstName')?.errors?.['maxlength']">First name cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text"
+                       id="lastName"
+                       formControlName="lastName"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('lastName')?.touched && userForm.get('lastName')?.errors}"
+                       placeholder="Enter last name">
+                <span *ngIf="userForm.get('lastName')?.touched && userForm.get('lastName')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('lastName')?.errors?.['required']">Last name is required</span>
+                  <span *ngIf="userForm.get('lastName')?.errors?.['maxlength']">Last name cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Email -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email"
+                       id="email"
+                       formControlName="email"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('email')?.touched && userForm.get('email')?.errors}"
+                       placeholder="Enter email">
+                <span *ngIf="userForm.get('email')?.touched && userForm.get('email')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('email')?.errors?.['required']">Email is required</span>
+                  <span *ngIf="userForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+                  <span *ngIf="userForm.get('email')?.errors?.['maxlength']">Email cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="password">{{ isEditMode ? 'Password (leave blank to keep current)' : 'Password *' }}</label>
+                <input type="password"
+                       id="password"
+                       formControlName="password"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('password')?.touched && userForm.get('password')?.errors}"
+                       placeholder="Enter password">
+                <span *ngIf="userForm.get('password')?.touched && userForm.get('password')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('password')?.errors?.['required']">Password is required</span>
+                  <span *ngIf="userForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+                  <span *ngIf="userForm.get('password')?.errors?.['maxlength']">Password cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- System Role -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="role">System Role</label>
+                <select id="role"
+                        formControlName="role"
+                        class="form-control"
+                        [ngClass]="{'is-invalid': userForm.get('role')?.touched && userForm.get('role')?.errors}">
+                  <option *ngFor="let role of userRoles" [value]="role">{{ role }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Is Active -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Application Roles -->
+          <div *ngIf="availableRoles.length > 0" class="form-group">
+            <label>Assign Application Roles</label>
+            <div class="role-selection">
+              <div class="form-check" *ngFor="let role of availableRoles">
+                <input class="form-check-input" type="checkbox"
+                       [id]="'role-' + role.id"
+                       [checked]="isRoleSelected(role.id)"
+                       (change)="toggleRoleSelection(role.id)">
+                <label class="form-check-label" [for]="'role-' + role.id">
+                  {{ role.name }}
+                  <span class="text-muted" *ngIf="role.description">({{ role.description }})</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Card Footer -->
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid || loading">
+            <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} User
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()">
+            {{ isEditMode ? 'Cancel' : 'Reset' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Users List Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Users List</h3>
+      </div>
+      <div class="card-body">
+        <!-- Filters Row -->
+        <div class="row mb-3">
+          <!-- Search Box -->
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Search:</label>
+              <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Search users..."
+                       (input)="onSearchChange($event)"
+                       [value]="pageRequest.searchText || ''">
+                <div class="input-group-append">
+                  <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page Size -->
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Show entries:</label>
+              <select class="form-control" (change)="onPageSizeChange($event)">
+                <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
+                <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
+                <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
+                <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="users.length === 0 && !loading" class="alert alert-info">
+          <i class="icon fas fa-info"></i>
+          No users found. Please add a new user or adjust your search criteria.
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-responsive" *ngIf="users.length > 0">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th (click)="onSortChange('firstName')" class="sortable">
+                  Name
+                  <i *ngIf="pageRequest.sortColumn === 'firstName'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th (click)="onSortChange('email')" class="sortable">
+                  Email
+                  <i *ngIf="pageRequest.sortColumn === 'email'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th (click)="onSortChange('role')" class="sortable">
+                  System Role
+                  <i *ngIf="pageRequest.sortColumn === 'role'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th (click)="onSortChange('isActive')" class="sortable">
+                  Status
+                  <i *ngIf="pageRequest.sortColumn === 'isActive'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th style="width: 150px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of users">
+                <td>{{ user.firstName }} {{ user.lastName }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                  <span class="badge" [ngClass]="user.isActive ? 'bg-success' : 'bg-danger'">
+                    {{ user.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-info mr-1" (click)="editUser(user)"
+                          *appPermission="{ moduleRoute: 'admin/users', type: PermissionType.EDIT }">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)"
+                          *appPermission="{ moduleRoute: 'admin/users', type: PermissionType.DELETE }">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-3" *ngIf="pagedResponse">
+          <div class="col-sm-12 col-md-5">
+            <div class="dataTables_info">
+              Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
+              to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
+              of {{ pagedResponse.totalCount }} entries
+            </div>
+          </div>
+          <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers float-right">
+              <app-pagination *ngIf="pagedResponse.totalPages > 1"
+                              [totalPages]="pagedResponse.totalPages"
+                              [currentPage]="pagedResponse.pageNumber"
+                              (pageChange)="onPageChange($event)">
+              </app-pagination>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

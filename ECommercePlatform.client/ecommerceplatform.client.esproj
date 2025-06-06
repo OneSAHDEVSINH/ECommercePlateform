@@ -8,6 +8,8 @@
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\ECommercePlatform.client\browser\</BuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
+    <Folder Include="src\app\admin\shared\" />
     <Folder Include="src\app\Pipes\" />
+    <Folder Include="src\app\services\authorization\" />
   </ItemGroup>
 </Project>
