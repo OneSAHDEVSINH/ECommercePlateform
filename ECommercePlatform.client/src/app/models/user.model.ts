@@ -1,18 +1,11 @@
-export enum UserRole {
-  Admin = 'Admin',
-  Customer = 'Customer',
-  Vendor = 'Vendor',
-  Seller = 'Seller',
-  Guest = 'Guest'
-}
-
 export interface User {
   id?: string;
   firstName: string;
   lastName: string;
   email: string;
   password?: string;
-  role: UserRole;
+  //role: UserRole;
+  roles: string[]; //Role[] for more info
   isActive: boolean;
 }
 

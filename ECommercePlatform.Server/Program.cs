@@ -12,6 +12,7 @@ using ECommercePlatform.Application.Services;
 using ECommercePlatform.Infrastructure;
 using ECommercePlatform.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -53,7 +54,12 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IStateRepository, StateRepository>();
 builder.Services.AddScoped<ICityRepository, CityRepository>();
-
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
+builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 // Register services
 builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -117,7 +123,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    // Define the "Permission" policy
+    .AddPolicy("Permission", policy =>
+    {
+        policy.Requirements.Add(new PermissionRequirement("", ""));
+    })
+    // Set default policy that requires authentication
+    .SetDefaultPolicy(new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build());
 
 builder.Services.AddCors();
 builder.Services.AddDbContext<ECommercePlatform.Infrastructure.AppDbContext>(options =>

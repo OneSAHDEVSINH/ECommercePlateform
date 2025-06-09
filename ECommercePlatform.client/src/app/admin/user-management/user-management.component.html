@@ -253,7 +253,7 @@
               <tr *ngFor="let user of users">
                 <td>{{ user.firstName }} {{ user.lastName }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.role }}</td>
+                <td>{{ user.roles }}</td>
                 <td>
                   <span class="badge" [ngClass]="user.isActive ? 'bg-success' : 'bg-danger'">
                     {{ user.isActive ? 'Active' : 'Inactive' }}

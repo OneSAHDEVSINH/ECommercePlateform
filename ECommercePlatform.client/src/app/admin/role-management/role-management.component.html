@@ -100,68 +100,104 @@
     </div>
 
     <!-- Role Permissions Card (for editing) -->
-    <div *ngIf="isEditMode && currentRoleId" class="card card-info">
+    <!--<div *ngIf="isEditMode && currentRoleId" class="card card-info">
+    <div class="card-header">
+      <h3 class="card-title">Role Permissions</h3>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="savePermissions()">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 50px">Index</th>
+                <th>Module</th>
+                <th style="width: 90px">Select All</th>
+                <th style="width: 90px">View</th>
+                <th style="width: 90px">Add/Edit</th>
+                <th style="width: 90px">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let module of modules; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ module.name }}</td>
+                <td>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input"
+                           [id]="'selectAll-' + module.id"
+                           (change)="selectAllPermissions($event, module.id)">
+                    <label class="custom-control-label" [for]="'selectAll-' + module.id"></label>
+                  </div>
+                </td>
+                <td>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input"
+                           [id]="'view-' + module.id"
+                           [name]="'view-' + module.id">
+                    <label class="custom-control-label" [for]="'view-' + module.id"></label>
+                  </div>
+                </td>
+                <td>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input"
+                           [id]="'addEdit-' + module.id"
+                           [name]="'addEdit-' + module.id">
+                    <label class="custom-control-label" [for]="'addEdit-' + module.id"></label>
+                  </div>
+                </td>
+                <td>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input"
+                           [id]="'delete-' + module.id"
+                           [name]="'delete-' + module.id">
+                    <label class="custom-control-label" [for]="'delete-' + module.id"></label>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button type="submit" class="btn btn-info" [disabled]="loading">
+          <i class="fas fa-save"></i> Save Permissions
+        </button>
+      </form>
+    </div>
+  </div>-->
+    <!-- Role Permissions Matrix -->
+    <div class="card card-info mt-3">
       <div class="card-header">
         <h3 class="card-title">Role Permissions</h3>
       </div>
       <div class="card-body">
-        <form (ngSubmit)="savePermissions()">
-          <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-              <thead>
-                <tr>
-                  <th style="width: 50px">Index</th>
-                  <th>Module</th>
-                  <th style="width: 90px">Select All</th>
-                  <th style="width: 90px">View</th>
-                  <th style="width: 90px">Add/Edit</th>
-                  <th style="width: 90px">Delete</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let module of modules; let i = index">
-                  <td>{{ i + 1 }}</td>
-                  <td>{{ module.name }}</td>
-                  <td>
-                    <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input"
-                             [id]="'selectAll-' + module.id"
-                             (change)="selectAllPermissions($event, module.id)">
-                      <label class="custom-control-label" [for]="'selectAll-' + module.id"></label>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input"
-                             [id]="'view-' + module.id"
-                             [name]="'view-' + module.id">
-                      <label class="custom-control-label" [for]="'view-' + module.id"></label>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input"
-                             [id]="'addEdit-' + module.id"
-                             [name]="'addEdit-' + module.id">
-                      <label class="custom-control-label" [for]="'addEdit-' + module.id"></label>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input"
-                             [id]="'delete-' + module.id"
-                             [name]="'delete-' + module.id">
-                      <label class="custom-control-label" [for]="'delete-' + module.id"></label>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <button type="submit" class="btn btn-info" [disabled]="loading">
-            <i class="fas fa-save"></i> Save Permissions
-          </button>
-        </form>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 50px">Index</th>
+                <th>Module</th>
+                <th *ngFor="let perm of permissionTypes">{{ perm }}</th>
+                <th style="width: 90px">Select All</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let module of modules; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ module.name }}</td>
+                <td *ngFor="let perm of permissionTypes">
+                  <input type="checkbox"
+                         [checked]="isChecked(module.id, perm)"
+                         (change)="onPermissionChange(module.id, perm, $event)">
+                </td>
+                <td>
+                  <input type="checkbox"
+                         [checked]="areAllPermissionsChecked(module.id)"
+                         (change)="toggleAllPermissions(module.id, $event)">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

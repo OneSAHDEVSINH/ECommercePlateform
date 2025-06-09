@@ -5,8 +5,8 @@
         public Guid UserId { get; private set; }
         public Guid RoleId { get; private set; }
 
-        public User User { get; private set; }
-        public Role Role { get; private set; }
+        public User User { get; private set; } = null!;
+        public Role Role { get; private set; } = null!;
 
         // Private constructor for EF Core
         private UserRole() { }
@@ -22,9 +22,9 @@
                 UserId = userId,
                 RoleId = roleId,
                 CreatedBy = createdBy,
-                CreatedOn = DateTime.UtcNow,
+                CreatedOn = DateTime.Now,
                 ModifiedBy = createdBy,
-                ModifiedOn = DateTime.UtcNow,
+                ModifiedOn = DateTime.Now,
                 IsActive = true,
                 IsDeleted = false
             };

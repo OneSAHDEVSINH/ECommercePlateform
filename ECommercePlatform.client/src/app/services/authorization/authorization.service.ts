@@ -43,19 +43,19 @@ export class AuthorizationService {
   }
 
   hasViewPermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.View);
+    return this.checkPermission(moduleRoute, PermissionType.VIEW);
   }
 
   hasCreatePermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.Create);
+    return this.checkPermission(moduleRoute, PermissionType.ADD);
   }
 
   hasEditPermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.Edit);
+    return this.checkPermission(moduleRoute, PermissionType.EDIT);
   }
 
   hasDeletePermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.Delete);
+    return this.checkPermission(moduleRoute, PermissionType.DELETE);
   }
 
   clearCache(): void {

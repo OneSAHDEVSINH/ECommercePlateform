@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { RoleService } from '../../services/role/role.service';
 import { MessageService, Message } from '../../services/general/message.service';
-import { User, UserRole } from '../../models/user.model';
+import { User } from '../../models/user.model';
 import { Role, PermissionType } from '../../models/role.model';
 import { Subscription } from 'rxjs';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
@@ -38,7 +38,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   selectedRoles: string[] = [];
   availableRoles: Role[] = [];
 
-  userRoles = Object.values(UserRole);
+  userRoles = Object.values(this.roles);
   PermissionType = PermissionType;
   Math = Math;
 
@@ -88,7 +88,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       lastName: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       password: ['', [Validators.minLength(6), Validators.maxLength(100)]],
-      role: [UserRole.Customer, Validators.required],
+      role: [this.roles[0], Validators.required],
       isActive: [true]
     });
 
@@ -152,9 +152,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const userData: User = {
+    const userData: any = {
       ...this.userForm.value,
-      id: this.isEditMode && this.currentUserId ? this.currentUserId : undefined
+      id: this.isEditMode && this.currentUserId ? this.currentUserId : undefined,
+      roles: this.selectedRoles
     };
 
     this.loading = true;
@@ -245,7 +246,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
       isActive: user.isActive
     });
 
@@ -254,7 +255,18 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.userForm.get('password')?.clearValidators();
     this.userForm.get('password')?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
     this.userForm.get('password')?.updateValueAndValidity();
-
+    // Handle roles assignment
+    if (user.roles) {
+      // If user.roles is an array of objects with id property
+      if (user.roles.length > 0 && typeof user.roles[0] === 'object') {
+        this.selectedRoles = user.roles.map((role: any) => role.id || '');
+      } else {
+        // If user.roles is an array of strings
+        this.selectedRoles = [...user.roles];
+      }
+    } else {
+      this.selectedRoles = [];
+    }
     // Load user roles
     if (user.id) {
       this.loadUserRoles(user.id);
@@ -296,7 +308,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   resetForm(): void {
     this.userForm.reset({
-      role: UserRole.Customer,
       isActive: true
     });
     this.selectedRoles = [];
@@ -320,6 +331,12 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       this.selectedRoles.push(roleId);
     } else {
       this.selectedRoles.splice(index, 1);
+    }
+
+    if (this.selectedRoles.includes(roleId)) {
+      this.selectedRoles = this.selectedRoles.filter(id => id !== roleId);
+    } else {
+      this.selectedRoles.push(roleId);
     }
   }
 

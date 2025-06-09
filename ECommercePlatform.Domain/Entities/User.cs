@@ -1,5 +1,4 @@
 using ECommercePlatform.Domain.Enums;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommercePlatform.Domain.Entities
 {
@@ -14,7 +13,7 @@ namespace ECommercePlatform.Domain.Entities
         public string? Email { get; private set; }
         public string? Password { get; private set; }
         public string? Bio { get; private set; }
-        public UserRole? Role { get; private set; }
+        //public UserRole? Role { get; private set; }
         public ICollection<Address>? Addresses { get; set; }
         public ICollection<Order>? Orders { get; set; }
         public ICollection<Review>? Reviews { get; set; }
@@ -51,7 +50,7 @@ namespace ECommercePlatform.Domain.Entities
                 Email = email ?? this.Email,
                 Password = password ?? this.Password,
                 Bio = bio ?? this.Bio,
-                Role = role ?? this.Role,
+                //Role = role ?? this.Role,
                 Addresses = this.Addresses,
                 Orders = this.Orders,
                 Reviews = this.Reviews
@@ -89,7 +88,7 @@ namespace ECommercePlatform.Domain.Entities
                 Email = email,
                 Password = password,
                 Bio = bio,
-                Role = userRole,
+                //Role = userRole,
                 IsActive = isActive,
                 IsDeleted = isDeleted,
                 CreatedBy = createdBy,

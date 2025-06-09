@@ -316,7 +316,6 @@ namespace ECommercePlatform.Infrastructure
             var adminUserId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F");
             var adminRoleId = Guid.Parse("D4DE1B4D-B43B-4A55-B47A-1E92E71C3143");
             var userRoleId = Guid.Parse("F8B7B597-14FF-4B33-A8B3-0EA4DE9F9DAE");
-
             var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0);
 
             // Seed admin role - added IsActive property
@@ -346,7 +345,7 @@ namespace ECommercePlatform.Infrastructure
                     DateOfBirth = new DateOnly(1990, 1, 1),
                     PhoneNumber = "1234567890",
                     Email = "admin@admin.com",
-                    Password = "Admin@123",
+                    Password = "Admin@1234",
                     Bio = "System Administrator",
                     IsActive = true,
                     CreatedBy = "System",
@@ -372,6 +371,10 @@ namespace ECommercePlatform.Infrastructure
                     IsDeleted = false
                 }
             );
+
+            // Optionally: Seed all permissions and assign to admin role for full access
+            // (If you want to guarantee admin always has all permissions by default)
+            // You can add logic here to seed all permissions and role-permissions if needed.
         }
     }
 }

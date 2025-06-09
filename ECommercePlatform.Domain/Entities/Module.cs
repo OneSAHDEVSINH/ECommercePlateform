@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ECommercePlatform.Domain.Entities
+﻿namespace ECommercePlatform.Domain.Entities
 {
     public class Module : BaseEntity
     {
-        public string Name { get; private set; }
-        public string Description { get; private set; }
-        public string Route { get; private set; }
-        public string Icon { get; private set; }
+        public string? Name { get; private set; }
+        public string? Description { get; private set; }
+        public string? Route { get; private set; }
+        public string? Icon { get; private set; }
         public int DisplayOrder { get; private set; }
 
         public ICollection<Permission> Permissions { get; private set; } = new List<Permission>();
@@ -30,9 +27,9 @@ namespace ECommercePlatform.Domain.Entities
                 Icon = icon,
                 DisplayOrder = displayOrder,
                 CreatedBy = createdBy,
-                CreatedOn = DateTime.UtcNow,
+                CreatedOn = DateTime.Now,
                 ModifiedBy = createdBy,
-                ModifiedOn = DateTime.UtcNow,
+                ModifiedOn = DateTime.Now,
                 IsActive = true,
                 IsDeleted = false
             };

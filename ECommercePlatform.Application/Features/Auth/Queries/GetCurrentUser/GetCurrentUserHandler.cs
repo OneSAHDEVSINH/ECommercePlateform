@@ -24,14 +24,29 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
                 if (user == null)
                     return AppResult<UserDto>.Failure("User not found");
 
+                // Get user roles
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+                var allRoles = await _unitOfWork.Roles.GetAllAsync();
+                var rolesDto = userRoles.Select(ur =>
+                {
+                    var role = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
+                    return new RoleDto
+                    {
+                        Id = role.Id,
+                        Name = role.Name,
+                        Description = role.Description,
+                        IsActive = role.IsActive
+                    };
+                }).ToList();
+
                 var userDto = new UserDto
                 {
-                    Id = user.Id.ToString(),
+                    Id = user.Id,  // Keep as Guid instead of converting to string
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
-                    Role = user.Role.ToString(),
-                    IsActive = user.IsActive
+                    IsActive = user.IsActive,
+                    Roles = rolesDto  // Set the Roles collection instead of a single role
                 };
 
                 return AppResult<UserDto>.Success(userDto);

@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Features.States.Commands.Create;
+﻿using ECommercePlatform.API.Middleware;
+using ECommercePlatform.Application.Features.States.Commands.Create;
 using ECommercePlatform.Application.Features.States.Commands.Delete;
 using ECommercePlatform.Application.Features.States.Commands.Update;
 using ECommercePlatform.Application.Features.States.Queries.GetAllStates;
@@ -6,7 +7,6 @@ using ECommercePlatform.Application.Features.States.Queries.GetPagedStates;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesByCountry;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesById;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.API.Controllers
@@ -18,6 +18,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
+        [HasPermission("State", "View")]
         public async Task<IActionResult> GetAllStates()
         {
             var result = await _mediator.Send(new GetAllStatesQuery());
@@ -40,6 +41,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
+        //[HasPermission("State", "View")]
         public async Task<IActionResult> GetStateById(Guid id)
         {
             var result = await _mediator.Send(new GetStateByIdQuery(id));
@@ -51,7 +53,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [HasPermission("State", "Create")]
         public async Task<IActionResult> CreateState([FromBody] CreateStateCommand command)
         {
             var result = await _mediator.Send(command);
@@ -63,7 +66,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [HasPermission("State", "Edit")]
         public async Task<IActionResult> UpdateState(Guid id, [FromBody] UpdateStateCommand command)
         {
             if (id != command.Id)
@@ -80,7 +84,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [HasPermission("State", "Delete")]
         public async Task<IActionResult> DeleteState(Guid id)
         {
             var result = await _mediator.Send(new DeleteStateCommand(id));

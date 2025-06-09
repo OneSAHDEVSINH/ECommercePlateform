@@ -10,6 +10,5 @@
   <ItemGroup>
     <Folder Include="src\app\admin\shared\" />
     <Folder Include="src\app\Pipes\" />
-    <Folder Include="src\app\services\authorization\" />
   </ItemGroup>
 </Project>

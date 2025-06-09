@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-
-namespace ECommercePlatform.Domain.Entities
+﻿namespace ECommercePlatform.Domain.Entities
 {
     public class Permission : BaseEntity
     {
@@ -37,9 +33,9 @@ namespace ECommercePlatform.Domain.Entities
                 Type = type,
                 ModuleId = moduleId,
                 CreatedBy = createdBy,
-                CreatedOn = DateTime.UtcNow,
+                CreatedOn = DateTime.Now,
                 ModifiedBy = createdBy,
-                ModifiedOn = DateTime.UtcNow,
+                ModifiedOn = DateTime.Now,
                 IsActive = true,
                 IsDeleted = false
             };

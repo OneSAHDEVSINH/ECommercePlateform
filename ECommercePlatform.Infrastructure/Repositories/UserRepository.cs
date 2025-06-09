@@ -26,5 +26,31 @@ namespace ECommercePlatform.Infrastructure.Repositories
         {
             return !await _context.Users.AnyAsync(u => u.Email == email);
         }
+
+        //public new async Task<User> GetByIdAsync(Guid id)
+        //{
+        //    return await _context.Users
+        //        .Include(u => u.UserRoles)
+        //            .ThenInclude(ur => ur.Role)
+        //        .FirstOrDefaultAsync(u => u.Id == id)
+        //         ?? throw new InvalidOperationException("User not found.");
+        //}
+
+        public async Task<User> FindUserWithRolesByEmailAsync(string email)
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive && !u.IsDeleted)
+                 ?? throw new InvalidOperationException("User not found.");
+        }
+
+        public new async Task<List<User>> GetAllAsync()
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .ToListAsync();
+        }
     }
 }

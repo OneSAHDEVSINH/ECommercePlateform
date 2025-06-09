@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Features.Cities.Commands.Create;
+﻿using ECommercePlatform.API.Middleware;
+using ECommercePlatform.Application.Features.Cities.Commands.Create;
 using ECommercePlatform.Application.Features.Cities.Commands.Delete;
 using ECommercePlatform.Application.Features.Cities.Commands.Update;
 using ECommercePlatform.Application.Features.Cities.Queries.GetAllCities;
@@ -6,7 +7,6 @@ using ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCityById;
 using ECommercePlatform.Application.Features.Cities.Queries.GetPagedCities;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.API.Controllers
@@ -18,6 +18,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
+        [HasPermission("City", "View")]
         public async Task<IActionResult> GetAllCities()
         {
             var result = await _mediator.Send(new GetAllCitiesQuery());
@@ -40,6 +41,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
+        //[HasPermission("City", "View")]
         public async Task<IActionResult> GetCityById(Guid id)
         {
             var result = await _mediator.Send(new GetCityByIdQuery(id));
@@ -51,7 +53,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [HasPermission("City", "Create")]
         public async Task<IActionResult> CreateCity([FromBody] CreateCityCommand command)
         {
             var result = await _mediator.Send(command);
@@ -63,7 +66,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [HasPermission("City", "Edit")]
         public async Task<IActionResult> UpdateCity(Guid id, [FromBody] UpdateCityCommand command)
         {
             if (id != command.Id)
@@ -80,7 +84,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [HasPermission("City", "Delete")]
         public async Task<IActionResult> DeleteCity(Guid id)
         {
             var result = await _mediator.Send(new DeleteCityCommand(id));

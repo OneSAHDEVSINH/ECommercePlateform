@@ -20,7 +20,7 @@ import { PermissionDirective } from '../../directives/permission.directive';
     CommonModule,
     ReactiveFormsModule,
     PaginationComponent,
-    PermissionDirective,
+    //PermissionDirective,
     RouterModule
   ]
 })
@@ -35,6 +35,8 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
   message: Message | null = null;
   //permissionTypes = Object.values(PermissionType);
   PermissionType = PermissionType;
+  permissionTypes = [PermissionType.VIEW, PermissionType.ADD, PermissionType.EDIT, PermissionType.DELETE];
+  selectedPermissions: { moduleId: string, permissionType: string }[] = [];
   Math = Math;
 
   // Pagination properties
@@ -120,6 +122,21 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     this.subscriptions.push(sub);
   }
 
+  isChecked(moduleId: string, perm: string): boolean {
+    return this.selectedPermissions.some(p => p.moduleId === moduleId && p.permissionType === perm);
+  }
+
+  onPermissionChange(moduleId: string, perm: string, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      this.selectedPermissions.push({ moduleId, permissionType: perm });
+    } else {
+      this.selectedPermissions = this.selectedPermissions.filter(
+        p => !(p.moduleId === moduleId && p.permissionType === perm)
+      );
+    }
+  }
+
   onSubmit(): void {
     if (this.roleForm.invalid) {
       return;
@@ -185,9 +202,16 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
       isActive: role.isActive
     });
 
-    // Load role permissions if editing
-    if (role.id) {
-      this.loadRolePermissions(role.id);
+    //// Load role permissions if editing
+    //if (role.id) {
+    //  this.loadRolePermissions(role.id);
+    //}
+
+    this.selectedPermissions = [];
+    if (role.permissions) {
+      role.permissions.forEach((perm: any) => {
+        this.selectedPermissions.push({ moduleId: perm.moduleId, permissionType: perm.permissionType });
+      });
     }
 
     this.messageService.scrollToTop();
@@ -325,10 +349,21 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     });
     this.isEditMode = false;
     this.currentRoleId = null;
+    this.selectedPermissions = [];
   }
 
   private getUserIdentifier(): string {
     return this.currentUser ? this.currentUser.id || this.currentUser.email : 'system';
+  }
+
+  // Helper methods to replace arrow functions in the template
+  areAllPermissionsChecked(moduleId: string): boolean {
+    return this.permissionTypes.every(perm => this.isChecked(moduleId, perm));
+  }
+
+  toggleAllPermissions(moduleId: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.permissionTypes.forEach(perm => this.onPermissionChange(moduleId, perm, event));
   }
 
   // Pagination methods

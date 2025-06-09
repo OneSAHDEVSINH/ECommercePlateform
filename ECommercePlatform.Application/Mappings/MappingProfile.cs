@@ -47,8 +47,8 @@ namespace ECommercePlatform.Application.Mappings
 
             // User mappings
             CreateMap<User, UserDto>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()));
+            //.ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
         }
     }
 }

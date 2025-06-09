@@ -8,5 +8,7 @@ namespace ECommercePlatform.Application.Interfaces.IUserAuth
         Task<User> FindUserByEmailAndPasswordAsync(string email, string password);
         Task<User> FindUserByEmailAsync(string email);
         Task<bool> IsEmailUniqueAsync(string email);
+        Task<User> FindUserWithRolesByEmailAsync(string email);
+        new Task<List<User>> GetAllAsync();
     }
 }

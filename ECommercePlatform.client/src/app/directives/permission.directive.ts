@@ -61,3 +61,25 @@ export class PermissionDirective implements OnInit, OnDestroy {
     }
   }
 }
+
+//import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
+//import { PermissionService } from '../services/authorization/permission.service';
+
+//@Directive({
+//  selector: '[appHasPermission]'
+//})
+//export class PermissionDirective {
+//  @Input('appHasPermission') set permission([module, permission]: [string, string]) {
+//    if (this.permissionService.hasPermission(module, permission)) {
+//      this.viewContainer.createEmbeddedView(this.templateRef);
+//    } else {
+//      this.viewContainer.clear();
+//    }
+//  }
+
+//  constructor(
+//    private templateRef: TemplateRef<any>,
+//    private viewContainer: ViewContainerRef,
+//    private permissionService: PermissionService
+//  ) { }
+//}

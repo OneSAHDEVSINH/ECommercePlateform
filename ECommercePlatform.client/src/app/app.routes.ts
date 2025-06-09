@@ -9,6 +9,7 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 import { AdminLayoutComponent } from './shared/admin-layout/admin-layout.component';
 import { RoleManagementComponent } from './admin/role-management/role-management.component';
 import { UserManagementComponent } from './admin/user-management/user-management.component';
+import { PermissionGuard } from './guards/permission.guard';
 
 
 // Custom matcher to catch malformed URLs

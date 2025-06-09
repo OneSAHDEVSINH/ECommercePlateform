@@ -2,18 +2,20 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 //import { HttpClientModule } from '@angular/common/http';
-import { AdminRoutingModule } from './admin-routing.module';
+//routing.module';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { CountryComponent } from './country/country.component';
 import { StateComponent } from './state/state.component';
 import { CityComponent } from './city/city.component';
 import { AdminLayoutComponent } from '../shared/admin-layout/admin-layout.component';
+import { RoleManagementComponent } from './role-management/role-management.component';
+import { UserManagementComponent } from './user-management/user-management.component';
 
 @NgModule({
   imports: [
     CommonModule,
-    AdminRoutingModule,
+    //AdminRoutingModule,
     ReactiveFormsModule,
     //HttpClientModule,
     // Import standalone components
@@ -22,7 +24,9 @@ import { AdminLayoutComponent } from '../shared/admin-layout/admin-layout.compon
     CountryComponent,
     StateComponent,
     CityComponent,
-    AdminLayoutComponent
+    AdminLayoutComponent,
+    UserManagementComponent,
+    RoleManagementComponent
   ]
 })
 export class AdminModule { }

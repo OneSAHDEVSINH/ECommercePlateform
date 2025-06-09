@@ -325,7 +325,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       password: this.f['password'].value
     }).subscribe({
       next: (response) => {
-        if (response.user.role === 'Admin') {
+        if (response.user.roles.includes('Admin')) {
           // Ensure returnUrl is valid before navigating
           try {
             // This will throw if URL is malformed

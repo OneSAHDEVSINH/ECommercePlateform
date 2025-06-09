@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ECommercePlatform.Domain.Entities
+﻿namespace ECommercePlatform.Domain.Entities
 {
     public class RolePermission : BaseEntity
     {
@@ -21,9 +19,9 @@ namespace ECommercePlatform.Domain.Entities
                 RoleId = roleId,
                 PermissionId = permissionId,
                 CreatedBy = createdBy,
-                CreatedOn = DateTime.UtcNow,
+                CreatedOn = DateTime.Now,
                 ModifiedBy = createdBy,
-                ModifiedOn = DateTime.UtcNow,
+                ModifiedOn = DateTime.Now,
                 IsActive = true,
                 IsDeleted = false
             };

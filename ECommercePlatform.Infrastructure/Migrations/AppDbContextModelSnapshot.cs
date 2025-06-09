@@ -297,14 +297,12 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
                     b.Property<string>("Icon")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
@@ -320,11 +318,9 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Route")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -686,7 +682,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
@@ -702,7 +697,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -958,7 +952,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                             LastName = "User",
                             ModifiedBy = "System",
                             ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Password = "Admin@123",
+                            Password = "Admin@1234",
                             PhoneNumber = "1234567890"
                         });
                 });
@@ -993,18 +987,11 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UserId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1")
-                        .IsUnique()
-                        .HasFilter("[UserId1] IS NOT NULL");
 
                     b.ToTable("UserRoles");
 
@@ -1274,10 +1261,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ECommercePlatform.Domain.Entities.User", null)
-                        .WithOne("Role")
-                        .HasForeignKey("ECommercePlatform.Domain.Entities.UserRole", "UserId1");
-
                     b.Navigation("Role");
 
                     b.Navigation("User");
@@ -1364,8 +1347,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("Role");
 
                     b.Navigation("UserRoles");
                 });

@@ -16,6 +16,11 @@ namespace ECommercePlatform.Infrastructure
         private IProductRepository? _productRepository;
         private IStateRepository? _stateRepository;
         private ICityRepository? _cityRepository;
+        private IRolePermissionRepository? _rolePermissionRepository;
+        private IModuleRepository? _moduleRepository;
+        private IPermissionRepository? _permissionRepository;
+        private IRoleRepository? _roleRepository;
+        private IUserRoleRepository? _userRoleRepository;
 
         public ICountryRepository Countries => _countryRepository ??= new CountryRepository(_context);
 
@@ -27,7 +32,22 @@ namespace ECommercePlatform.Infrastructure
 
         public ICityRepository Cities => _cityRepository ??= new CityRepository(_context);
 
+        public IRolePermissionRepository RolePermissions => _rolePermissionRepository ??= new RolePermissionRepository(_context);
+
+        public IModuleRepository Modules => _moduleRepository ??= new ModuleRepository(_context);
+
+        public IPermissionRepository Permissions => _permissionRepository ??= new PermissionRepository(_context);
+
+        public IRoleRepository Roles => _roleRepository ??= new RoleRepository(_context);
+
+        public IUserRoleRepository UserRoles => _userRoleRepository ??= new UserRoleRepository(_context);
+
         public async Task<int> CompleteAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
         }
