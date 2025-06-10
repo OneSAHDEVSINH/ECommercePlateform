@@ -46,8 +46,13 @@ namespace ECommercePlatform.API.Middleware
             var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var emailClaim = context.User.FindFirst(ClaimTypes.Email)?.Value;
             var isSuperAdmin = context.User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true");
+
+            Console.WriteLine($"AUTH DEBUG: User ID: {userIdClaim}, Email: {emailClaim}, IsSuperAdmin: {isSuperAdmin}");
+            Console.WriteLine($"AUTH DEBUG: Module: {requirement.Module}, Permission: {requirement.Permission}");
+
             if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
+                Console.WriteLine("AUTH DEBUG: No valid user ID found");
                 context.Fail();
                 return;
             }
@@ -55,6 +60,7 @@ namespace ECommercePlatform.API.Middleware
             // Super admin bypass
             if (isSuperAdmin || (emailClaim != null && emailClaim.ToLower() == "admin@admin.com"))
             {
+                Console.WriteLine("AUTH DEBUG: Admin bypass activated");
                 context.Succeed(requirement);
                 return;
             }

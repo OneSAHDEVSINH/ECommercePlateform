@@ -111,7 +111,7 @@ namespace ECommercePlatform.Application.Services
             }
 
             // Optionally: Add SuperAdmin claim if this is the seeded admin
-            if (user.Email == "admin@admin.com")
+            if (user.Email?.ToLower() == "admin@admin.com")
             {
                 claims.Add(new Claim("SuperAdmin", "true"));
             }

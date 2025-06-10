@@ -312,6 +312,50 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.showPassword = !this.showPassword;
   }
 
+  //onSubmit(): void {
+  //  if (this.loginForm.invalid) {
+  //    return;
+  //  }
+
+  //  this.loading = true;
+  //  this.errorMessage = '';
+
+  //  this.authService.login({
+  //    email: this.f['email'].value,
+  //    password: this.f['password'].value
+  //  }).subscribe({
+  //    next: (response) => {
+  //      console.log('Auth response:', response);
+  //      if (response.user.roles.includes('Admin')) {
+  //        // Ensure returnUrl is valid before navigating
+  //        try {
+  //          // This will throw if URL is malformed
+  //          const url = new URL(this.returnUrl, window.location.origin);
+  //          this.router.navigate([this.returnUrl]);
+  //        } catch (e) {
+  //          // If URL is malformed, go to default dashboard
+  //          console.error('Invalid return URL:', this.returnUrl);
+  //          this.router.navigate(['/admin/dashboard']);
+  //        }
+  //      } else {
+  //        this.loading = false;
+  //        this.errorMessage = 'Access denied. Administrators only.';
+  //        setTimeout(() => {
+  //          this.errorMessage = '';
+  //        }, 25000);
+  //        this.authService.logout();
+  //      }
+  //    },
+  //    error: (error) => {
+  //      this.loading = false;
+  //      this.errorMessage = error.error?.message || 'Invalid credentials';
+  //      setTimeout(() => {
+  //        this.errorMessage = '';
+  //      }, 2500);
+  //    }
+  //  });
+  //}
+
   onSubmit(): void {
     if (this.loginForm.invalid) {
       return;
@@ -325,14 +369,32 @@ export class LoginComponent implements OnInit, OnDestroy {
       password: this.f['password'].value
     }).subscribe({
       next: (response) => {
-        if (response.user.roles.includes('Admin')) {
-          // Ensure returnUrl is valid before navigating
+        console.log('Auth response:', response);
+
+        // Check if the user has Admin role by checking the actual structure
+        let isAdmin = false;
+
+        // Check for role in various formats
+        if (response.user.roles) {
+          // If roles is an array of objects
+          if (Array.isArray(response.user.roles) && typeof response.user.roles[0] === 'object') {
+            isAdmin = response.user.roles.some((role: any) => role.name === 'Admin');
+          }
+          // If roles is an array of strings
+          else if (Array.isArray(response.user.roles)) {
+            isAdmin = response.user.roles.includes('Admin');
+          }
+        }
+        // Legacy check for role property (not roles)
+        else if (response.user.roles === 'Admin') {
+          isAdmin = true;
+        }
+
+        if (isAdmin) {
           try {
-            // This will throw if URL is malformed
             const url = new URL(this.returnUrl, window.location.origin);
             this.router.navigate([this.returnUrl]);
           } catch (e) {
-            // If URL is malformed, go to default dashboard
             console.error('Invalid return URL:', this.returnUrl);
             this.router.navigate(['/admin/dashboard']);
           }
@@ -341,7 +403,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.errorMessage = 'Access denied. Administrators only.';
           setTimeout(() => {
             this.errorMessage = '';
-          }, 2500);
+          }, 5000);
           this.authService.logout();
         }
       },

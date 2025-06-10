@@ -2,6 +2,7 @@ using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using static ECommercePlatform.Domain.Entities.Permission;
 
 namespace ECommercePlatform.Infrastructure
 {
@@ -318,14 +319,14 @@ namespace ECommercePlatform.Infrastructure
             var userRoleId = Guid.Parse("F8B7B597-14FF-4B33-A8B3-0EA4DE9F9DAE");
             var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0);
 
-            // Seed admin role - added IsActive property
+            // Seed admin role
             modelBuilder.Entity<Role>().HasData(
                 new
                 {
                     Id = adminRoleId,
                     Name = "Admin",
                     Description = "Administrator role with all permissions",
-                    IsActive = true,  // Added missing required property
+                    IsActive = true,
                     CreatedBy = "System",
                     CreatedOn = fixedDate,
                     ModifiedBy = "System",
@@ -334,7 +335,7 @@ namespace ECommercePlatform.Infrastructure
                 }
             );
 
-            // Seed admin user (without setting the Role navigation property)
+            // Seed admin user
             modelBuilder.Entity<User>().HasData(
                 new
                 {
@@ -356,14 +357,158 @@ namespace ECommercePlatform.Infrastructure
                 }
             );
 
-            // Seed the user-role relationship separately
+            // Seed the user-role relationship
             modelBuilder.Entity<UserRole>().HasData(
                 new
                 {
                     Id = userRoleId,
                     UserId = adminUserId,
                     RoleId = adminRoleId,
-                    IsActive = true,  // Added missing required property
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                }
+            );
+
+            var dashboardModuleId = Guid.Parse("8160be48-f4fd-4905-879b-e8038d64fde8");
+            var usersModuleId = Guid.Parse("5d24ad3c-1189-43cc-a823-e882d84edb53");
+            var rolesModuleId = Guid.Parse("666c62d8-94fd-4d1e-a98c-d783e97bdbac");
+
+            // Seed default modules
+            modelBuilder.Entity<Module>().HasData(
+                new
+                {
+                    Id = dashboardModuleId,
+                    Name = "Dashboard",
+                    Route = "dashboard",
+                    Description = "Main admin dashboard",
+                    DisplayOrder = 1,
+                    Icon = "fas fa-tachometer-alt",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = usersModuleId,
+                    Name = "Users",
+                    Route = "users",
+                    Description = "User management",
+                    DisplayOrder = 2,
+                    Icon = "fas fa-users",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = rolesModuleId,
+                    Name = "Roles",
+                    Route = "roles",
+                    Description = "Role management",
+                    DisplayOrder = 3,
+                    Icon = "fas fa-user-shield",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                }
+            );
+
+            // Generate permission IDs
+            var dashboardViewId = Guid.Parse("565c7647-7611-4d34-ae76-5eba0d4e1822");
+            var usersViewId = Guid.Parse("bf2f6ca5-dac3-4725-9407-c713a88ed19b");
+            var rolesViewId = Guid.Parse("b684f1b4-0c54-466f-ba92-5e575061318b");
+
+            // Seed basic permissions with enum values
+            modelBuilder.Entity<Permission>().HasData(
+                new
+                {
+                    Id = dashboardViewId,
+                    Name = "View Dashboard",
+                    Description = "Permission to view the admin dashboard",
+                    Type = PermissionType.View,  // Using enum instead of 0
+                    ModuleId = dashboardModuleId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = usersViewId,
+                    Name = "View Users",
+                    Description = "Permission to view users",
+                    Type = PermissionType.View,  // Using enum instead of 0
+                    ModuleId = usersModuleId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = rolesViewId,
+                    Name = "View Roles",
+                    Description = "Permission to view roles",
+                    Type = PermissionType.View,  // Using enum instead of 0
+                    ModuleId = rolesModuleId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                }
+            );
+
+            // Assign permissions to admin role
+            modelBuilder.Entity<RolePermission>().HasData(
+                new
+                {
+                    Id = Guid.Parse("54477EED-7960-4F78-9212-D6B3446A3553"),
+                    RoleId = adminRoleId,
+                    PermissionId = dashboardViewId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = Guid.Parse("5FD34CD1-368F-4FDA-A626-79C2E5C37B1A"),
+                    RoleId = adminRoleId,
+                    PermissionId = usersViewId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = Guid.Parse("C16E7C9B-ED37-401D-BF52-4C52BE030451"),
+                    RoleId = adminRoleId,
+                    PermissionId = rolesViewId,
+                    IsActive = true,
                     CreatedBy = "System",
                     CreatedOn = fixedDate,
                     ModifiedBy = "System",

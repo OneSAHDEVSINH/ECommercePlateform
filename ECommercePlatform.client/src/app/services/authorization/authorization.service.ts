@@ -9,7 +9,7 @@ import { PermissionType } from '../../models/role.model';
   providedIn: 'root'
 })
 export class AuthorizationService {
-  private apiUrl = `${environment.apiUrl}/api/authorization`;
+  private apiUrl = `${environment.apiUrl}/authorization`;
   private cachedPermissions: Record<string, boolean> = {};
 
   constructor(
@@ -18,11 +18,23 @@ export class AuthorizationService {
   ) { }
 
   checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
+
+    // Special case for dashboard - always allow
+    //if (moduleRoute === 'dashboard') {
+    //  return of(true);
+    //}
+
     const cacheKey = `${moduleRoute}-${permissionType}`;
 
     // Return cached result if available
     if (this.cachedPermissions[cacheKey] !== undefined) {
       return of(this.cachedPermissions[cacheKey]);
+    }
+
+    // For super admin, always allow access
+    if (this.authService.isSuperAdmin()) {
+      this.cachedPermissions[cacheKey] = true;
+      return of(true);
     }
 
     return this.http.get<boolean>(`${this.apiUrl}/check`, {
@@ -36,6 +48,12 @@ export class AuthorizationService {
         return hasPermission;
       }),
       catchError(() => {
+        console.warn(`Permission check error for ${moduleRoute}-${permissionType}:`, Error);
+        // Default to true for dashboard or if super admin
+        //if (moduleRoute === 'dashboard' || this.authService.isSuperAdmin()) {
+        //  this.cachedPermissions[cacheKey] = true;
+        //  return of(true);
+        //}
         this.cachedPermissions[cacheKey] = false;
         return of(false);
       })

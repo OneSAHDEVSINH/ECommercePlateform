@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250609103621_InitialCreate")]
+    [Migration("20250610062341_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -329,6 +329,53 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Modules");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Main admin dashboard",
+                            DisplayOrder = 1,
+                            Icon = "fas fa-tachometer-alt",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Dashboard",
+                            Route = "dashboard"
+                        },
+                        new
+                        {
+                            Id = new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "User management",
+                            DisplayOrder = 2,
+                            Icon = "fas fa-users",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Users",
+                            Route = "users"
+                        },
+                        new
+                        {
+                            Id = new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Role management",
+                            DisplayOrder = 3,
+                            Icon = "fas fa-user-shield",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Roles",
+                            Route = "roles"
+                        });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Order", b =>
@@ -514,6 +561,50 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasIndex("ModuleId");
 
                     b.ToTable("Permissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Permission to view the admin dashboard",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModuleId = new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"),
+                            Name = "View Dashboard",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Permission to view users",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModuleId = new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"),
+                            Name = "View Users",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Permission to view roles",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModuleId = new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"),
+                            Name = "View Roles",
+                            Type = 0
+                        });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Product", b =>
@@ -758,6 +849,44 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("RolePermissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("54477eed-7960-4f78-9212-d6b3446a3553"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            PermissionId = new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
+                        },
+                        new
+                        {
+                            Id = new Guid("5fd34cd1-368f-4fda-a626-79c2e5c37b1a"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            PermissionId = new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
+                        },
+                        new
+                        {
+                            Id = new Guid("c16e7c9b-ed37-401d-bf52-4c52be030451"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            PermissionId = new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
+                        });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.ShippingAddress", b =>

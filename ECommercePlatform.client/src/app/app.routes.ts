@@ -10,6 +10,7 @@ import { AdminLayoutComponent } from './shared/admin-layout/admin-layout.compone
 import { RoleManagementComponent } from './admin/role-management/role-management.component';
 import { UserManagementComponent } from './admin/user-management/user-management.component';
 import { PermissionGuard } from './guards/permission.guard';
+import { PermissionType } from './models/role.model';
 
 
 // Custom matcher to catch malformed URLs
@@ -32,7 +33,6 @@ function malformedUrlMatcher(url: UrlSegment[]) {
 }
 
 export const routes: Routes = [
-
   {
     matcher: malformedUrlMatcher,
     component: PageNotFoundComponent
@@ -53,37 +53,61 @@ export const routes: Routes = [
       {
         path: '',
         component: AdminLayoutComponent,
-        canActivate: [authGuard],
+        canActivate: [PermissionGuard],
         children: [
           {
             path: 'dashboard',
             component: DashboardComponent,
-            title: 'Admin Dashboard'
+            title: 'Admin Dashboard',
+            // Dashboard is exempt from specific permission checks
+            data: { exempt: true }
           },
           {
             path: 'countries',
             component: CountryComponent,
-            title: 'Country Management'
+            title: 'Country Management',
+            data: {
+              moduleRoute: 'countries',
+              permission: PermissionType.VIEW
+            }
           },
           {
             path: 'states',
             component: StateComponent,
-            title: 'State Management'
+            title: 'State Management',
+            data: {
+              moduleRoute: 'states',
+              permission: PermissionType.VIEW
+            }
           },
           {
             path: 'cities',
             component: CityComponent,
-            title: 'City Management'
+            title: 'City Management',
+            data: {
+              moduleRoute: 'cities',
+              permission: PermissionType.VIEW
+            }
           },
           {
             path: 'roles',
             component: RoleManagementComponent,
-            title: 'Role Management'
+            title: 'Role Management',
+            data: {
+              moduleRoute: 'roles',
+              permission: PermissionType.VIEW,
+              adminOnly: true // Special flag for admin-only sections
+            }
           },
           {
             path: 'users',
             component: UserManagementComponent,
-            title: 'User Management'
+            title: 'User Management',
+            data: {
+              moduleRoute: 'users',
+              permission: PermissionType.VIEW,
+              adminOnly: true
+            }
           },
           {
             path: '',
@@ -100,6 +124,76 @@ export const routes: Routes = [
     title: '404 - Page not found'
   }
 ];
+
+//export const routes: Routes = [
+
+//  {
+//    matcher: malformedUrlMatcher,
+//    component: PageNotFoundComponent
+//  },
+//  {
+//    path: '',
+//    redirectTo: 'admin/login',
+//    pathMatch: 'full'
+//  },
+//  {
+//    path: 'admin',
+//    children: [
+//      {
+//        path: 'login',
+//        component: LoginComponent,
+//        title: 'Admin Login'
+//      },
+//      {
+//        path: '',
+//        component: AdminLayoutComponent,
+//        canActivate: [PermissionGuard],
+//        children: [
+//          {
+//            path: 'dashboard',
+//            component: DashboardComponent,
+//            title: 'Admin Dashboard'
+//          },
+//          {
+//            path: 'countries',
+//            component: CountryComponent,
+//            title: 'Country Management'
+//          },
+//          {
+//            path: 'states',
+//            component: StateComponent,
+//            title: 'State Management'
+//          },
+//          {
+//            path: 'cities',
+//            component: CityComponent,
+//            title: 'City Management'
+//          },
+//          {
+//            path: 'roles',
+//            component: RoleManagementComponent,
+//            title: 'Role Management'
+//          },
+//          {
+//            path: 'users',
+//            component: UserManagementComponent,
+//            title: 'User Management'
+//          },
+//          {
+//            path: '',
+//            redirectTo: 'dashboard',
+//            pathMatch: 'full'
+//          }
+//        ]
+//      }
+//    ]
+//  },
+//  {
+//    path: '**',
+//    component: PageNotFoundComponent,
+//    title: '404 - Page not found'
+//  }
+//];
 
 
 //export const routes: Routes = [

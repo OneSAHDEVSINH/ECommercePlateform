@@ -83,7 +83,8 @@
             <li class="nav-header">ACCESS MANAGEMENT</li>
 
             <!-- User Management -->
-            <li class="nav-item" *appPermission="{ moduleRoute: 'admin/users', type: 'View' }">
+            <!--<li class="nav-item" *appPermission="{ moduleRoute: 'admin/users', type: 'View' }">-->
+            <li class="nav-item">
               <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-users"></i>
                 <p>Users</p>
@@ -91,7 +92,8 @@
             </li>
 
             <!-- Role Management -->
-            <li class="nav-item" *appPermission="{ moduleRoute: 'admin/roles', type: 'View' }">
+            <!--<li class="nav-item" *appPermission="{ moduleRoute: 'admin/roles', type: 'View' }">-->
+            <li class="nav-item">
               <a routerLink="/admin/roles" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-user-shield"></i>
                 <p>Roles & Permissions</p>

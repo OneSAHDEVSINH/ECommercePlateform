@@ -5,6 +5,7 @@ import { LoginRequest, LoginResponse, User} from '../../models/user.model';
 import { environment } from '../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../models/pagination.model';
 import { PermissionType } from '../../models/role.model';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,7 @@ export class AuthService {
 
   
   // Development mode flag - REMOVE IN PRODUCTION
-  private devMode = true;
+  private devMode = false;
   
   constructor(private http: HttpClient) {
     // Check if user is already logged in on initialization
@@ -131,8 +132,32 @@ export class AuthService {
 
   isAdmin(): boolean {
     const user = this.currentUserSubject.value;
-    //return !!user && user.roles === UserRole.Admin;
-    return !!user && user.roles.includes('Admin');
+    if (!user || !user.roles) return false;
+
+    // Check if roles is an array of objects with name property
+    if (Array.isArray(user.roles) && typeof user.roles[0] === 'object') {
+      return user.roles.some((role: any) => role.name === 'Admin');
+    }
+
+    // Fall back to the old check (string array)
+    return user.roles.includes('Admin');
+  }
+
+  isSuperAdmin(): boolean {
+    // First check if user is admin at all
+    if (!this.isAdmin()) return false;
+
+    // Then check for SuperAdmin claim in the token
+    const token = this.getToken();
+    if (!token) return false;
+
+    try {
+      const decodedToken: any = jwtDecode(token);
+      return decodedToken.SuperAdmin === 'true';
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return false;
+    }
   }
 
   // Check if user has permission

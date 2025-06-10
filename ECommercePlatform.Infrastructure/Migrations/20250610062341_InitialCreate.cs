@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     /// <inheritdoc />
@@ -586,6 +588,16 @@ namespace ECommercePlatform.Infrastructure.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Modules",
+                columns: new[] { "Id", "CreatedBy", "CreatedOn", "Description", "DisplayOrder", "Icon", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "Name", "Route" },
+                values: new object[,]
+                {
+                    { new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "User management", 2, "fas fa-users", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Users", "users" },
+                    { new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Role management", 3, "fas fa-user-shield", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Roles", "roles" },
+                    { new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Main admin dashboard", 1, "fas fa-tachometer-alt", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Dashboard", "dashboard" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "CreatedBy", "CreatedOn", "Description", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "Name" },
                 values: new object[] { new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Administrator role with all permissions", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Admin" });
@@ -596,9 +608,29 @@ namespace ECommercePlatform.Infrastructure.Migrations
                 values: new object[] { new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"), null, "System Administrator", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new DateOnly(1990, 1, 1), "admin@admin.com", "Admin", 0, true, false, "User", "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Admin@1234", "1234567890" });
 
             migrationBuilder.InsertData(
+                table: "Permissions",
+                columns: new[] { "Id", "CreatedBy", "CreatedOn", "Description", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "ModuleId", "Name", "Type" },
+                values: new object[,]
+                {
+                    { new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view the admin dashboard", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"), "View Dashboard", 0 },
+                    { new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view roles", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"), "View Roles", 0 },
+                    { new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view users", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"), "View Users", 0 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "UserRoles",
                 columns: new[] { "Id", "CreatedBy", "CreatedOn", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "RoleId", "UserId" },
                 values: new object[] { new Guid("f8b7b597-14ff-4b33-a8b3-0ea4de9f9dae"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"), new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f") });
+
+            migrationBuilder.InsertData(
+                table: "RolePermissions",
+                columns: new[] { "Id", "CreatedBy", "CreatedOn", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "PermissionId", "RoleId" },
+                values: new object[,]
+                {
+                    { new Guid("54477eed-7960-4f78-9212-d6b3446a3553"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("5fd34cd1-368f-4fda-a626-79c2e5c37b1a"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("c16e7c9b-ed37-401d-bf52-4c52be030451"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Addresses_CityId",

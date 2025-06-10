@@ -122,6 +122,7 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false
     };
 });
+builder.Services.AddSingleton<IAuthorizationHandler, AdminBypassHandler>();
 
 builder.Services.AddAuthorizationBuilder()
     // Define the "Permission" policy

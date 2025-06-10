@@ -9,8 +9,8 @@ import { PagedResponse, PagedRequest } from '../../models/pagination.model';
   providedIn: 'root'
 })
 export class RoleService {
-  private apiUrl = `${environment.apiUrl}/api/roles`;
-  private moduleApiUrl = `${environment.apiUrl}/api/modules`;
+  private apiUrl = `${environment.apiUrl}/roles`;
+  private moduleApiUrl = `${environment.apiUrl}/modules`;
 
   constructor(private http: HttpClient) { }
 
@@ -55,10 +55,10 @@ export class RoleService {
 
   // User-Role assignment
   assignRolesToUser(assignment: UserRoleAssignment): Observable<void> {
-    return this.http.post<void>(`${environment.apiUrl}/api/users/roles`, assignment);
+    return this.http.post<void>(`${environment.apiUrl}/users/roles`, assignment);
   }
 
   getUserRoles(userId: string): Observable<Role[]> {
-    return this.http.get<Role[]>(`${environment.apiUrl}/api/users/${userId}/roles`);
+    return this.http.get<Role[]>(`${environment.apiUrl}/users/${userId}/roles`);
   }
 }
