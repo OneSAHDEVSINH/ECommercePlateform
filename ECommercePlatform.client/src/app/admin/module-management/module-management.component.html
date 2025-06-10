@@ -1,0 +1,216 @@
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Manage Modules</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Modules</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <!-- Module Form Card -->
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit Module' : 'Add New Module' }}</h3>
+      </div>
+      <form [formGroup]="moduleForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Module Name</label>
+                <input type="text"
+                       id="name"
+                       formControlName="name"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': moduleForm.get('name')?.touched && moduleForm.get('name')?.errors}"
+                       placeholder="Enter module name">
+                <span *ngIf="moduleForm.get('name')?.touched && moduleForm.get('name')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('name')?.errors?.['required']">Module name is required</span>
+                  <span *ngIf="moduleForm.get('name')?.errors?.['maxlength']">Module name cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="route">Route</label>
+                <input type="text"
+                       id="route"
+                       formControlName="route"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': moduleForm.get('route')?.touched && moduleForm.get('route')?.errors}"
+                       placeholder="Enter route (e.g., 'countries')">
+                <span *ngIf="moduleForm.get('route')?.touched && moduleForm.get('route')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('route')?.errors?.['required']">Route is required</span>
+                  <span *ngIf="moduleForm.get('route')?.errors?.['maxlength']">Route cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="icon">Icon CSS Class</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-icons"></i></span>
+                  </div>
+                  <input type="text"
+                         id="icon"
+                         formControlName="icon"
+                         class="form-control"
+                         [ngClass]="{'is-invalid': moduleForm.get('icon')?.touched && moduleForm.get('icon')?.errors}"
+                         placeholder="e.g., 'fas fa-users'">
+                </div>
+                <span *ngIf="moduleForm.get('icon')?.touched && moduleForm.get('icon')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('icon')?.errors?.['maxlength']">Icon class cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="displayOrder">Display Order</label>
+                <input type="number"
+                       id="displayOrder"
+                       formControlName="displayOrder"
+                       class="form-control"
+                       min="0"
+                       [ngClass]="{'is-invalid': moduleForm.get('displayOrder')?.touched && moduleForm.get('displayOrder')?.errors}">
+                <span *ngIf="moduleForm.get('displayOrder')?.touched && moduleForm.get('displayOrder')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('displayOrder')?.errors?.['required']">Display order is required</span>
+                  <span *ngIf="moduleForm.get('displayOrder')?.errors?.['min']">Display order must be a positive number</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control"
+                          id="description"
+                          formControlName="description"
+                          rows="3"
+                          placeholder="Enter module description"></textarea>
+                <div *ngIf="moduleForm.get('description')?.invalid && (moduleForm.get('description')?.dirty || moduleForm.get('description')?.touched)"
+                     class="text-danger">
+                  <small *ngIf="moduleForm.get('description')?.errors?.['maxlength']">Description cannot exceed 500 characters</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Card Footer -->
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary" [disabled]="moduleForm.invalid || loading">
+            <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} Module
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()">
+            {{ isEditMode ? 'Cancel' : 'Reset' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modules List Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Modules List</h3>
+      </div>
+      <div class="card-body">
+        <!-- Loading Indicator -->
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="modules.length === 0 && !loading" class="alert alert-info">
+          <i class="icon fas fa-info"></i>
+          No modules found. Please add a new module.
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-responsive" *ngIf="modules.length > 0">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 50px">Order</th>
+                <th>Name</th>
+                <th>Route</th>
+                <th>Icon</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th style="width: 150px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let module of modules">
+                <td class="text-center">{{ module.displayOrder }}</td>
+                <td>{{ module.name }}</td>
+                <td>
+                  <code>{{ module.route }}</code>
+                </td>
+                <td>
+                  <i *ngIf="module.icon" [class]="module.icon"></i>
+                  <span *ngIf="!module.icon" class="text-muted">None</span>
+                </td>
+                <td>{{ module.description }}</td>
+                <td>
+                  <span class="badge" [ngClass]="module.isActive ? 'bg-success' : 'bg-danger'">
+                    {{ module.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-info mr-1" (click)="editModule(module)"
+                          *appPermission="{ moduleRoute: 'modules', type: 'Edit' }">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteModule(module.id)"
+                          *appPermission="{ moduleRoute: 'modules', type: 'Delete' }">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

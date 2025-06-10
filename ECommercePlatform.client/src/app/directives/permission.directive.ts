@@ -3,7 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { PermissionType } from '../models/role.model';
-import { AuthService } from '../services/auth/auth.service';
+import { AuthorizationService } from '../services/authorization/authorization.service';
 
 @Directive({
   selector: '[appPermission]',
@@ -19,7 +19,7 @@ export class PermissionDirective implements OnInit, OnDestroy {
   constructor(
     private templateRef: TemplateRef<any>,
     private viewContainer: ViewContainerRef,
-    private authService: AuthService,
+    private authorizationService: AuthorizationService,
     private router: Router
   ) { }
 
@@ -37,19 +37,18 @@ export class PermissionDirective implements OnInit, OnDestroy {
       return;
     }
 
-    // Replace this with your actual permission check logic
-    const hasPermission = this.authService.hasPermission(
-      this.appPermission.moduleRoute,
-      this.appPermission.type
-    );
-
-    if (hasPermission && !this.hasView) {
-      this.viewContainer.createEmbeddedView(this.templateRef);
-      this.hasView = true;
-    } else if (!hasPermission && this.hasView) {
-      this.viewContainer.clear();
-      this.hasView = false;
-    }
+    // Check permission through the authorization service
+    this.subscription = this.authorizationService
+      .checkPermission(this.appPermission.moduleRoute, this.appPermission.type)
+      .subscribe(hasPermission => {
+        if (hasPermission && !this.hasView) {
+          this.viewContainer.createEmbeddedView(this.templateRef);
+          this.hasView = true;
+        } else if (!hasPermission && this.hasView) {
+          this.viewContainer.clear();
+          this.hasView = false;
+        }
+      });
   }
 
   ngOnDestroy() {

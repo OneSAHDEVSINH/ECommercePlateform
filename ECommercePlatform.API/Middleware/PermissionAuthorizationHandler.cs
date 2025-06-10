@@ -72,3 +72,107 @@ namespace ECommercePlatform.API.Middleware
         }
     }
 }
+
+/*
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using ECommercePlatform.Application.Interfaces;
+
+namespace ECommercePlatform.API.Middleware
+{
+    public class PermissionRequirement : IAuthorizationRequirement
+    {
+        public string Module { get; }
+        public string Permission { get; }
+
+        public PermissionRequirement(string module, string permission)
+        {
+            Module = module;
+            Permission = permission;
+        }
+    }
+
+    public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public PermissionAuthorizationHandler(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        protected override async Task HandleRequirementAsync(
+            AuthorizationHandlerContext context, 
+            PermissionRequirement requirement)
+        {
+            if (!context.User.Identity.IsAuthenticated)
+            {
+                return;
+            }
+
+            // Super admin bypass - always has all permissions
+            if (context.User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
+            {
+                context.Succeed(requirement);
+                return;
+            }
+
+            // Get user ID
+            var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return;
+            }
+
+            if (!Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                return;
+            }
+
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            
+            foreach (var userRole in userRoles)
+            {
+                // Get role permissions
+                var rolePermissions = await _unitOfWork.RolePermissions.GetByRoleIdAsync(userRole.RoleId);
+                
+                foreach (var rolePermission in rolePermissions)
+                {
+                    // Get permission details
+                    var permission = await _unitOfWork.Permissions.GetByIdAsync(rolePermission.PermissionId);
+                    
+                    // Get module details
+                    var module = await _unitOfWork.Modules.GetByIdAsync(permission.ModuleId);
+                    
+                    // Check if this permission matches the requirement
+                    if (module.Name == requirement.Module && 
+                        permission.Type.ToString() == requirement.Permission)
+                    {
+                        context.Succeed(requirement);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    // Admin bypass handler for super admins
+    public class AdminBypassHandler : IAuthorizationHandler
+    {
+        public Task HandleAsync(AuthorizationHandlerContext context)
+        {
+            // Check if there is a super admin claim
+            if (context.User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
+            {
+                // Mark all requirements as succeeded
+                foreach (var requirement in context.PendingRequirements)
+                {
+                    context.Succeed(requirement);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+}*/
