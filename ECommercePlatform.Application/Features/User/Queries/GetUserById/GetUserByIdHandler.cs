@@ -1,6 +1,5 @@
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.User.Queries.GetUserById

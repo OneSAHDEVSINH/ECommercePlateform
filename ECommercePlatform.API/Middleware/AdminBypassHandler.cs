@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.API.Middleware
 {

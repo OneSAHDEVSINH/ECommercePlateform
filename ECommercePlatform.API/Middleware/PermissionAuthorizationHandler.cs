@@ -1,5 +1,4 @@
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 

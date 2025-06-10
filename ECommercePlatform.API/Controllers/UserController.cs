@@ -16,7 +16,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        [HasPermission("User","View")]
+        [HasPermission("User", "View")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _mediator.Send(new GetAllUsersQuery());
