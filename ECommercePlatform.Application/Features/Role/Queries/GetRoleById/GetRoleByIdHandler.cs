@@ -4,26 +4,17 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Role.Queries.GetRoleById
 {
-    public class GetRoleByIdHandler : IRequestHandler<GetRoleByIdQuery, RoleDto>
+    public class GetRoleByIdHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetRoleByIdQuery, RoleDto>
     {
-        private readonly IRoleRepository _roleRepository;
-        private readonly IRolePermissionRepository _rolePermissionRepository;
-        private readonly IPermissionRepository _permissionRepository;
-
-        public GetRoleByIdHandler(IRoleRepository roleRepository, IRolePermissionRepository rolePermissionRepository, IPermissionRepository permissionRepository)
-        {
-            _roleRepository = roleRepository;
-            _rolePermissionRepository = rolePermissionRepository;
-            _permissionRepository = permissionRepository;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<RoleDto> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
         {
-            var role = await _roleRepository.GetByIdAsync(request.RoleId);
+            var role = await _unitOfWork.Roles.GetByIdAsync(request.RoleId);
             if (role == null) return null!;
 
-            var rolePermissions = await _rolePermissionRepository.GetByRoleIdAsync(role.Id);
-            var allPermissions = await _permissionRepository.GetAllAsync();
+            var rolePermissions = await _unitOfWork.RolePermissions.GetByRoleIdAsync(role.Id);
+            var allPermissions = await _unitOfWork.Permissions.GetAllAsync();
 
             var permissionsDto = rolePermissions.Select(rp =>
             {

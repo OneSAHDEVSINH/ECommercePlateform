@@ -30,6 +30,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
+        [HasPermission("State", "View")]
         public async Task<IActionResult> GetPagedStates([FromQuery] GetPagedStatesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -41,7 +42,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        //[HasPermission("State", "View")]
+        [HasPermission("State", "View")]
         public async Task<IActionResult> GetStateById(Guid id)
         {
             var result = await _mediator.Send(new GetStateByIdQuery(id));
@@ -99,6 +100,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("ByCountry/{countryId}")]
+        [HasPermission("State", "View")]
         public async Task<IActionResult> GetStatesByCountry(Guid countryId)
         {
             var result = await _mediator.Send(new GetStatesByCountryQuery(countryId));

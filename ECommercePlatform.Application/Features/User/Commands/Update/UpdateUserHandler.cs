@@ -5,22 +5,13 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.User.Commands.Update
 {
-    public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, bool>
+    public class UpdateUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<UpdateUserCommand, bool>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IUserRoleRepository _userRoleRepository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public UpdateUserHandler(IUserRepository userRepository, IUserRoleRepository userRoleRepository, IUnitOfWork unitOfWork)
-        {
-            _userRepository = userRepository;
-            _userRoleRepository = userRoleRepository;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<bool> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetByIdAsync(request.Id);
+            var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
             if (user == null) return false;
 
             user = user.With(
@@ -29,16 +20,16 @@ namespace ECommercePlatform.Application.Features.User.Commands.Update
                 email: request.Email
             );
             user.IsActive = request.IsActive;
-            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.Users.UpdateAsync(user);
 
             // Remove old roles
-            await _userRoleRepository.DeleteByUserIdAsync(user.Id);
+            await _unitOfWork.UserRoles.DeleteByUserIdAsync(user.Id);
 
             // Add new roles
             foreach (var roleId in request.RoleIds)
             {
                 var userRole = UserRole.Create(user.Id, roleId, "system");
-                await _userRoleRepository.AddAsync(userRole);
+                await _unitOfWork.UserRoles.AddAsync(userRole);
             }
 
             await _unitOfWork.SaveChangesAsync();

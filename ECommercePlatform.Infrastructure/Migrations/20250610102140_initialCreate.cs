@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -592,9 +592,12 @@ namespace ECommercePlatform.Infrastructure.Migrations
                 columns: new[] { "Id", "CreatedBy", "CreatedOn", "Description", "DisplayOrder", "Icon", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "Name", "Route" },
                 values: new object[,]
                 {
+                    { new Guid("27786d06-cdc7-4c27-a6a4-aac1622b110b"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "City management", 6, "fas fa-city", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Cities", "cities" },
                     { new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "User management", 2, "fas fa-users", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Users", "users" },
                     { new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Role management", 3, "fas fa-user-shield", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Roles", "roles" },
-                    { new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Main admin dashboard", 1, "fas fa-tachometer-alt", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Dashboard", "dashboard" }
+                    { new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Main admin dashboard", 1, "fas fa-tachometer-alt", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Dashboard", "dashboard" },
+                    { new Guid("a7b3d254-9047-405f-aef3-7f9a6ed13c54"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "State management", 5, "fas fa-map", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "States", "states" },
+                    { new Guid("d5212365-524a-4afc-a44b-c1436c48f3a5"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Country management", 4, "fas fa-globe", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Countries", "countries" }
                 });
 
             migrationBuilder.InsertData(
@@ -613,8 +616,11 @@ namespace ECommercePlatform.Infrastructure.Migrations
                 values: new object[,]
                 {
                     { new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view the admin dashboard", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"), "View Dashboard", 0 },
+                    { new Guid("87104812-ebf5-45df-8f1c-41ef41a2d1de"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view states", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("a7b3d254-9047-405f-aef3-7f9a6ed13c54"), "View States", 0 },
                     { new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view roles", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"), "View Roles", 0 },
-                    { new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view users", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"), "View Users", 0 }
+                    { new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view users", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"), "View Users", 0 },
+                    { new Guid("c35b8160-2ef9-4936-8913-c35a5ac95a03"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view cities", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("27786d06-cdc7-4c27-a6a4-aac1622b110b"), "View Cities", 0 },
+                    { new Guid("d45768db-7234-4c97-aabd-0e8a74548138"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), "Permission to view countries", true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("d5212365-524a-4afc-a44b-c1436c48f3a5"), "View Countries", 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -627,8 +633,11 @@ namespace ECommercePlatform.Infrastructure.Migrations
                 columns: new[] { "Id", "CreatedBy", "CreatedOn", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "PermissionId", "RoleId" },
                 values: new object[,]
                 {
+                    { new Guid("264c6b33-9c91-4b01-a2be-243d9f91110c"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("d45768db-7234-4c97-aabd-0e8a74548138"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
                     { new Guid("54477eed-7960-4f78-9212-d6b3446a3553"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
                     { new Guid("5fd34cd1-368f-4fda-a626-79c2e5c37b1a"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("75137078-d567-4f2f-9be7-6f6e8bdca429"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("c35b8160-2ef9-4936-8913-c35a5ac95a03"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("7ecd8d51-8077-4f1c-b83d-9a2c6b9e20ea"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("87104812-ebf5-45df-8f1c-41ef41a2d1de"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
                     { new Guid("c16e7c9b-ed37-401d-bf52-4c52be030451"), "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), true, false, "System", new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified), new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") }
                 });
 

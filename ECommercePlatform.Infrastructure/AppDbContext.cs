@@ -373,9 +373,13 @@ namespace ECommercePlatform.Infrastructure
                 }
             );
 
+            // Module IDs
             var dashboardModuleId = Guid.Parse("8160be48-f4fd-4905-879b-e8038d64fde8");
             var usersModuleId = Guid.Parse("5d24ad3c-1189-43cc-a823-e882d84edb53");
             var rolesModuleId = Guid.Parse("666c62d8-94fd-4d1e-a98c-d783e97bdbac");
+            var countriesModuleId = Guid.Parse("d5212365-524a-4afc-a44b-c1436c48f3a5");
+            var statesModuleId = Guid.Parse("a7b3d254-9047-405f-aef3-7f9a6ed13c54");
+            var citiesModuleId = Guid.Parse("27786d06-cdc7-4c27-a6a4-aac1622b110b");
 
             // Seed default modules
             modelBuilder.Entity<Module>().HasData(
@@ -423,13 +427,61 @@ namespace ECommercePlatform.Infrastructure
                     ModifiedBy = "System",
                     ModifiedOn = fixedDate,
                     IsDeleted = false
+                },
+                new
+                {
+                    Id = countriesModuleId,
+                    Name = "Countries",
+                    Route = "countries",
+                    Description = "Country management",
+                    DisplayOrder = 4,
+                    Icon = "fas fa-globe",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = statesModuleId,
+                    Name = "States",
+                    Route = "states",
+                    Description = "State management",
+                    DisplayOrder = 5,
+                    Icon = "fas fa-map",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = citiesModuleId,
+                    Name = "Cities",
+                    Route = "cities",
+                    Description = "City management",
+                    DisplayOrder = 6,
+                    Icon = "fas fa-city",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
                 }
             );
 
-            // Generate permission IDs
+            // Permission IDs
             var dashboardViewId = Guid.Parse("565c7647-7611-4d34-ae76-5eba0d4e1822");
             var usersViewId = Guid.Parse("bf2f6ca5-dac3-4725-9407-c713a88ed19b");
             var rolesViewId = Guid.Parse("b684f1b4-0c54-466f-ba92-5e575061318b");
+            var countriesViewId = Guid.Parse("d45768db-7234-4c97-aabd-0e8a74548138");
+            var statesViewId = Guid.Parse("87104812-ebf5-45df-8f1c-41ef41a2d1de");
+            var citiesViewId = Guid.Parse("c35b8160-2ef9-4936-8913-c35a5ac95a03");
 
             // Seed basic permissions with enum values
             modelBuilder.Entity<Permission>().HasData(
@@ -438,7 +490,7 @@ namespace ECommercePlatform.Infrastructure
                     Id = dashboardViewId,
                     Name = "View Dashboard",
                     Description = "Permission to view the admin dashboard",
-                    Type = PermissionType.View,  // Using enum instead of 0
+                    Type = PermissionType.View,
                     ModuleId = dashboardModuleId,
                     IsActive = true,
                     CreatedBy = "System",
@@ -452,7 +504,7 @@ namespace ECommercePlatform.Infrastructure
                     Id = usersViewId,
                     Name = "View Users",
                     Description = "Permission to view users",
-                    Type = PermissionType.View,  // Using enum instead of 0
+                    Type = PermissionType.View,
                     ModuleId = usersModuleId,
                     IsActive = true,
                     CreatedBy = "System",
@@ -466,8 +518,50 @@ namespace ECommercePlatform.Infrastructure
                     Id = rolesViewId,
                     Name = "View Roles",
                     Description = "Permission to view roles",
-                    Type = PermissionType.View,  // Using enum instead of 0
+                    Type = PermissionType.View,
                     ModuleId = rolesModuleId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = countriesViewId,
+                    Name = "View Countries",
+                    Description = "Permission to view countries",
+                    Type = PermissionType.View,
+                    ModuleId = countriesModuleId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = statesViewId,
+                    Name = "View States",
+                    Description = "Permission to view states",
+                    Type = PermissionType.View,
+                    ModuleId = statesModuleId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = citiesViewId,
+                    Name = "View Cities",
+                    Description = "Permission to view cities",
+                    Type = PermissionType.View,
+                    ModuleId = citiesModuleId,
                     IsActive = true,
                     CreatedBy = "System",
                     CreatedOn = fixedDate,
@@ -508,6 +602,42 @@ namespace ECommercePlatform.Infrastructure
                     Id = Guid.Parse("C16E7C9B-ED37-401D-BF52-4C52BE030451"),
                     RoleId = adminRoleId,
                     PermissionId = rolesViewId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = Guid.Parse("264C6B33-9C91-4B01-A2BE-243D9F91110C"),
+                    RoleId = adminRoleId,
+                    PermissionId = countriesViewId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = Guid.Parse("7ECD8D51-8077-4F1C-B83D-9A2C6B9E20EA"),
+                    RoleId = adminRoleId,
+                    PermissionId = statesViewId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                },
+                new
+                {
+                    Id = Guid.Parse("75137078-D567-4F2F-9BE7-6F6E8BDCA429"),
+                    RoleId = adminRoleId,
+                    PermissionId = citiesViewId,
                     IsActive = true,
                     CreatedBy = "System",
                     CreatedOn = fixedDate,

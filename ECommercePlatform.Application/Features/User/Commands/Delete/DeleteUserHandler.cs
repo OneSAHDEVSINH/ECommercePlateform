@@ -22,8 +22,8 @@ namespace ECommercePlatform.Application.Features.User.Commands.Delete
             var user = await _userRepository.GetByIdAsync(request.Id);
             if (user == null) return false;
 
-            await _userRoleRepository.DeleteByUserIdAsync(user.Id);
-            await _userRepository.DeleteAsync(user);
+            await _unitOfWork.UserRoles.DeleteByUserIdAsync(user.Id);
+            await _unitOfWork.Users.DeleteAsync(user);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }

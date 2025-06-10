@@ -6,29 +6,20 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.User.Queries.GetAllUsers
 {
-    public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<UserDto>>
+    public class GetAllUsersHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllUsersQuery, List<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IUserRoleRepository _userRoleRepository;
-        private readonly IRoleRepository _roleRepository;
-
-        public GetAllUsersHandler(IUserRepository userRepository, IUserRoleRepository userRoleRepository, IRoleRepository roleRepository)
-        {
-            _userRepository = userRepository;
-            _userRoleRepository = userRoleRepository;
-            _roleRepository = roleRepository;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<List<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var users = await _userRepository.GetAllAsync();
+            var users = await _unitOfWork.Users.GetAllAsync();
             var allUserRoles = new List<UserRole>();
             foreach (var user in users)
             {
-                var userRoles = await _userRoleRepository.GetByUserIdAsync(user.Id);
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(user.Id);
                 allUserRoles.AddRange(userRoles);
             }
-            var allRoles = await _roleRepository.GetAllAsync();
+            var allRoles = await _unitOfWork.Roles.GetAllAsync();
 
             var result = new List<UserDto>();
             foreach (var user in users)

@@ -372,6 +372,51 @@ namespace ECommercePlatform.Infrastructure.Migrations
                             ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
                             Name = "Roles",
                             Route = "roles"
+                        },
+                        new
+                        {
+                            Id = new Guid("d5212365-524a-4afc-a44b-c1436c48f3a5"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Country management",
+                            DisplayOrder = 4,
+                            Icon = "fas fa-globe",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Countries",
+                            Route = "countries"
+                        },
+                        new
+                        {
+                            Id = new Guid("a7b3d254-9047-405f-aef3-7f9a6ed13c54"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "State management",
+                            DisplayOrder = 5,
+                            Icon = "fas fa-map",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Name = "States",
+                            Route = "states"
+                        },
+                        new
+                        {
+                            Id = new Guid("27786d06-cdc7-4c27-a6a4-aac1622b110b"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "City management",
+                            DisplayOrder = 6,
+                            Icon = "fas fa-city",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Cities",
+                            Route = "cities"
                         });
                 });
 
@@ -600,6 +645,48 @@ namespace ECommercePlatform.Infrastructure.Migrations
                             ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
                             ModuleId = new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"),
                             Name = "View Roles",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("d45768db-7234-4c97-aabd-0e8a74548138"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Permission to view countries",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModuleId = new Guid("d5212365-524a-4afc-a44b-c1436c48f3a5"),
+                            Name = "View Countries",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("87104812-ebf5-45df-8f1c-41ef41a2d1de"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Permission to view states",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModuleId = new Guid("a7b3d254-9047-405f-aef3-7f9a6ed13c54"),
+                            Name = "View States",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("c35b8160-2ef9-4936-8913-c35a5ac95a03"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Permission to view cities",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModuleId = new Guid("27786d06-cdc7-4c27-a6a4-aac1622b110b"),
+                            Name = "View Cities",
                             Type = 0
                         });
                 });
@@ -882,6 +969,42 @@ namespace ECommercePlatform.Infrastructure.Migrations
                             ModifiedBy = "System",
                             ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
                             PermissionId = new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
+                        },
+                        new
+                        {
+                            Id = new Guid("264c6b33-9c91-4b01-a2be-243d9f91110c"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            PermissionId = new Guid("d45768db-7234-4c97-aabd-0e8a74548138"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
+                        },
+                        new
+                        {
+                            Id = new Guid("7ecd8d51-8077-4f1c-b83d-9a2c6b9e20ea"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            PermissionId = new Guid("87104812-ebf5-45df-8f1c-41ef41a2d1de"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
+                        },
+                        new
+                        {
+                            Id = new Guid("75137078-d567-4f2f-9be7-6f6e8bdca429"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            PermissionId = new Guid("c35b8160-2ef9-4936-8913-c35a5ac95a03"),
                             RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
                         });
                 });

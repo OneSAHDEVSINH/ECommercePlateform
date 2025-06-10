@@ -1,3 +1,4 @@
+using ECommercePlatform.API.Middleware;
 using ECommercePlatform.Application.Features.Modules;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
+        [HasPermission("Module", "View")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _mediator.Send(new GetAllModulesWithPermissionsQuery());

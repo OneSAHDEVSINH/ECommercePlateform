@@ -30,6 +30,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
+        [HasPermission("City", "View")]
         public async Task<IActionResult> GetPagedCities([FromQuery] GetPagedCitiesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -41,7 +42,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        //[HasPermission("City", "View")]
+        [HasPermission("City", "View")]
         public async Task<IActionResult> GetCityById(Guid id)
         {
             var result = await _mediator.Send(new GetCityByIdQuery(id));
@@ -99,6 +100,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("ByState/{stateId}")]
+        [HasPermission("City", "View")]
         public async Task<IActionResult> GetCitiesByState(Guid stateId)
         {
             var result = await _mediator.Send(new GetCitiesByStateQuery(stateId));

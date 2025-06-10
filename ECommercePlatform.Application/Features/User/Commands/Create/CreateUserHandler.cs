@@ -5,20 +5,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.User.Commands.Create
 {
-    public class CreateUserHandler : IRequestHandler<CreateUserCommand, Guid>
+    public class CreateUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<CreateUserCommand, Guid>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IRoleRepository _roleRepository;
-        private readonly IUserRoleRepository _userRoleRepository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public CreateUserHandler(IUserRepository userRepository, IRoleRepository roleRepository, IUserRoleRepository userRoleRepository, IUnitOfWork unitOfWork)
-        {
-            _userRepository = userRepository;
-            _roleRepository = roleRepository;
-            _userRoleRepository = userRoleRepository;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
@@ -31,12 +20,12 @@ namespace ECommercePlatform.Application.Features.User.Commands.Create
                 bio: null
             );
             user.IsActive = request.IsActive;
-            await _userRepository.AddAsync(user);
+            await _unitOfWork.Users.AddAsync(user);
 
             foreach (var roleId in request.RoleIds)
             {
                 var userRole = UserRole.Create(user.Id, roleId, "system");
-                await _userRoleRepository.AddAsync(userRole);
+                await _unitOfWork.UserRoles.AddAsync(userRole);
             }
 
             await _unitOfWork.SaveChangesAsync();

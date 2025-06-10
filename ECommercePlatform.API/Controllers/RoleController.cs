@@ -1,3 +1,4 @@
+using ECommercePlatform.API.Middleware;
 using ECommercePlatform.Application.Features.Role.Commands.Create;
 using ECommercePlatform.Application.Features.Role.Commands.Delete;
 using ECommercePlatform.Application.Features.Role.Commands.Update;
@@ -15,6 +16,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
+        [HasPermission("Role", "View")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _mediator.Send(new GetAllRolesQuery());
@@ -22,6 +24,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [HasPermission("Role", "View")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _mediator.Send(new GetRoleByIdQuery(id));
@@ -30,6 +33,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
+        [HasPermission("Role", "Create")]
         public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
         {
             var id = await _mediator.Send(command);
@@ -37,6 +41,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [HasPermission("Role", "Edit")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleCommand command)
         {
             if (id != command.Id) return BadRequest();
@@ -46,6 +51,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [HasPermission("Role", "Delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteRoleCommand(id));

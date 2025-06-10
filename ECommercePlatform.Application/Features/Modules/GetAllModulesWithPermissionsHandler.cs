@@ -4,21 +4,14 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Modules
 {
-    public class GetAllModulesWithPermissionsHandler : IRequestHandler<GetAllModulesWithPermissionsQuery, List<ModuleDto>>
+    public class GetAllModulesWithPermissionsHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllModulesWithPermissionsQuery, List<ModuleDto>>
     {
-        private readonly IModuleRepository _moduleRepository;
-        private readonly IPermissionRepository _permissionRepository;
-
-        public GetAllModulesWithPermissionsHandler(IModuleRepository moduleRepository, IPermissionRepository permissionRepository)
-        {
-            _moduleRepository = moduleRepository;
-            _permissionRepository = permissionRepository;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<List<ModuleDto>> Handle(GetAllModulesWithPermissionsQuery request, CancellationToken cancellationToken)
         {
-            var modules = await _moduleRepository.GetAllAsync();
-            var allPermissions = await _permissionRepository.GetAllAsync();
+            var modules = await _unitOfWork.Modules.GetAllAsync();
+            var allPermissions = await _unitOfWork.Permissions.GetAllAsync();
             var result = new List<ModuleDto>();
 
             foreach (var module in modules)
