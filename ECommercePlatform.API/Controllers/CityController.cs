@@ -7,12 +7,14 @@ using ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState;
 using ECommercePlatform.Application.Features.Cities.Queries.GetCityById;
 using ECommercePlatform.Application.Features.Cities.Queries.GetPagedCities;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CityController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;

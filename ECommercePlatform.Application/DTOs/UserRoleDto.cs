@@ -1,0 +1,72 @@
+﻿using ECommercePlatform.Domain.Entities;
+using System;
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class UserRoleDto
+    {
+        public Guid Id { get; init; }
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
+        public string? UserName { get; init; }
+        public string? UserEmail { get; init; }
+        public string? RoleName { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+        public string? CreatedBy { get; init; }
+
+        // Explicit conversion operator from UserRole entity to UserRoleDto
+        public static explicit operator UserRoleDto(UserRole userRole)
+        {
+            return new UserRoleDto
+            {
+                Id = userRole.Id,
+                UserId = userRole.UserId,
+                RoleId = userRole.RoleId,
+                UserName = userRole.User != null ? $"{userRole.User.FirstName} {userRole.User.LastName}".Trim() : null,
+                UserEmail = userRole.User?.Email,
+                RoleName = userRole.Role?.Name,
+                IsActive = userRole.IsActive,
+                CreatedOn = userRole.CreatedOn,
+                CreatedBy = userRole.CreatedBy
+            };
+        }
+    }
+
+    public class CreateUserRoleDto
+    {
+        public required Guid UserId { get; init; }
+        public required Guid RoleId { get; init; }
+        public bool IsActive { get; init; } = true;
+    }
+
+    public class UpdateUserRoleDto
+    {
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
+        public bool? IsActive { get; init; }
+    }
+
+    public class UserRoleListDto
+    {
+        public Guid Id { get; init; }
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
+        public string? UserName { get; init; }
+        public string? RoleName { get; init; }
+        public bool IsActive { get; init; }
+
+        public static explicit operator UserRoleListDto(UserRole userRole)
+        {
+            return new UserRoleListDto
+            {
+                Id = userRole.Id,
+                UserId = userRole.UserId,
+                RoleId = userRole.RoleId,
+                UserName = userRole.User != null ? $"{userRole.User.FirstName} {userRole.User.LastName}".Trim() : null,
+                RoleName = userRole.Role?.Name,
+                IsActive = userRole.IsActive
+            };
+        }
+    }
+}

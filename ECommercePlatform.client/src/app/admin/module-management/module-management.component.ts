@@ -4,10 +4,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { ModuleService } from '../../services/module/module.service';
 import { MessageService, Message } from '../../services/general/message.service';
-import { Module } from '../../models/role.model';
+import { Module, PermissionType } from '../../models/role.model';
 import { Subscription } from 'rxjs';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PermissionDirective } from '../../directives/permission.directive';
+import { PagedResponse, PagedRequest } from '../../models/pagination.model';
+
 
 @Component({
   selector: 'app-module-management',
@@ -29,6 +31,17 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
   currentModuleId: string | null = null;
   loading: boolean = false;
   message: Message | null = null;
+  PermissionType = PermissionType;
+
+  pagedResponse: PagedResponse<Module> | null = null;
+  pageRequest: PagedRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    searchText: '',
+    sortColumn: 'name',
+    sortDirection: 'asc'
+  };
+  Math = Math;
 
   private subscriptions: Subscription[] = [];
 
@@ -66,9 +79,10 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
 
   loadModules(): void {
     this.loading = true;
-    const sub = this.moduleService.getModules().subscribe({
-      next: (modules) => {
-        this.modules = modules;
+    const sub = this.moduleService.getPagedModules(this.pageRequest).subscribe({
+      next: (response) => {
+        this.pagedResponse = response;
+        this.modules = response.items;
         this.loading = false;
       },
       error: (error) => {
@@ -181,5 +195,36 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
     });
     this.isEditMode = false;
     this.currentModuleId = null;
+  }
+
+  onPageChange(page: number | Event): void {
+    const pageNumber = typeof page === 'number' ? page : 1;
+    this.pageRequest.pageNumber = pageNumber;
+    this.loadModules();
+  }
+
+  onPageSizeChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.pageRequest.pageSize = +selectElement.value;
+    this.pageRequest.pageNumber = 1;
+    this.loadModules();
+  }
+
+  onSortChange(column: string): void {
+    if (this.pageRequest.sortColumn === column) {
+      this.pageRequest.sortDirection =
+        this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.pageRequest.sortColumn = column;
+      this.pageRequest.sortDirection = 'asc';
+    }
+    this.loadModules();
+  }
+
+  onSearchChange(event: Event): void {
+    const searchTerm = (event.target as HTMLInputElement).value;
+    this.pageRequest.searchText = searchTerm;
+    this.pageRequest.pageNumber = 1;
+    this.loadModules();
   }
 }

@@ -42,15 +42,15 @@ namespace ECommercePlatform.Application.Services
             return new AuthResultDto
             {
                 Token = token,
-                User = new UserDto
-                {
-                    Id = userWithRoles.Id,
-                    FirstName = userWithRoles.FirstName,
-                    LastName = userWithRoles.LastName,
-                    Email = userWithRoles.Email,
-                    Roles = roleDtos, // Use the properly mapped RoleDto objects
-                    IsActive = userWithRoles.IsActive
-                }
+                //User = new UserDto
+                //{
+                //    Id = userWithRoles.Id,
+                //    FirstName = userWithRoles.FirstName,
+                //    LastName = userWithRoles.LastName,
+                //    Email = userWithRoles.Email,
+                //    Roles = roleDtos, // Use the properly mapped RoleDto objects
+                //    IsActive = userWithRoles.IsActive
+                //}
             };
         }
 

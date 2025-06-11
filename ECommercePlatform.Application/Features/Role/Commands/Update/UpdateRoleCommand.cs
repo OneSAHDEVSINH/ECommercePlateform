@@ -1,19 +1,29 @@
+using ECommercePlatform.Application.Common.Interfaces;
+using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.DTOs;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace ECommercePlatform.Application.Features.Role.Commands.Update
 {
-    public class UpdateRoleCommand : IRequest<bool>
+    public class UpdateRoleCommand : IRequest<AppResult<RoleDto>>, ITransactionalBehavior, IAuditableUpdateRequest
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public bool IsActive { get; set; }
-        public List<UpdateRolePermissionDto> Permissions { get; set; }
+        public required Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public bool? IsActive { get; init; }
+        public List<UpdateRolePermissionDto>? Permissions { get; init; }
+
+        [JsonIgnore]
+        public string? ModifiedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime ModifiedOn { get; set; } = DateTime.UtcNow;
     }
 
     public class UpdateRolePermissionDto
     {
-        public Guid ModuleId { get; set; }
-        public string PermissionType { get; set; } // View, Create, Edit, Delete
+        public required Guid ModuleId { get; init; }
+        public required string PermissionType { get; init; }
     }
 }

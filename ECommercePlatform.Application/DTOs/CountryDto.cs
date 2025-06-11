@@ -38,8 +38,6 @@ namespace ECommercePlatform.Application.DTOs
         public string? Name { get; init; }
         public string? Code { get; init; }
         public bool IsActive { get; init; }
-        public string? ModifiedBy { get; init; }
-        public DateTime ModifiedOn { get; init; }
 
         public static explicit operator UpdateCountryDto(UpdateCountryCommand command)
         {

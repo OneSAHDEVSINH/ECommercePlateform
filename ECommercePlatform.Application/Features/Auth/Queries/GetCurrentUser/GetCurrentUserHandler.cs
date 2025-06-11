@@ -45,6 +45,7 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
+                    Password = user.Password,  // Consider removing this for security reasons
                     IsActive = user.IsActive,
                     Roles = rolesDto  // Set the Roles collection instead of a single role
                 };

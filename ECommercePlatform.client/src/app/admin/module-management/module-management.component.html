@@ -165,6 +165,38 @@
           No modules found. Please add a new module.
         </div>
 
+        <div class="row mb-3">
+          <!-- Search Box -->
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Search:</label>
+              <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Search modules..."
+                       (input)="onSearchChange($event)"
+                       [value]="pageRequest.searchText || ''">
+                <div class="input-group-append">
+                  <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page Size -->
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Show entries:</label>
+              <select class="form-control" (change)="onPageSizeChange($event)">
+                <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
+                <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
+                <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
+                <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <!-- Data Table -->
         <div class="table-responsive" *ngIf="modules.length > 0">
           <table class="table table-bordered table-striped">
@@ -198,17 +230,36 @@
                 </td>
                 <td>
                   <button class="btn btn-sm btn-info mr-1" (click)="editModule(module)"
-                          *appPermission="{ moduleRoute: 'modules', type: 'Edit' }">
+                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.EDIT }">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deleteModule(module.id)"
-                          *appPermission="{ moduleRoute: 'modules', type: 'Delete' }">
+                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.DELETE }">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+        <!-- Pagination -->
+        <div class="row mt-3" *ngIf="pagedResponse">
+          <div class="col-sm-12 col-md-5">
+            <div class="dataTables_info">
+              Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
+              to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
+              of {{ pagedResponse.totalCount }} entries
+            </div>
+          </div>
+          <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers float-right">
+              <app-pagination *ngIf="pagedResponse.totalPages > 1"
+                              [totalPages]="pagedResponse.totalPages"
+                              [currentPage]="pagedResponse.pageNumber"
+                              (pageChange)="onPageChange($event)">
+              </app-pagination>
+            </div>
+          </div>
         </div>
       </div>
     </div>

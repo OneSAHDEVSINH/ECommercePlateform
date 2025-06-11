@@ -1,44 +1,43 @@
-﻿namespace ECommercePlatform.Domain.Entities
+﻿using ECommercePlatform.Domain.Enums;
+
+namespace ECommercePlatform.Domain.Entities
 {
     public class Permission : BaseEntity
     {
-        public string Name { get; private set; }
-        public string Description { get; private set; }
+        public string? Name { get; private set; }
+        public string? Description { get; private set; }
         public PermissionType Type { get; private set; }
         public Guid ModuleId { get; private set; }
 
-        public Module Module { get; private set; }
-        public ICollection<RolePermission> RolePermissions { get; private set; } = new List<RolePermission>();
+        public Module? Module { get; set; }
+        public ICollection<RolePermission>? RolePermissions { get; set; }
 
-        public enum PermissionType
-        {
-            View,
-            Create,
-            Edit,
-            Delete
-        }
+        private Permission() { }
 
         public static Permission Create(
             string name,
             string description,
             PermissionType type,
-            Guid moduleId,
-            string createdBy)
+            Guid moduleId)
         {
             return new Permission
             {
-                Id = Guid.NewGuid(),
                 Name = name,
                 Description = description,
                 Type = type,
-                ModuleId = moduleId,
-                CreatedBy = createdBy,
-                CreatedOn = DateTime.Now,
-                ModifiedBy = createdBy,
-                ModifiedOn = DateTime.Now,
-                IsActive = true,
-                IsDeleted = false
+                ModuleId = moduleId
             };
+        }
+
+        public void Update(string name,
+            string description,
+            PermissionType type,
+            Guid moduleId)
+        {
+            Name = name;
+            Description = description;
+            Type = type;
+            ModuleId = moduleId;
         }
     }
 }

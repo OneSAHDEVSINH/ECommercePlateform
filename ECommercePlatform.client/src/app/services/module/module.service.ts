@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Module } from '../../models/role.model';
+import { PagedRequest, PagedResponse } from '../../models/pagination.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,12 @@ export class ModuleService {
 
   getModules(): Observable<Module[]> {
     return this.http.get<Module[]>(this.apiUrl);
+  }
+
+  getPagedModules(request: PagedRequest): Observable<PagedResponse<Module>> {
+    return this.http.get<PagedResponse<Module>>(`${this.apiUrl}/paged`, {
+      params: { ...request as any }
+    });
   }
 
   getModule(id: string): Observable<Module> {

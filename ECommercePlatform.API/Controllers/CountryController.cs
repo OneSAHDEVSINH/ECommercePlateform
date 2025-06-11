@@ -6,12 +6,14 @@ using ECommercePlatform.Application.Features.Countries.Queries.GetAllCountries;
 using ECommercePlatform.Application.Features.Countries.Queries.GetCountryById;
 using ECommercePlatform.Application.Features.Countries.Queries.GetPagedCountries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CountryController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;

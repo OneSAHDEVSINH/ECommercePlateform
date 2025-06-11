@@ -1,6 +1,13 @@
 using ECommercePlatform.API.Middleware;
-using ECommercePlatform.Application.Features.Modules;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Features.Modules.Commands.Create;
+using ECommercePlatform.Application.Features.Modules.Commands.Delete;
+using ECommercePlatform.Application.Features.Modules.Commands.Update;
+using ECommercePlatform.Application.Features.Modules.Queries.GetAllModules;
+using ECommercePlatform.Application.Features.Modules.Queries.GetAllModulesWithPermission;
+using ECommercePlatform.Application.Features.Modules.Queries.GetModuleById;
+using ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRoute;
+using ECommercePlatform.Application.Features.Modules.Queries.GetModuleWithPermissions;
+using ECommercePlatform.Application.Features.Modules.Queries.GetPagedModules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,40 +17,123 @@ namespace ECommercePlatform.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class ModuleController(IUnitOfWork unitOfWork, IMediator mediator) : ControllerBase
+    public class ModuleController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
 
-        private readonly IUnitOfWork _unitOfWork;
-
         [HttpGet]
         [HasPermission("Module", "View")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllModules([FromQuery] bool activeOnly = true)
         {
-            var modules = await _unitOfWork.Modules.GetAllAsync();
-            return Ok(modules);
+            var result = await _mediator.Send(new GetAllModulesQuery(activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        [HasPermission("Module", "View")]
+        public async Task<IActionResult> GetPagedModules([FromQuery] GetPagedModulesQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
         }
 
         [HttpGet("{id}")]
         [HasPermission("Module", "View")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetModuleById(Guid id)
         {
-            var module = await _unitOfWork.Modules.GetByIdAsync(id);
-            if (module == null)
-                return NotFound();
+            var result = await _mediator.Send(new GetModuleByIdQuery(id));
 
-            return Ok(module);
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
         }
 
-        // Additional endpoints would be similar to Role and User controllers
-
-
-        [HttpGet]
+        [HttpGet("by-route/{route}")]
         [HasPermission("Module", "View")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetModuleByRoute(string route)
         {
-            var result = await _mediator.Send(new GetAllModulesWithPermissionsQuery());
-            return Ok(result);
+            var result = await _mediator.Send(new GetModuleByRouteQuery(route));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("{id}/permissions")]
+        [HasPermission("Module", "View")]
+        public async Task<IActionResult> GetModuleWithPermissions(Guid id)
+        {
+            var result = await _mediator.Send(new GetModuleWithPermissionsQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("with-permissions")]
+        [HasPermission("Module", "View")]
+        public async Task<IActionResult> GetAllModulesWithPermissions([FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetAllModulesWithPermissionsQuery { ActiveOnly = activeOnly });
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost]
+        [HasPermission("Module", "Create")]
+        public async Task<IActionResult> CreateModule([FromBody] CreateModuleCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetModuleById), new { id = result.Value.Id }, result.Value);
+
+            return Conflict(new { message = result.Error });
+        }
+
+        [HttpPut("{id}")]
+        [HasPermission("Module", "Edit")]
+        public async Task<IActionResult> UpdateModule(Guid id, [FromBody] UpdateModuleCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : Conflict(new { message = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [HasPermission("Module", "Delete")]
+        public async Task<IActionResult> DeleteModule(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteModuleCommand(id));
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
         }
     }
 }

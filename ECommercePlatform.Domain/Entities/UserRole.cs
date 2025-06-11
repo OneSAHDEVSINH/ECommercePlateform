@@ -5,29 +5,28 @@
         public Guid UserId { get; private set; }
         public Guid RoleId { get; private set; }
 
-        public User User { get; private set; } = null!;
-        public Role Role { get; private set; } = null!;
+        public User? User { get; set; }
+        public Role? Role { get; set; }
 
         // Private constructor for EF Core
         private UserRole() { }
 
         public static UserRole Create(
             Guid userId,
-            Guid roleId,
-            string createdBy)
+            Guid roleId)
         {
             return new UserRole
             {
-                Id = Guid.NewGuid(),
                 UserId = userId,
-                RoleId = roleId,
-                CreatedBy = createdBy,
-                CreatedOn = DateTime.Now,
-                ModifiedBy = createdBy,
-                ModifiedOn = DateTime.Now,
-                IsActive = true,
-                IsDeleted = false
+                RoleId = roleId
             };
+        }
+
+        public void Update(Guid userId,
+            Guid roleId)
+        {
+            UserId = userId;
+            RoleId = roleId;
         }
     }
 }

@@ -6,4 +6,12 @@ namespace ECommercePlatform.Domain.Enums
         Female,
         Other
     }
+
+    public enum PermissionType
+    {
+        View,
+        Create,
+        Edit,
+        Delete
+    }
 }

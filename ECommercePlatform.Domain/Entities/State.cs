@@ -9,6 +9,8 @@ namespace ECommercePlatform.Domain.Entities
         public ICollection<City>? Cities { get; set; }
         public ICollection<Address>? Addresses { get; set; }
 
+        private State() { }
+
         public static State Create(string name, string code, Guid countryId)
         {
             return new State

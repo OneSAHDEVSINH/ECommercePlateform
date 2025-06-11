@@ -1,21 +1,39 @@
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Role.Commands.Delete
 {
-    public class DeleteRoleHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteRoleCommand, bool>
+    public class DeleteRoleHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteRoleCommand, AppResult>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        public async Task<bool> Handle(DeleteRoleCommand request, CancellationToken cancellationToken)
+        public async Task<AppResult> Handle(DeleteRoleCommand request, CancellationToken cancellationToken)
         {
-            var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
-            if (role == null) return false;
+            try
+            {
+                var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
+                if (role == null)
+                    return AppResult.Failure($"Role with ID {request.Id} not found.");
 
-            await _unitOfWork.RolePermissions.DeleteByRoleIdAsync(role.Id);
-            await _unitOfWork.Roles.DeleteAsync(role);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
+                // Check if role is used by users
+                var userRoles = await _unitOfWork.UserRoles.GetByRoleIdAsync(role.Id);
+                if (userRoles.Any())
+                    return AppResult.Failure("Cannot delete role. It is currently assigned to one or more users.");
+
+                // First delete all role permissions
+                await _unitOfWork.RolePermissions.DeleteByRoleIdAsync(role.Id);
+
+                // Then delete the role itself
+                await _unitOfWork.Roles.DeleteAsync(role);
+                await _unitOfWork.SaveChangesAsync();
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while deleting the role: {ex.Message}");
+            }
         }
     }
 }

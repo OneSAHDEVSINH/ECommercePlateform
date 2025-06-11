@@ -13,8 +13,6 @@ import { PermissionGuard } from './guards/permission.guard';
 import { PermissionType } from './models/role.model';
 import { ModuleManagementComponent } from './admin/module-management/module-management.component';
 
-
-
 // Custom matcher to catch malformed URLs
 function malformedUrlMatcher(url: UrlSegment[]) {
   const fullUrl = url.map(segment => segment.path).join('/');

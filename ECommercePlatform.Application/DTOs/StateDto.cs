@@ -22,10 +22,10 @@ namespace ECommercePlatform.Application.DTOs
                 Id = state.Id,
                 Name = state.Name,
                 Code = state.Code,
-                IsActive = state.IsActive,
-                CreatedOn = state.CreatedOn,
                 CountryId = state?.CountryId ?? Guid.Empty,
-                CountryName = state?.Country?.Name
+                CountryName = state?.Country?.Name,
+                IsActive = state.IsActive,
+                CreatedOn = state.CreatedOn
             };
         }
     }

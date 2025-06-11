@@ -7,12 +7,14 @@ using ECommercePlatform.Application.Features.States.Queries.GetPagedStates;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesByCountry;
 using ECommercePlatform.Application.Features.States.Queries.GetStatesById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class StateController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;

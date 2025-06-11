@@ -1,31 +1,34 @@
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.IUserAuth;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.User.Commands.Delete
 {
-    public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, bool>
+    public class DeleteUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteUserCommand, AppResult>
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IUserRoleRepository _userRoleRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        public DeleteUserHandler(IUserRepository userRepository, IUserRoleRepository userRoleRepository, IUnitOfWork unitOfWork)
+        public async Task<AppResult> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
-            _userRepository = userRepository;
-            _userRoleRepository = userRoleRepository;
-            _unitOfWork = unitOfWork;
-        }
+            try
+            {
+                var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
+                if (user == null)
+                    return AppResult.Failure($"User with ID {request.Id} not found.");
 
-        public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
-        {
-            var user = await _userRepository.GetByIdAsync(request.Id);
-            if (user == null) return false;
+                // First delete associated user roles
+                await _unitOfWork.UserRoles.DeleteByUserIdAsync(request.Id);
 
-            await _unitOfWork.UserRoles.DeleteByUserIdAsync(user.Id);
-            await _unitOfWork.Users.DeleteAsync(user);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
+                // Then delete the user
+                await _unitOfWork.Users.DeleteAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while deleting the user: {ex.Message}");
+            }
         }
     }
 }

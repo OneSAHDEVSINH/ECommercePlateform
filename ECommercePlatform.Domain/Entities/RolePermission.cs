@@ -5,26 +5,27 @@
         public Guid RoleId { get; private set; }
         public Guid PermissionId { get; private set; }
 
-        public Role Role { get; private set; }
-        public Permission Permission { get; private set; }
+        public Role? Role { get; set; }
+        public Permission? Permission { get; set; }
+
+        private RolePermission() { }
 
         public static RolePermission Create(
             Guid roleId,
-            Guid permissionId,
-            string createdBy)
+            Guid permissionId)
         {
             return new RolePermission
             {
-                Id = Guid.NewGuid(),
                 RoleId = roleId,
-                PermissionId = permissionId,
-                CreatedBy = createdBy,
-                CreatedOn = DateTime.Now,
-                ModifiedBy = createdBy,
-                ModifiedOn = DateTime.Now,
-                IsActive = true,
-                IsDeleted = false
+                PermissionId = permissionId
             };
+        }
+
+        public void Update(Guid roleId,
+            Guid permissionId)
+        {
+            RoleId = roleId;
+            PermissionId = permissionId;
         }
     }
 }

@@ -1,13 +1,8 @@
+using ECommercePlatform.Application.Common.Interfaces;
+using ECommercePlatform.Application.Common.Models;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Role.Commands.Delete
 {
-    public class DeleteRoleCommand : IRequest<bool>
-    {
-        public Guid Id { get; set; }
-        public DeleteRoleCommand(Guid id)
-        {
-            Id = id;
-        }
-    }
+    public record DeleteRoleCommand(Guid Id) : IRequest<AppResult>, ITransactionalBehavior;
 }
