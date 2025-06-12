@@ -10,7 +10,7 @@ namespace ECommercePlatform.Domain.Enums
     public enum PermissionType
     {
         View,
-        Create,
+        Add,
         Edit,
         Delete
     }

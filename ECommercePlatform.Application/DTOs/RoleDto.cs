@@ -35,7 +35,7 @@ namespace ECommercePlatform.Application.DTOs
                         RoleId = rp.RoleId,
                         PermissionId = rp.PermissionId,
                         RoleName = role.Name,
-                        PermissionName = rp.Permission?.Name,
+                        //PermissionName = rp.Permission?.Name,
                         PermissionType = rp.Permission?.Type ?? PermissionType.View,
                         ModuleId = rp.Permission?.ModuleId ?? Guid.Empty,
                         ModuleName = rp.Permission?.Module?.Name,

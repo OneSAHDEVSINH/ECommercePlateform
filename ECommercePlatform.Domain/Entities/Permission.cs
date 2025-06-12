@@ -4,8 +4,8 @@ namespace ECommercePlatform.Domain.Entities
 {
     public class Permission : BaseEntity
     {
-        public string? Name { get; private set; }
-        public string? Description { get; private set; }
+        //public string? Name { get; private set; }
+        //public string? Description { get; private set; }
         public PermissionType Type { get; private set; }
         public Guid ModuleId { get; private set; }
 
@@ -22,8 +22,8 @@ namespace ECommercePlatform.Domain.Entities
         {
             return new Permission
             {
-                Name = name,
-                Description = description,
+                //Name = name,
+                //Description = description,
                 Type = type,
                 ModuleId = moduleId
             };
@@ -34,8 +34,8 @@ namespace ECommercePlatform.Domain.Entities
             PermissionType type,
             Guid moduleId)
         {
-            Name = name;
-            Description = description;
+            //Name = name;
+            //Description = description;
             Type = type;
             ModuleId = moduleId;
         }

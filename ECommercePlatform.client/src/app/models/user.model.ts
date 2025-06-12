@@ -1,12 +1,17 @@
+import { Role } from './role.model';
+
 export interface User {
   id?: string;
   firstName: string;
   lastName: string;
   email: string;
   password?: string;
-  //role: UserRole;
-  roles: string[]; //Role[] for more info
+  roles: Role[]; // Now using Role[] instead of string[]
   isActive: boolean;
+  phoneNumber?: string;
+  bio?: string;
+  createdOn?: Date;
+  modifiedOn?: Date;
 }
 
 export interface LoginRequest {
@@ -17,4 +22,4 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   user: User;
-} 
+}

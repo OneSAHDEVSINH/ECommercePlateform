@@ -1,36 +1,37 @@
 export interface Module {
-  id: string;
-  name: string;
-  description: string;
-  route: string;
-  icon: string;
-  displayOrder: number;
-  isActive: boolean;
+  id?: string;
+  name?: string;
+  description?: string;
+  route?: string;
+  icon?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+  permissions?: Permission[];
 }
 
 export interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  type: PermissionType;
-  moduleId: string;
+  id?: string;
+  name?: string;
+  description?: string;
+  type?: PermissionType;
+  moduleId?: string;
   moduleName?: string;
-  isActive: boolean;
+  isActive?: boolean;
 }
 
 export enum PermissionType {
   VIEW = 'View',
+  ADD = 'Add',
   EDIT = 'Edit',
-  DELETE = 'Delete',
-  ADD = 'Add'
+  DELETE = 'Delete'
 }
 
 export interface Role {
   id?: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  permissions?: ModulePermission[];
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+  permissions?: RolePermission[];
   createdOn?: Date;
   createdBy?: string;
   modifiedOn?: Date;
@@ -46,15 +47,31 @@ export interface ModulePermission {
   canDelete: boolean;
 }
 
+export interface RolePermission {
+  id?: string;
+  roleId?: string;
+  permissionId?: string;
+  permissionType?: string;
+  moduleId?: string;
+  moduleName?: string;
+  moduleRoute?: string;
+  isActive?: boolean;
+}
+
 export interface RolePermissionRequest {
   roleId: string;
   permissions: {
     moduleId: string;
-    permissionTypes: PermissionType[];
+    permissionTypes: string[];
   }[];
 }
 
 export interface UserRoleAssignment {
   userId: string;
   roleIds: string[];
+}
+
+export interface PermissionItem {
+  moduleId: string;
+  permissionType: string;
 }

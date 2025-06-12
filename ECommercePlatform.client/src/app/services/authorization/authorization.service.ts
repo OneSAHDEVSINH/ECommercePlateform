@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
-import { Observable, of, map, catchError } from 'rxjs';
+import { Observable, of, map, catchError, shareReplay } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { PermissionType } from '../../models/role.model';
@@ -18,12 +18,6 @@ export class AuthorizationService {
   ) { }
 
   checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
-
-    // Special case for dashboard - always allow
-    //if (moduleRoute === 'dashboard') {
-    //  return of(true);
-    //}
-
     const cacheKey = `${moduleRoute}-${permissionType}`;
 
     // Return cached result if available
@@ -47,13 +41,9 @@ export class AuthorizationService {
         this.cachedPermissions[cacheKey] = hasPermission;
         return hasPermission;
       }),
-      catchError(() => {
-        console.warn(`Permission check error for ${moduleRoute}-${permissionType}:`, Error);
-        // Default to true for dashboard or if super admin
-        //if (moduleRoute === 'dashboard' || this.authService.isSuperAdmin()) {
-        //  this.cachedPermissions[cacheKey] = true;
-        //  return of(true);
-        //}
+      shareReplay(1),
+      catchError(error => {
+        console.warn(`Permission check error for ${moduleRoute}-${permissionType}:`, error);
         this.cachedPermissions[cacheKey] = false;
         return of(false);
       })

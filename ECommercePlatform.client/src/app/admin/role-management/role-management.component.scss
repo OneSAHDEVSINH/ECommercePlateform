@@ -44,6 +44,7 @@
 // Action buttons spacing
 .btn-sm {
   padding: 0.25rem 0.5rem;
+  margin-right: 0.2rem;
 }
 
 // Pagination info styling
@@ -78,5 +79,63 @@
       float: none !important;
       margin-right: 0;
     }
+  }
+}
+
+// Checkbox styling
+.icheck-primary {
+  position: relative;
+
+  input {
+    position: absolute;
+    margin-top: .3rem;
+    margin-left: -1.25rem;
+  }
+
+  label {
+    display: inline-block;
+    position: relative;
+    padding-left: 1.25rem;
+    margin-bottom: 0;
+    font-weight: 400;
+    vertical-align: middle;
+    cursor: pointer;
+
+    &::before {
+      content: "";
+      display: inline-block;
+      position: absolute;
+      width: 17px;
+      height: 17px;
+      left: 0;
+      margin-left: -1.25rem;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+      background-color: #fff;
+      transition: border 0.15s ease-in-out, color 0.15s ease-in-out;
+    }
+
+    &::after {
+      display: inline-block;
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 0;
+      top: 0;
+      margin-left: -1.25rem;
+      padding-left: 3px;
+      padding-top: 1px;
+      font-size: 11px;
+      color: #495057;
+    }
+  }
+
+  input[type="checkbox"]:checked + label::after {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f00c";
+    color: #007bff;
+    background-color: #fff;
+    border-color: #007bff;
   }
 }

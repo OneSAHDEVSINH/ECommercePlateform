@@ -382,7 +382,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           }
           // If roles is an array of strings
           else if (Array.isArray(response.user.roles)) {
-            isAdmin = response.user.roles.includes('Admin');
+            isAdmin = response.user.roles.some(role => role.name === 'Admin');
           }
         }
         // Legacy check for role property (not roles)

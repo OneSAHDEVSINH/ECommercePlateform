@@ -31,8 +31,8 @@ namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRout
                     Permissions = module.Permissions?.Select(p => new PermissionDto
                     {
                         Id = p.Id,
-                        Name = p.Name,
-                        Description = p.Description,
+                        //Name = p.Name,
+                        //Description = p.Description,
                         Type = p.Type,
                         ModuleId = p.ModuleId,
                         ModuleName = module.Name,

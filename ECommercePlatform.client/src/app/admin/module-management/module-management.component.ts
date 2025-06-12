@@ -3,13 +3,14 @@ import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ModuleService } from '../../services/module/module.service';
+import { AuthorizationService } from '../../services/authorization/authorization.service';
 import { MessageService, Message } from '../../services/general/message.service';
 import { Module, PermissionType } from '../../models/role.model';
 import { Subscription } from 'rxjs';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
-
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-module-management',
@@ -19,6 +20,7 @@ import { PagedResponse, PagedRequest } from '../../models/pagination.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     PaginationComponent,
     PermissionDirective,
     RouterModule
@@ -32,21 +34,23 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   message: Message | null = null;
   PermissionType = PermissionType;
+  Math = Math;
 
+  // Pagination properties
   pagedResponse: PagedResponse<Module> | null = null;
   pageRequest: PagedRequest = {
     pageNumber: 1,
     pageSize: 10,
     searchText: '',
-    sortColumn: 'name',
+    sortColumn: 'displayOrder',
     sortDirection: 'asc'
   };
-  Math = Math;
 
   private subscriptions: Subscription[] = [];
 
   constructor(
     private moduleService: ModuleService,
+    private authorizationService: AuthorizationService,
     private messageService: MessageService,
     private fb: FormBuilder
   ) { }
@@ -59,6 +63,9 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
       this.message = message;
     });
 
+    // Clear authorization cache when managing modules to ensure permissions are up-to-date
+    this.authorizationService.clearCache();
+
     this.subscriptions.push(messageSub);
   }
 
@@ -70,7 +77,7 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
     this.moduleForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(500)]],
-      route: ['', [Validators.required, Validators.maxLength(50)]],
+      route: ['', [Validators.required, Validators.maxLength(50), Validators.pattern('^[a-z0-9-]+$')]],
       icon: ['', [Validators.maxLength(50)]],
       displayOrder: [0, [Validators.required, Validators.min(0)]],
       isActive: [true]
@@ -100,19 +107,29 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.moduleForm.invalid) {
+      // Mark all fields as touched to trigger validation messages
+      Object.keys(this.moduleForm.controls).forEach(key => {
+        const control = this.moduleForm.get(key);
+        control?.markAsTouched();
+      });
       return;
     }
 
     this.loading = true;
-    const moduleData = this.moduleForm.value;
+    const moduleData: Module = this.moduleForm.value;
 
     if (this.isEditMode && this.currentModuleId) {
       const sub = this.moduleService.updateModule(this.currentModuleId, moduleData).subscribe({
         next: () => {
-          this.messageService.showMessage({ type: 'success', text: 'Module updated successfully' });
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'Module updated successfully'
+          });
           this.loadModules();
           this.resetForm();
           this.loading = false;
+          // Clear authorization cache after updating a module
+          this.authorizationService.clearCache();
         },
         error: (error) => {
           console.error('Error updating module:', error);
@@ -128,10 +145,15 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
     } else {
       const sub = this.moduleService.createModule(moduleData).subscribe({
         next: () => {
-          this.messageService.showMessage({ type: 'success', text: 'Module created successfully' });
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'Module created successfully'
+          });
           this.loadModules();
           this.resetForm();
           this.loading = false;
+          // Clear authorization cache after creating a module
+          this.authorizationService.clearCache();
         },
         error: (error) => {
           console.error('Error creating module:', error);
@@ -166,13 +188,18 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
   deleteModule(id: string | undefined): void {
     if (!id) return;
 
-    if (confirm('Are you sure you want to delete this module?')) {
+    if (confirm('Are you sure you want to delete this module? This will also delete all permissions associated with this module and may affect user roles.')) {
       this.loading = true;
       const sub = this.moduleService.deleteModule(id).subscribe({
         next: () => {
-          this.messageService.showMessage({ type: 'success', text: 'Module deleted successfully' });
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'Module deleted successfully'
+          });
           this.loadModules();
           this.loading = false;
+          // Clear authorization cache after deleting a module
+          this.authorizationService.clearCache();
         },
         error: (error) => {
           console.error('Error deleting module:', error);
@@ -197,23 +224,22 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
     this.currentModuleId = null;
   }
 
-  onPageChange(page: number | Event): void {
-    const pageNumber = typeof page === 'number' ? page : 1;
-    this.pageRequest.pageNumber = pageNumber;
+  // Pagination methods
+  onPageChange(page: number): void {
+    this.pageRequest.pageNumber = page;
     this.loadModules();
   }
 
   onPageSizeChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
-    this.pageRequest.pageSize = +selectElement.value;
+    this.pageRequest.pageSize = Number(selectElement.value);
     this.pageRequest.pageNumber = 1;
     this.loadModules();
   }
 
   onSortChange(column: string): void {
     if (this.pageRequest.sortColumn === column) {
-      this.pageRequest.sortDirection =
-        this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+      this.pageRequest.sortDirection = this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
       this.pageRequest.sortColumn = column;
       this.pageRequest.sortDirection = 'asc';
@@ -222,9 +248,9 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
   }
 
   onSearchChange(event: Event): void {
-    const searchTerm = (event.target as HTMLInputElement).value;
-    this.pageRequest.searchText = searchTerm;
-    this.pageRequest.pageNumber = 1;
+    const target = event.target as HTMLInputElement;
+    this.pageRequest.searchText = target.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page on search
     this.loadModules();
   }
 }

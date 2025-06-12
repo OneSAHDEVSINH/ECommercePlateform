@@ -14,13 +14,13 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class RoleController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        [HasPermission("Role", "View")]
+        //[HasPermission("Role", "View")]
         public async Task<IActionResult> GetAllRoles([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllRolesQuery(activeOnly));
@@ -32,7 +32,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        [HasPermission("Role", "View")]
+        //[HasPermission("Role", "View")]
         public async Task<IActionResult> GetPagedRoles([FromQuery] GetPagedRolesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -44,7 +44,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [HasPermission("Role", "View")]
+        //[HasPermission("Role", "View")]
         public async Task<IActionResult> GetRoleById(Guid id)
         {
             var result = await _mediator.Send(new GetRoleByIdQuery(id));
@@ -56,7 +56,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}/permissions")]
-        [HasPermission("Role", "View")]
+        //[HasPermission("Role", "View")]
         public async Task<IActionResult> GetRoleWithPermissions(Guid id)
         {
             var result = await _mediator.Send(new GetRoleWithPermissionsQuery(id));
@@ -68,9 +68,14 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [HasPermission("Role", "Create")]
+        //[HasPermission("Role", "Add")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command)
         {
+            if (command == null)
+            {
+                // Add logging here
+                return BadRequest(new { message = "Request body cannot be null" });
+            }
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
@@ -80,7 +85,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("Role", "Edit")]
+        //[HasPermission("Role", "Edit")]
         public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateRoleCommand command)
         {
             if (id != command.Id)
@@ -97,7 +102,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HasPermission("Role", "Delete")]
+        //[HasPermission("Role", "Delete")]
         public async Task<IActionResult> DeleteRole(Guid id)
         {
             var result = await _mediator.Send(new DeleteRoleCommand(id));

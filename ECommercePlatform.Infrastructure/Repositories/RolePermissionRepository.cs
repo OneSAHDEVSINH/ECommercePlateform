@@ -78,7 +78,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        // Search function for role permissions
+        // Search function for role permissions - updated to remove references to Permission.Name
         private static IQueryable<RolePermission> ApplyRolePermissionSearch(
             IQueryable<RolePermission> query, string searchText)
         {
@@ -89,8 +89,9 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return query.Where(rp =>
                 (rp.Role != null && rp.Role.Name != null &&
                     EF.Functions.Like(rp.Role.Name.ToLower(), $"%{searchTerm}%")) ||
-                (rp.Permission != null && rp.Permission.Name != null &&
-                    EF.Functions.Like(rp.Permission.Name.ToLower(), $"%{searchTerm}%")) ||
+                // Search by permission type instead of name
+                (rp.Permission != null &&
+                    EF.Functions.Like(rp.Permission.Type.ToString().ToLower(), $"%{searchTerm}%")) ||
                 (rp.Permission != null && rp.Permission.Module != null &&
                     rp.Permission.Module.Name != null &&
                     EF.Functions.Like(rp.Permission.Module.Name.ToLower(), $"%{searchTerm}%")));

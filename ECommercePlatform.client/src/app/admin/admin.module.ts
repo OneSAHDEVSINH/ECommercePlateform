@@ -10,7 +10,7 @@ import { StateComponent } from './state/state.component';
 import { CityComponent } from './city/city.component';
 import { AdminLayoutComponent } from '../shared/admin-layout/admin-layout.component';
 import { RoleManagementComponent } from './role-management/role-management.component';
-import { UserManagementComponent } from './user-management/user-management.component';
+import { UserComponent } from './user/user.component';
 
 @NgModule({
   imports: [
@@ -25,7 +25,7 @@ import { UserManagementComponent } from './user-management/user-management.compo
     StateComponent,
     CityComponent,
     AdminLayoutComponent,
-    UserManagementComponent,
+    UserComponent,
     RoleManagementComponent
   ]
 })

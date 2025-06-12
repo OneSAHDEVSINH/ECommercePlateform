@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap, of } from 'rxjs';
-import { LoginRequest, LoginResponse, User} from '../../models/user.model';
+import { LoginRequest, LoginResponse, User } from '../../models/user.model';
 import { environment } from '../../../environments/environment';
 import { PagedRequest, PagedResponse } from '../../models/pagination.model';
-import { PermissionType } from '../../models/role.model';
+import { PermissionType, Role } from '../../models/role.model';
 import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
@@ -18,14 +18,14 @@ export class AuthService {
   //private apiUrl = '/Auth';
   //private apiUrl = 'https://localhost:44362/Auth';
 
-  
+
   // Development mode flag - REMOVE IN PRODUCTION
   private devMode = false;
-  
+
   constructor(private http: HttpClient) {
     // Check if user is already logged in on initialization
     this.loadCurrentUser();
-    
+
     // Auto-login for development - REMOVE IN PRODUCTION
     if (this.devMode && !this.currentUserSubject.value) {
       this.simulateLogin();
@@ -40,10 +40,10 @@ export class AuthService {
       lastName: 'User',
       email: 'admin@example.com',
       //role: UserRole.Admin,
-      roles: ['Admin'],
+      roles: [{ name: 'Admin' } as Role],
       isActive: true
     };
-    
+
     localStorage.setItem('token', 'fake-jwt-token');
     localStorage.setItem('currentUser', JSON.stringify(mockUser));
     this.currentUserSubject.next(mockUser);
@@ -59,19 +59,19 @@ export class AuthService {
         lastName: 'User',
         email: credentials.email,
         //role: UserRole.Admin,
-        roles: ['Admin'],
+        roles: [{ name: 'Admin' } as Role],
         isActive: true
       };
-      
+
       const response: LoginResponse = {
         token: 'fake-jwt-token',
         user: mockUser
       };
-      
+
       localStorage.setItem('token', response.token);
       localStorage.setItem('currentUser', JSON.stringify(response.user));
       this.currentUserSubject.next(response.user);
-      
+
       return of(response);
     }
 
@@ -95,10 +95,10 @@ export class AuthService {
             roles: response.user.roles || [],
             isActive: response.user.isActive || true
           };
-          
+
           // Store user data
           localStorage.setItem('currentUser', JSON.stringify(response.user));
-          
+
           // Update current user subject
           this.currentUserSubject.next(user);
         })
@@ -109,7 +109,7 @@ export class AuthService {
     // Remove token and user data from local storage
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
-    
+
     // Update current user subject
     this.currentUserSubject.next(null);
   }
@@ -134,13 +134,8 @@ export class AuthService {
     const user = this.currentUserSubject.value;
     if (!user || !user.roles) return false;
 
-    // Check if roles is an array of objects with name property
-    if (Array.isArray(user.roles) && typeof user.roles[0] === 'object') {
-      return user.roles.some((role: any) => role.name === 'Admin');
-    }
-
-    // Fall back to the old check (string array)
-    return user.roles.includes('Admin');
+    // Check if user has the Admin role
+    return user.roles.some((role: Role) => role.name === 'Admin');
   }
 
   isSuperAdmin(): boolean {

@@ -117,20 +117,24 @@
           </div>
 
           <div class="row">
-            <!-- System Role -->
+            <!-- Phone Number -->
             <div class="col-md-6">
               <div class="form-group">
-                <label for="role">System Role</label>
-                <select id="role"
-                        formControlName="role"
-                        class="form-control"
-                        [ngClass]="{'is-invalid': userForm.get('role')?.touched && userForm.get('role')?.errors}">
-                  <option *ngFor="let role of userRoles" [value]="role">{{ role }}</option>
-                </select>
+                <label for="phoneNumber">Phone Number</label>
+                <input type="text"
+                       id="phoneNumber"
+                       formControlName="phoneNumber"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('phoneNumber')?.touched && userForm.get('phoneNumber')?.errors}"
+                       placeholder="Enter phone number">
+                <span *ngIf="userForm.get('phoneNumber')?.touched && userForm.get('phoneNumber')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('phoneNumber')?.errors?.['maxlength']">Phone number cannot exceed 20 characters</span>
+                </span>
               </div>
             </div>
 
-            <!-- Is Active -->
+            <!-- Active Status -->
             <div class="col-md-6">
               <div class="form-group">
                 <label>Active Status</label>
@@ -142,30 +146,41 @@
             </div>
           </div>
 
-          <!-- Application Roles -->
-          <div *ngIf="availableRoles.length > 0" class="form-group">
-            <label>Assign Application Roles</label>
-            <div class="role-selection">
-              <div class="form-check" *ngFor="let role of availableRoles">
-                <input class="form-check-input" type="checkbox"
-                       [id]="'role-' + role.id"
-                       [checked]="isRoleSelected(role.id)"
-                       (change)="toggleRoleSelection(role.id)">
-                <label class="form-check-label" [for]="'role-' + role.id">
-                  {{ role.name }}
-                  <span class="text-muted" *ngIf="role.description">({{ role.description }})</span>
-                </label>
+          <!-- Roles Selection -->
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <label>Assign Roles</label>
+              <div class="role-selection border p-3">
+                <div class="row">
+                  <div *ngFor="let role of availableRoles" class="col-md-3 mb-2">
+                    <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input"
+                             [id]="'role_' + role.id"
+                             [checked]="role.id && isRoleSelected(role.id)"
+                             (change)="role.id && toggleRoleSelection(role.id)">
+                      <label class="custom-control-label" [for]="'role_' + role.id">{{ role.name }}</label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
         </div>
-        <!-- Card Footer -->
         <div class="card-footer">
-          <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid || loading">
+          <button type="submit"
+                  class="btn btn-primary"
+                  [disabled]="userForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'users', type: isEditMode ? PermissionType.EDIT : PermissionType.ADD }">
             <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} User
           </button>
-          <button type="button" class="btn btn-default float-right" (click)="resetForm()">
-            {{ isEditMode ? 'Cancel' : 'Reset' }}
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="isEditMode">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="!isEditMode && userForm.dirty">
+            Reset
           </button>
         </div>
       </form>
@@ -174,123 +189,95 @@
     <!-- Users List Card -->
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">Users List</h3>
+        <h3 class="card-title">User List</h3>
+        <div class="card-tools">
+          <div class="input-group input-group-sm" style="width: 250px;">
+            <input type="text"
+                   #searchInput
+                   [(ngModel)]="pageRequest.searchText"
+                   (input)="onSearchChange($event)"
+                   class="form-control float-right"
+                   placeholder="Search...">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-default">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <!-- Filters Row -->
-        <div class="row mb-3">
-          <!-- Search Box -->
-          <div class="col-md-6">
-            <div class="form-group">
-              <label>Search:</label>
-              <div class="input-group">
-                <input type="text"
-                       class="form-control"
-                       placeholder="Search users..."
-                       (input)="onSearchChange($event)"
-                       [value]="pageRequest.searchText || ''">
-                <div class="input-group-append">
-                  <span class="input-group-text"><i class="fas fa-search"></i></span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Page Size -->
-          <div class="col-md-3">
-            <div class="form-group">
-              <label>Show entries:</label>
-              <select class="form-control" (change)="onPageSizeChange($event)">
-                <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
-                <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
-                <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
-                <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Loading Indicator -->
+      <div class="card-body table-responsive p-0">
         <div *ngIf="loading" class="overlay">
-          <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+          <i class="fas fa-refresh fa-spin"></i>
         </div>
-
-        <!-- No Data Message -->
-        <div *ngIf="users.length === 0 && !loading" class="alert alert-info">
-          <i class="icon fas fa-info"></i>
-          No users found. Please add a new user or adjust your search criteria.
+        <table class="table table-hover text-nowrap">
+          <thead>
+            <tr>
+              <th (click)="onSortChange('firstName')" class="sortable">
+                Name
+                <i *ngIf="pageRequest.sortColumn === 'firstName'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th (click)="onSortChange('email')" class="sortable">
+                Email
+                <i *ngIf="pageRequest.sortColumn === 'email'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th>
+                Roles
+              </th>
+              <th (click)="onSortChange('isActive')" class="sortable">
+                Status
+                <i *ngIf="pageRequest.sortColumn === 'isActive'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th style="width: 150px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!users || users.length === 0">
+              <td colspan="5" class="text-center">No records found</td>
+            </tr>
+            <tr *ngFor="let user of users">
+              <td>{{ user.firstName }} {{ user.lastName }}</td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span *ngFor="let role of user.roles" class="badge badge-info mr-1">
+                  {{ role.name }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="user.isActive ? 'badge-success' : 'badge-danger'">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-primary mr-1" (click)="editUser(user)"
+                        *appPermission="{ moduleRoute: 'users', type: PermissionType.EDIT }">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="user.id && deleteUser(user.id)"
+                        *appPermission="{ moduleRoute: 'users', type: PermissionType.DELETE }">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer clearfix">
+        <div class="float-right">
+          <app-pagination *ngIf="pagedResponse"
+                          [totalPages]="pagedResponse.totalPages"
+                          [currentPage]="pagedResponse.pageNumber"
+                          (pageChange)="onPageChange($event)">
+          </app-pagination>
         </div>
-
-        <!-- Data Table -->
-        <div class="table-responsive" *ngIf="users.length > 0">
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th (click)="onSortChange('firstName')" class="sortable">
-                  Name
-                  <i *ngIf="pageRequest.sortColumn === 'firstName'"
-                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
-                </th>
-                <th (click)="onSortChange('email')" class="sortable">
-                  Email
-                  <i *ngIf="pageRequest.sortColumn === 'email'"
-                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
-                </th>
-                <th (click)="onSortChange('role')" class="sortable">
-                  System Role
-                  <i *ngIf="pageRequest.sortColumn === 'role'"
-                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
-                </th>
-                <th (click)="onSortChange('isActive')" class="sortable">
-                  Status
-                  <i *ngIf="pageRequest.sortColumn === 'isActive'"
-                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
-                </th>
-                <th style="width: 150px">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let user of users">
-                <td>{{ user.firstName }} {{ user.lastName }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.roles }}</td>
-                <td>
-                  <span class="badge" [ngClass]="user.isActive ? 'bg-success' : 'bg-danger'">
-                    {{ user.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-info mr-1" (click)="editUser(user)"
-                          *appPermission="{ moduleRoute: 'admin/users', type: PermissionType.EDIT }">
-                    <i class="fas fa-edit"></i> Edit
-                  </button>
-                  <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)"
-                          *appPermission="{ moduleRoute: 'admin/users', type: PermissionType.DELETE }">
-                    <i class="fas fa-trash"></i> Delete
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="row mt-3" *ngIf="pagedResponse">
-          <div class="col-sm-12 col-md-5">
-            <div class="dataTables_info">
-              Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
-              to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
-              of {{ pagedResponse.totalCount }} entries
-            </div>
-          </div>
-          <div class="col-sm-12 col-md-7">
-            <div class="dataTables_paginate paging_simple_numbers float-right">
-              <app-pagination *ngIf="pagedResponse.totalPages > 1"
-                              [totalPages]="pagedResponse.totalPages"
-                              [currentPage]="pagedResponse.pageNumber"
-                              (pageChange)="onPageChange($event)">
-              </app-pagination>
-            </div>
+        <div class="float-left">
+          <div class="dataTables_info" role="status" aria-live="polite">
+            Showing {{ pagedResponse ? (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 : 0 }}
+            to {{ pagedResponse ? Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) : 0 }}
+            of {{ pagedResponse?.totalCount || 0 }} entries
           </div>
         </div>
       </div>

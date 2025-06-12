@@ -14,6 +14,7 @@ export class AdminLayoutComponent implements OnInit {
   userName: string = 'Admin';
   currentTheme: string = 'light-mode';
   isUserDropdownOpen: boolean = false;
+  isModulesMenuOpen: boolean = false; // Add this property for modules menu
 
   constructor(
     public authService: AuthService,
@@ -35,6 +36,9 @@ export class AdminLayoutComponent implements OnInit {
     if (savedTheme) {
       this.currentTheme = savedTheme;
     }
+
+    // Check if we're on a modules page to auto-open the menu
+    this.isModulesMenuOpen = this.router.url.includes('/admin/module');
   }
 
   toggleTheme(): void {
@@ -48,9 +52,15 @@ export class AdminLayoutComponent implements OnInit {
     this.isUserDropdownOpen = !this.isUserDropdownOpen;
   }
 
+  // Add method to toggle modules dropdown menu
+  toggleModulesMenu(): void {
+    this.isModulesMenuOpen = !this.isModulesMenuOpen;
+  }
+
   @HostListener('document:click')
   closeDropdown(): void {
     this.isUserDropdownOpen = false;
+    // Don't auto-close the modules menu on document click as that would be disruptive
   }
 
   logout(): void {

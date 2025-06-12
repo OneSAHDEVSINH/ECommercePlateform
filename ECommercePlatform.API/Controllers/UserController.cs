@@ -16,13 +16,13 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class UserController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        [HasPermission("User", "View")]
+        //[HasPermission("User", "View")]
         public async Task<IActionResult> GetAllUsers([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllUsersQuery(activeOnly));
@@ -34,7 +34,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        [HasPermission("User", "View")]
+        //[HasPermission("User", "View")]
         public async Task<IActionResult> GetPagedUsers([FromQuery] GetPagedUsersQuery query)
         {
             var result = await _mediator.Send(query);
@@ -46,7 +46,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [HasPermission("User", "View")]
+        //[HasPermission("User", "View")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
             var result = await _mediator.Send(new GetUserByIdQuery(id));
@@ -58,7 +58,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}/roles")]
-        [HasPermission("User", "View")]
+        //[HasPermission("User", "View")]
         public async Task<IActionResult> GetUserWithRoles(Guid id)
         {
             var result = await _mediator.Send(new GetUserWithRolesQuery(id));
@@ -70,7 +70,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("by-email")]
-        [HasPermission("User", "View")]
+        //[HasPermission("User", "View")]
         public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
         {
             var result = await _mediator.Send(new GetUserByEmailQuery(email));
@@ -82,7 +82,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("by-role/{roleId}")]
-        [HasPermission("User", "View")]
+        //[HasPermission("User", "View")]
         public async Task<IActionResult> GetUsersByRoleId(Guid roleId, [FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetUsersByRoleIdQuery(roleId, activeOnly));
@@ -96,7 +96,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [HasPermission("User", "Create")]
+        //[HasPermission("User", "Add")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
         {
             var result = await _mediator.Send(command);
@@ -108,7 +108,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("User", "Edit")]
+        //[HasPermission("User", "Edit")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserCommand command)
         {
             if (id != command.Id)
@@ -125,7 +125,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HasPermission("User", "Delete")]
+        //[HasPermission("User", "Delete")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var result = await _mediator.Send(new DeleteUserCommand(id));

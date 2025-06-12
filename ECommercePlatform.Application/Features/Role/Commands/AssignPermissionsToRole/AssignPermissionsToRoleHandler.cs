@@ -17,7 +17,7 @@ namespace ECommercePlatform.Application.Features.Role.Commands.AssignPermissions
                 // Check if role exists
                 var role = await _unitOfWork.Roles.GetByIdAsync(request.RoleId);
                 if (role == null)
-                    return AppResult.Failure($"Role with ID {request.RoleId} not found."); // updated to match the new request property
+                    return AppResult.Failure($"Role with ID {request.RoleId} not found.");
 
                 // Delete existing role permissions
                 await _unitOfWork.RolePermissions.DeleteByRoleIdAsync(role.Id);
@@ -29,20 +29,19 @@ namespace ECommercePlatform.Application.Features.Role.Commands.AssignPermissions
                     {
                         // Get the permission by module and type
                         var permission = await _unitOfWork.Permissions.GetByModuleAndTypeAsync(permGroup.ModuleId, permType);
-                        if (permission == null)
-                            continue; // Skip if permission doesn't exist
+                        if (permission == null) continue;
 
                         // Create role permission assignment
                         var rolePermission = RolePermission.Create(role.Id, permission.Id);
-                        //rolePermission.CreatedBy = request.ModifiedBy;
-                        //rolePermission.CreatedOn = request.ModifiedOn;
+                        rolePermission.CreatedBy = request.ModifiedBy ?? "System";
+                        rolePermission.CreatedOn = request.ModifiedOn;
                         await _unitOfWork.RolePermissions.AddAsync(rolePermission);
                     }
                 }
 
                 // Update role's audit info
-                //role.ModifiedBy = request.ModifiedBy;
-                //role.ModifiedOn = request.ModifiedOn;
+                role.ModifiedBy = request.ModifiedBy ?? "System";
+                role.ModifiedOn = request.ModifiedOn;
                 await _unitOfWork.Roles.UpdateAsync(role);
 
                 await _unitOfWork.SaveChangesAsync();

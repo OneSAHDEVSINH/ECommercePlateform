@@ -8,7 +8,7 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class AuthorizationController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;

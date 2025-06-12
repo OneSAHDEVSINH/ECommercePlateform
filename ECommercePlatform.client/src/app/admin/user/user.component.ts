@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth/auth.service';
+import { UserService } from '../../services/user/user.service';
 import { RoleService } from '../../services/role/role.service';
 import { MessageService, Message } from '../../services/general/message.service';
 import { User } from '../../models/user.model';
@@ -11,21 +11,23 @@ import { Subscription } from 'rxjs';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { PermissionDirective } from '../../directives/permission.directive';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-user-management',
-  templateUrl: './user-management.component.html',
-  styleUrls: ['./user-management.component.scss'],
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     PaginationComponent,
     PermissionDirective,
     RouterModule
   ]
 })
-export class UserManagementComponent implements OnInit, OnDestroy {
+export class UserComponent implements OnInit, OnDestroy {
   users: User[] = [];
   roles: Role[] = [];
   userForm!: FormGroup;
@@ -38,7 +40,6 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   selectedRoles: string[] = [];
   availableRoles: Role[] = [];
 
-  userRoles = Object.values(this.roles);
   PermissionType = PermissionType;
   Math = Math;
 
@@ -52,11 +53,10 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     sortDirection: 'asc'
   };
 
-  private currentUser: any = null;
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private authService: AuthService,
+    private userService: UserService,
     private roleService: RoleService,
     private messageService: MessageService,
     private fb: FormBuilder
@@ -67,15 +67,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.loadUsers();
     this.loadRoles();
 
-    const userSub = this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-    });
-
     const messageSub = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
     });
 
-    this.subscriptions.push(userSub, messageSub);
+    this.subscriptions.push(messageSub);
   }
 
   ngOnDestroy(): void {
@@ -88,7 +84,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
       lastName: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       password: ['', [Validators.minLength(6), Validators.maxLength(100)]],
-      role: [this.roles[0], Validators.required],
+      phoneNumber: ['', [Validators.maxLength(20)]],
       isActive: [true]
     });
 
@@ -102,7 +98,7 @@ export class UserManagementComponent implements OnInit, OnDestroy {
 
   loadUsers(): void {
     this.loading = true;
-    const sub = this.authService.getUsers(this.pageRequest).subscribe({
+    const sub = this.userService.getPagedUsers(this.pageRequest).subscribe({
       next: (response) => {
         this.pagedResponse = response;
         this.users = response.items;
@@ -122,57 +118,40 @@ export class UserManagementComponent implements OnInit, OnDestroy {
   }
 
   loadRoles(): void {
-    const sub = this.roleService.getRoles().subscribe({
+    this.roleService.getRoles().subscribe({
       next: (roles) => {
         this.availableRoles = roles;
       },
       error: (error) => {
         console.error('Error loading roles:', error);
+        this.messageService.showMessage({
+          type: 'error',
+          text: error.error?.message || 'Failed to load roles'
+        });
       }
     });
-
-    this.subscriptions.push(sub);
-  }
-
-  loadUserRoles(userId: string): void {
-    const sub = this.roleService.getUserRoles(userId).subscribe({
-      next: (roles) => {
-        this.selectedRoles = roles.map(role => role.id as string);
-      },
-      error: (error) => {
-        console.error('Error loading user roles:', error);
-      }
-    });
-
-    this.subscriptions.push(sub);
   }
 
   onSubmit(): void {
-    if (this.userForm.invalid) {
-      return;
-    }
+    if (this.userForm.invalid) return;
 
-    const userData: any = {
+    const userData = {
       ...this.userForm.value,
-      id: this.isEditMode && this.currentUserId ? this.currentUserId : undefined,
-      roles: this.selectedRoles
+      roleIds: this.selectedRoles
     };
 
     this.loading = true;
 
     if (this.isEditMode && this.currentUserId) {
-      const sub = this.authService.updateUser(this.currentUserId, userData).subscribe({
+      this.userService.updateUser(this.currentUserId, userData).subscribe({
         next: () => {
-          this.messageService.showMessage({ type: 'success', text: 'User updated successfully' });
-
-          // If roles were selected, assign them
-          if (this.selectedRoles.length > 0) {
-            this.assignRolesToUser(this.currentUserId as string);
-          } else {
-            this.loadUsers();
-            this.resetForm();
-            this.loading = false;
-          }
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'User updated successfully'
+          });
+          this.resetForm();
+          this.loadUsers();
+          this.loading = false;
         },
         error: (error) => {
           console.error('Error updating user:', error);
@@ -183,21 +162,16 @@ export class UserManagementComponent implements OnInit, OnDestroy {
           this.loading = false;
         }
       });
-
-      this.subscriptions.push(sub);
     } else {
-      const sub = this.authService.createUser(userData).subscribe({
-        next: (newUser) => {
-          this.messageService.showMessage({ type: 'success', text: 'User created successfully' });
-
-          // If roles were selected, assign them
-          if (this.selectedRoles.length > 0) {
-            this.assignRolesToUser(newUser.id as string);
-          } else {
-            this.loadUsers();
-            this.resetForm();
-            this.loading = false;
-          }
+      this.userService.createUser(userData).subscribe({
+        next: () => {
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'User created successfully'
+          });
+          this.resetForm();
+          this.loadUsers();
+          this.loading = false;
         },
         error: (error) => {
           console.error('Error creating user:', error);
@@ -208,87 +182,48 @@ export class UserManagementComponent implements OnInit, OnDestroy {
           this.loading = false;
         }
       });
-
-      this.subscriptions.push(sub);
     }
-  }
-
-  assignRolesToUser(userId: string): void {
-    const assignment = {
-      userId: userId,
-      roleIds: this.selectedRoles
-    };
-
-    const sub = this.roleService.assignRolesToUser(assignment).subscribe({
-      next: () => {
-        this.loadUsers();
-        this.resetForm();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error assigning roles:', error);
-        this.messageService.showMessage({
-          type: 'error',
-          text: error.error?.message || 'Failed to assign roles'
-        });
-        this.loading = false;
-      }
-    });
-
-    this.subscriptions.push(sub);
   }
 
   editUser(user: User): void {
     this.isEditMode = true;
-    this.currentUserId = user.id || null;
-
+    this.currentUserId = user.id || null; 
     this.userForm.patchValue({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      roles: user.roles,
+      phoneNumber: user.phoneNumber,
       isActive: user.isActive
     });
 
-    // Clear password field in edit mode
+    // Clear password as it's not returned from the API
     this.userForm.get('password')?.setValue('');
     this.userForm.get('password')?.clearValidators();
     this.userForm.get('password')?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
     this.userForm.get('password')?.updateValueAndValidity();
-    // Handle roles assignment
-    if (user.roles) {
-      // If user.roles is an array of objects with id property
-      if (user.roles.length > 0 && typeof user.roles[0] === 'object') {
-        this.selectedRoles = user.roles.map((role: any) => role.id || '');
-      } else {
-        // If user.roles is an array of strings
-        this.selectedRoles = [...user.roles];
-      }
-    } else {
-      this.selectedRoles = [];
-    }
-    // Load user roles
-    if (user.id) {
-      this.loadUserRoles(user.id);
-    }
 
-    this.messageService.scrollToTop();
+    this.selectedRoles = user.roles?.map(role => role.id).filter((id): id is string => id !== undefined) || [];
   }
 
   deleteUser(id: string | undefined): void {
     if (!id) {
       this.messageService.showMessage({
         type: 'error',
-        text: 'Cannot delete user: User ID is missing'
+        text: 'Cannot delete user: Invalid ID'
       });
       return;
     }
 
     if (confirm('Are you sure you want to delete this user?')) {
       this.loading = true;
-      const sub = this.authService.deleteUser(id).subscribe({
+
+      this.userService.deleteUser(id).subscribe({
         next: () => {
-          this.messageService.showMessage({ type: 'success', text: 'User deleted successfully' });
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'User deleted successfully'
+          });
+          this.resetForm();
           this.loadUsers();
           this.loading = false;
         },
@@ -301,20 +236,16 @@ export class UserManagementComponent implements OnInit, OnDestroy {
           this.loading = false;
         }
       });
-
-      this.subscriptions.push(sub);
     }
   }
 
   resetForm(): void {
-    this.userForm.reset({
-      isActive: true
-    });
+    this.userForm.reset({ isActive: true });
     this.selectedRoles = [];
     this.isEditMode = false;
     this.currentUserId = null;
 
-    // Reset password validation for new user
+    // Reset password validation
     this.userForm.get('password')?.setValidators([
       Validators.required,
       Validators.minLength(6),
@@ -323,58 +254,49 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     this.userForm.get('password')?.updateValueAndValidity();
   }
 
-  toggleRoleSelection(roleId: string | undefined): void {
-    if (!roleId) return;
-
+  toggleRoleSelection(roleId: string): void {
     const index = this.selectedRoles.indexOf(roleId);
     if (index === -1) {
       this.selectedRoles.push(roleId);
     } else {
       this.selectedRoles.splice(index, 1);
     }
-
-    if (this.selectedRoles.includes(roleId)) {
-      this.selectedRoles = this.selectedRoles.filter(id => id !== roleId);
-    } else {
-      this.selectedRoles.push(roleId);
-    }
   }
 
-  isRoleSelected(roleId: string | undefined): boolean {
-    if (!roleId) return false;
+  isRoleSelected(roleId: string): boolean {
     return this.selectedRoles.includes(roleId);
   }
 
-  onSearchChange(event: Event): void {
-    const searchTerm = (event.target as HTMLInputElement).value;
-    this.pageRequest.searchText = searchTerm;
-    this.pageRequest.pageNumber = 1;
-    this.loadUsers();
-  }
-
-  // Pagination methods
-  onPageChange(page: number | Event): void {
-    // Handle both number and Event types
-    const pageNumber = typeof page === 'number' ? page : 1;
-    this.pageRequest.pageNumber = pageNumber;
-    this.loadUsers();
-  }
-
-  onPageSizeChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    this.pageRequest.pageSize = +selectElement.value;
-    this.pageRequest.pageNumber = 1;
+  onPageChange(page: number): void {
+    this.pageRequest.pageNumber = page;
     this.loadUsers();
   }
 
   onSortChange(column: string): void {
     if (this.pageRequest.sortColumn === column) {
-      this.pageRequest.sortDirection =
-        this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+      // Toggle sort direction if clicking on the same column
+      this.pageRequest.sortDirection = this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
+      // Default to ascending for a new column
       this.pageRequest.sortColumn = column;
       this.pageRequest.sortDirection = 'asc';
     }
     this.loadUsers();
   }
+
+  onSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.pageRequest.searchText = target.value;
+
+    // Reset to first page when searching
+    this.pageRequest.pageNumber = 1;
+
+    // Debounce search
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.loadUsers();
+    }, 500);
+  }
+
+  private searchTimeout: any;
 }

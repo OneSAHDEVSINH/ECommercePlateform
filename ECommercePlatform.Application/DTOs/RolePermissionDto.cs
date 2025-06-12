@@ -30,7 +30,7 @@ namespace ECommercePlatform.Application.DTOs
                 RoleId = rolePermission.RoleId,
                 PermissionId = rolePermission.PermissionId,
                 RoleName = rolePermission.Role?.Name,
-                PermissionName = rolePermission.Permission?.Name,
+                //PermissionName = rolePermission.Permission?.Name,
                 PermissionType = rolePermission.Permission?.Type ?? PermissionType.View,
                 ModuleId = rolePermission.Permission?.ModuleId ?? Guid.Empty,
                 ModuleName = rolePermission.Permission?.Module?.Name,
@@ -84,7 +84,7 @@ namespace ECommercePlatform.Application.DTOs
                 RoleId = rolePermission.RoleId,
                 PermissionId = rolePermission.PermissionId,
                 RoleName = rolePermission.Role?.Name,
-                PermissionName = rolePermission.Permission?.Name,
+                //PermissionName = rolePermission.Permission?.Name,
                 PermissionType = rolePermission.Permission?.Type ?? PermissionType.View,
                 ModuleName = rolePermission.Permission?.Module?.Name,
                 IsActive = rolePermission.IsActive

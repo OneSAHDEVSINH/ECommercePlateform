@@ -1,0 +1,62 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, catchError, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { User } from '../../models/user.model';
+import { PagedResponse, PagedRequest } from '../../models/pagination.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  private apiUrl = `${environment.apiUrl}/user`;
+
+  constructor(private http: HttpClient) { }
+
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPagedUsers(request: PagedRequest): Observable<PagedResponse<User>> {
+    return this.http.get<PagedResponse<User>>(`${this.apiUrl}/paged`, {
+      params: { ...request as any }
+    }).pipe(catchError(this.handleError));
+  }
+
+  getUserById(id: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUserByEmail(email: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/by-email`, {
+      params: { email }
+    }).pipe(catchError(this.handleError));
+  }
+
+  createUser(user: User): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateUser(id: string, user: User): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, user)
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUserWithRoles(id: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}/roles`)
+      .pipe(catchError(this.handleError));
+  }
+
+  private handleError(error: any) {
+    console.error('An error occurred', error);
+    return throwError(() => new Error(error.message || error.error?.message || 'Server error'));
+  }
+}

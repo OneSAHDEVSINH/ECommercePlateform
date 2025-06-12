@@ -1,0 +1,216 @@
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Module Permissions: {{ module?.name }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><a routerLink="/admin/modules">Modules</a></li>
+          <li class="breadcrumb-item active">Permissions</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <!-- Back button -->
+    <div class="mb-3">
+      <button type="button" class="btn btn-secondary" (click)="backToModules()">
+        <i class="fas fa-arrow-left"></i> Back to Modules
+      </button>
+    </div>
+
+    <!-- Module Info Card -->
+    <div class="card card-primary" *ngIf="module">
+      <div class="card-header">
+        <h3 class="card-title">Module Information</h3>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Name:</strong> {{ module.name }}</p>
+            <p><strong>Route:</strong> <code>{{ module.route }}</code></p>
+            <p><strong>Icon:</strong> <i [class]="module.icon"></i> {{ module.icon }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Display Order:</strong> {{ module.displayOrder }}</p>
+            <p>
+              <strong>Active:</strong>
+              <span [ngClass]="module.isActive ? 'badge bg-success' : 'badge bg-danger'">
+                {{ module.isActive ? 'Yes' : 'No' }}
+              </span>
+            </p>
+            <p><strong>Description:</strong> {{ module.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permission Form Card -->
+    <div class="card card-info">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit Permission' : 'Add Permission' }}</h3>
+      </div>
+      <form [formGroup]="permissionForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Permission Name</label>
+                <input type="text"
+                       id="name"
+                       formControlName="name"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': permissionForm.get('name')?.touched && permissionForm.get('name')?.errors}"
+                       placeholder="Enter permission name">
+                <span *ngIf="permissionForm.get('name')?.touched && permissionForm.get('name')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="permissionForm.get('name')?.errors?.['required']">Permission name is required</span>
+                  <span *ngIf="permissionForm.get('name')?.errors?.['maxlength']">Permission name cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="type">Permission Type</label>
+                <select id="type"
+                        formControlName="type"
+                        class="form-control"
+                        [ngClass]="{'is-invalid': permissionForm.get('type')?.touched && permissionForm.get('type')?.errors}">
+                  <option *ngFor="let type of permissionTypes" [value]="type">{{ type }}</option>
+                </select>
+                <span *ngIf="permissionForm.get('type')?.touched && permissionForm.get('type')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="permissionForm.get('type')?.errors?.['required']">Permission type is required</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch mt-2">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control"
+                          id="description"
+                          formControlName="description"
+                          rows="3"
+                          [ngClass]="{'is-invalid': permissionForm.get('description')?.touched && permissionForm.get('description')?.errors}"
+                          placeholder="Enter permission description"></textarea>
+                <span *ngIf="permissionForm.get('description')?.touched && permissionForm.get('description')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="permissionForm.get('description')?.errors?.['maxlength']">Description cannot exceed 250 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button type="submit"
+                  class="btn btn-info"
+                  [disabled]="permissionForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'modules', type: isEditMode ? PermissionType.EDIT : PermissionType.ADD }">
+            <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} Permission
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="isEditMode">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="!isEditMode && permissionForm.dirty">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Permissions List Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Module Permissions</h3>
+      </div>
+      <div class="card-body">
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="permissions.length === 0 && !loading" class="alert alert-info">
+          <i class="icon fas fa-info"></i>
+          No permissions defined for this module.
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-responsive" *ngIf="permissions.length > 0">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 50px">Index</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th style="width: 100px">Status</th>
+                <th style="width: 150px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let permission of permissions; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ permission.name }}</td>
+                <td>
+                  <span [ngClass]="getPermissionTypeClass(permission.type)">
+                    {{ permission.type }}
+                  </span>
+                </td>
+                <td>{{ permission.description }}</td>
+                <td>
+                  <span [ngClass]="permission.isActive ? 'badge bg-success' : 'badge bg-danger'">
+                    {{ permission.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-primary mr-1"
+                          (click)="editPermission(permission)"
+                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.EDIT }">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger"
+                          (click)="permission.id && deletePermission(permission.id)">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
