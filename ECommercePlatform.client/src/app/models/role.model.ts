@@ -20,10 +20,10 @@ export interface Permission {
 }
 
 export enum PermissionType {
-  VIEW = 'View',
-  ADD = 'Add',
-  EDIT = 'Edit',
-  DELETE = 'Delete'
+  View = 'View',
+  Add = 'Add',
+  Edit = 'Edit',
+  Delete = 'Delete'
 }
 
 export interface Role {

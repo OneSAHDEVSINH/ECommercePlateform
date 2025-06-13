@@ -27,13 +27,13 @@ namespace ECommercePlatform.Application.Features.Role.Commands.Create
 
                     permission.RuleFor(p => p.PermissionType)
                         .NotEmpty().WithMessage("Permission type is required.")
-                        .Must(BeValidPermissionType).WithMessage("Permission type must be one of: VIEW, ADD, EDIT, DELETE.");
+                        .Must(BeValidPermissionType).WithMessage("Permission type must be one of: View, Add, Edit, Delete.");
                 });
         }
 
         private bool BeValidPermissionType(string permissionType)
         {
-            return permissionType is "VIEW" or "ADD" or "EDIT" or "DELETE";
+            return permissionType is "View" or "Add" or "Edit" or "Delete";
         }
     }
 }

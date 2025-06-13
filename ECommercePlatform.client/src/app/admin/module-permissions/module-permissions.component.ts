@@ -73,7 +73,7 @@ export class ModulePermissionsComponent implements OnInit, OnDestroy {
     this.permissionForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(250)]],
-      type: [PermissionType.VIEW, [Validators.required]],
+      type: [PermissionType.View, [Validators.required]],
       isActive: [true]
     });
   }
@@ -205,7 +205,7 @@ export class ModulePermissionsComponent implements OnInit, OnDestroy {
 
   resetForm(): void {
     this.permissionForm.reset({
-      type: PermissionType.VIEW,
+      type: PermissionType.View,
       isActive: true
     });
     this.isEditMode = false;
@@ -220,10 +220,10 @@ export class ModulePermissionsComponent implements OnInit, OnDestroy {
     if (!type) return 'badge bg-info';
 
     switch (type) {
-      case PermissionType.VIEW: return 'badge bg-primary';
-      case PermissionType.ADD: return 'badge bg-success';
-      case PermissionType.EDIT: return 'badge bg-warning';
-      case PermissionType.DELETE: return 'badge bg-danger';
+      case PermissionType.View: return 'badge bg-primary';
+      case PermissionType.Add: return 'badge bg-success';
+      case PermissionType.Edit: return 'badge bg-warning';
+      case PermissionType.Delete: return 'badge bg-danger';
       default: return 'badge bg-info';
     }
   }

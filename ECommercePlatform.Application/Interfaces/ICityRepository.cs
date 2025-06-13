@@ -1,11 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using System.Linq.Expressions;
 
-namespace ECommercePlatform.Application.Interfaces.ICity
+namespace ECommercePlatform.Application.Interfaces
 {
     public interface ICityRepository : IGenericRepository<City>
     {

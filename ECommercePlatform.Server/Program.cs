@@ -3,7 +3,6 @@ using ECommercePlatform.Application.Common;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.ICity;
 using ECommercePlatform.Application.Interfaces.ICountry;
-using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Application.Interfaces.IProduct;
 using ECommercePlatform.Application.Interfaces.IState;
 using ECommercePlatform.Application.Interfaces.IUserAuth;

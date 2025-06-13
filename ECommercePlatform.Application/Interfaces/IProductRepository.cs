@@ -1,7 +1,6 @@
-using ECommercePlatform.Application.Interfaces.IGeneral;
 using ECommercePlatform.Domain.Entities;
 
-namespace ECommercePlatform.Application.Interfaces.IProduct
+namespace ECommercePlatform.Application.Interfaces
 {
     public interface IProductRepository : IGenericRepository<Product>
     {

@@ -136,7 +136,7 @@
           <button type="submit"
                   class="btn btn-info"
                   [disabled]="permissionForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'modules', type: isEditMode ? PermissionType.EDIT : PermissionType.ADD }">
+                  *appPermission="{ moduleRoute: 'modules', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
             <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} Permission
           </button>
           <button type="button" class="btn btn-default float-right" (click)="resetForm()"
@@ -198,7 +198,7 @@
                 <td>
                   <button class="btn btn-sm btn-primary mr-1"
                           (click)="editPermission(permission)"
-                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.EDIT }">
+                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.Edit }">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger"

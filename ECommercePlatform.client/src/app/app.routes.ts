@@ -69,7 +69,7 @@ export const routes: Routes = [
             title: 'Country Management',
             data: {
               moduleRoute: 'countries',
-              permission: PermissionType.VIEW
+              permission: PermissionType.View
             }
           },
           {
@@ -78,7 +78,7 @@ export const routes: Routes = [
             title: 'State Management',
             data: {
               moduleRoute: 'states',
-              permission: PermissionType.VIEW
+              permission: PermissionType.View
             }
           },
           {
@@ -87,7 +87,7 @@ export const routes: Routes = [
             title: 'City Management',
             data: {
               moduleRoute: 'cities',
-              permission: PermissionType.VIEW
+              permission: PermissionType.View
             }
           },
           {
@@ -96,7 +96,7 @@ export const routes: Routes = [
             title: 'Role Management',
             data: {
               moduleRoute: 'roles',
-              permission: PermissionType.VIEW,
+              permission: PermissionType.View,
               adminOnly: true // Special flag for admin-only sections
             }
           },
@@ -106,7 +106,7 @@ export const routes: Routes = [
             title: 'User Management',
             data: {
               moduleRoute: 'users',
-              permission: PermissionType.VIEW,
+              permission: PermissionType.View,
               adminOnly: true
             }
           },
@@ -116,7 +116,7 @@ export const routes: Routes = [
             title: 'Module Management',
             data: {
               moduleRoute: 'modules',
-              permission: PermissionType.VIEW,
+              permission: PermissionType.View,
               adminOnly: true
             }
           },
@@ -126,7 +126,7 @@ export const routes: Routes = [
             title: 'Module Permissions',
             data: {
               moduleRoute: 'modules',
-              permission: PermissionType.VIEW,
+              permission: PermissionType.View,
               adminOnly: true
             }
           },
@@ -136,7 +136,7 @@ export const routes: Routes = [
             title: 'Module Permissions',
             data: {
               moduleRoute: 'modules',
-              permission: PermissionType.VIEW,
+              permission: PermissionType.View,
               adminOnly: true
             }
           },
@@ -192,7 +192,7 @@ export const routes: Routes = [
 //            title: 'Country Management',
 //            data: {
 //              moduleRoute: 'countries',
-//              permission: PermissionType.VIEW
+//              permission: PermissionType.View
 //            }
 //          },
 //          {
@@ -201,7 +201,7 @@ export const routes: Routes = [
 //            title: 'State Management',
 //            data: {
 //              moduleRoute: 'states',
-//              permission: PermissionType.VIEW
+//              permission: PermissionType.View
 //            }
 //          },
 //          {
@@ -210,7 +210,7 @@ export const routes: Routes = [
 //            title: 'City Management',
 //            data: {
 //              moduleRoute: 'cities',
-//              permission: PermissionType.VIEW
+//              permission: PermissionType.View
 //            }
 //          },
 //          {
@@ -219,7 +219,7 @@ export const routes: Routes = [
 //            title: 'Role Management',
 //            data: {
 //              moduleRoute: 'roles',
-//              permission: PermissionType.VIEW,
+//              permission: PermissionType.View,
 //              adminOnly: true // Special flag for admin-only sections
 //            }
 //          },
@@ -229,7 +229,7 @@ export const routes: Routes = [
 //            title: 'User Management',
 //            data: {
 //              moduleRoute: 'users',
-//              permission: PermissionType.VIEW,
+//              permission: PermissionType.View,
 //              adminOnly: true
 //            }
 //          },

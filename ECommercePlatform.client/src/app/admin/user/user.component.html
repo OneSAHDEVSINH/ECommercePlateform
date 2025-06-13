@@ -171,7 +171,7 @@
           <button type="submit"
                   class="btn btn-primary"
                   [disabled]="userForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'users', type: isEditMode ? PermissionType.EDIT : PermissionType.ADD }">
+                  *appPermission="{ moduleRoute: 'users', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
             <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} User
           </button>
           <button type="button" class="btn btn-default float-right" (click)="resetForm()"
@@ -253,11 +253,11 @@
               </td>
               <td>
                 <button class="btn btn-sm btn-primary mr-1" (click)="editUser(user)"
-                        *appPermission="{ moduleRoute: 'users', type: PermissionType.EDIT }">
+                        *appPermission="{ moduleRoute: 'users', type: PermissionType.Edit }">
                   <i class="fas fa-edit"></i> Edit
                 </button>
                 <button class="btn btn-sm btn-danger" (click)="user.id && deleteUser(user.id)"
-                        *appPermission="{ moduleRoute: 'users', type: PermissionType.DELETE }">
+                        *appPermission="{ moduleRoute: 'users', type: PermissionType.Delete }">
                   <i class="fas fa-trash"></i> Delete
                 </button>
               </td>

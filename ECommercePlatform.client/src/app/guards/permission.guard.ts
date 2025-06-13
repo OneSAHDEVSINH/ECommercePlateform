@@ -61,7 +61,7 @@ export class PermissionGuard implements CanActivate {
 
     // Get module route and required permission from route data
     const moduleRoute = route.data['moduleRoute'] || this.getModuleRouteFromUrl(state.url);
-    const requiredPermission = route.data['permission'] as PermissionType || PermissionType.VIEW;
+    const requiredPermission = route.data['permission'] as PermissionType || PermissionType.View;
 
     // If this is an admin-only section and user is super admin, allow without further checks
     if (route.data['adminOnly'] && this.authService.isSuperAdmin()) {

@@ -17,6 +17,7 @@ export class AuthorizationService {
     private http: HttpClient
   ) { }
 
+
   checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
     const cacheKey = `${moduleRoute}-${permissionType}`;
 
@@ -51,19 +52,19 @@ export class AuthorizationService {
   }
 
   hasViewPermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.VIEW);
+    return this.checkPermission(moduleRoute, PermissionType.View);
   }
 
   hasCreatePermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.ADD);
+    return this.checkPermission(moduleRoute, PermissionType.Add);
   }
 
   hasEditPermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.EDIT);
+    return this.checkPermission(moduleRoute, PermissionType.Edit);
   }
 
   hasDeletePermission(moduleRoute: string): Observable<boolean> {
-    return this.checkPermission(moduleRoute, PermissionType.DELETE);
+    return this.checkPermission(moduleRoute, PermissionType.Delete);
   }
 
   clearCache(): void {

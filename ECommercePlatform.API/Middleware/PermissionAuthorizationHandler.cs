@@ -32,7 +32,7 @@ namespace ECommercePlatform.API.Middleware
             }
 
             // Super admin bypass
-            if (isSuperAdmin || (emailClaim != null && emailClaim.ToLower() == "admin@admin.com"))
+            if (isSuperAdmin || (emailClaim != null && emailClaim.Equals("admin@admin.com", StringComparison.CurrentCultureIgnoreCase)))
             {
                 Console.WriteLine("AUTH DEBUG: Admin bypass activated");
                 context.Succeed(requirement);

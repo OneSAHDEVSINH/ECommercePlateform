@@ -129,10 +129,10 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
       if (!module.id) return;
 
       const permissionMap = new Map<PermissionType, boolean>();
-      permissionMap.set(PermissionType.VIEW, false);
-      permissionMap.set(PermissionType.ADD, false);
-      permissionMap.set(PermissionType.EDIT, false);
-      permissionMap.set(PermissionType.DELETE, false);
+      permissionMap.set(PermissionType.View, false);
+      permissionMap.set(PermissionType.Add, false);
+      permissionMap.set(PermissionType.Edit, false);
+      permissionMap.set(PermissionType.Delete, false);
 
       this.modulePermissions.set(module.id, permissionMap);
     });
@@ -149,10 +149,10 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
   toggleAllPermissionsForModule(moduleId: string, checked: boolean): void {
     const modulePerms = this.modulePermissions.get(moduleId);
     if (modulePerms) {
-      modulePerms.set(PermissionType.VIEW, checked);
-      modulePerms.set(PermissionType.ADD, checked);
-      modulePerms.set(PermissionType.EDIT, checked);
-      modulePerms.set(PermissionType.DELETE, checked);
+      modulePerms.set(PermissionType.View, checked);
+      modulePerms.set(PermissionType.Add, checked);
+      modulePerms.set(PermissionType.Edit, checked);
+      modulePerms.set(PermissionType.Delete, checked);
     }
   }
 
@@ -160,10 +160,10 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     const modulePerms = this.modulePermissions.get(moduleId);
     if (!modulePerms) return false;
     return (
-      (modulePerms.get(PermissionType.VIEW) || false) &&
-      (modulePerms.get(PermissionType.ADD) || false) &&
-      (modulePerms.get(PermissionType.EDIT) || false) &&
-      (modulePerms.get(PermissionType.DELETE) || false)
+      (modulePerms.get(PermissionType.View) || false) &&
+      (modulePerms.get(PermissionType.Add) || false) &&
+      (modulePerms.get(PermissionType.Edit) || false) &&
+      (modulePerms.get(PermissionType.Delete) || false)
     );
   }
 
@@ -181,16 +181,18 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     // Convert the module permissions to the format expected by the API
     const permissions = Array.from(this.modulePermissions.entries())
       .flatMap(([moduleId, permMap]) => {
-        const permTypes: PermissionType[] = [];
-        if (permMap.get(PermissionType.VIEW)) permTypes.push(PermissionType.VIEW);
-        if (permMap.get(PermissionType.ADD)) permTypes.push(PermissionType.ADD);
-        if (permMap.get(PermissionType.EDIT)) permTypes.push(PermissionType.EDIT);
-        if (permMap.get(PermissionType.DELETE)) permTypes.push(PermissionType.DELETE);
+        // Create separate objects for each permission type with UPPERCASE values
+        const result = [];
+        if (permMap.get(PermissionType.View))
+          result.push({ moduleId, permissionType: "View" });
+        if (permMap.get(PermissionType.Add))
+          result.push({ moduleId, permissionType: "Add" });
+        if (permMap.get(PermissionType.Edit))
+          result.push({ moduleId, permissionType: "Edit" });
+        if (permMap.get(PermissionType.Delete))
+          result.push({ moduleId, permissionType: "Delete" });
 
-        return permTypes.length > 0 ? [{
-          moduleId,
-          permissionTypes: permTypes.map(t => t.toString())
-        }] : [];
+        return result;
       });
 
     roleData.permissions = permissions;
@@ -253,10 +255,10 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
 
   private getPermissionTypeFromString(permTypeStr: string): PermissionType | null {
     switch (permTypeStr.toUpperCase()) {
-      case "VIEW": return PermissionType.VIEW;
-      case "ADD": return PermissionType.ADD;
-      case "EDIT": return PermissionType.EDIT;
-      case "DELETE": return PermissionType.DELETE;
+      case "View": return PermissionType.View;
+      case "Add": return PermissionType.Add;
+      case "Edit": return PermissionType.Edit;
+      case "Delete": return PermissionType.Delete;
       default: return null;
     }
   }

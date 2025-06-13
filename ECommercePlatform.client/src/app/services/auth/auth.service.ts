@@ -38,7 +38,7 @@ export class AuthService {
       id: '1',
       firstName: 'Admin',
       lastName: 'User',
-      email: 'admin@example.com',
+      email: 'admin@admin.com',
       //role: UserRole.Admin,
       roles: [{ name: 'Admin' } as Role],
       isActive: true
@@ -80,27 +80,52 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/Auth/login`, credentials)
       .pipe(
         tap(response => {
-          console.log('Raw API response:', response); // for debugging
+          console.log('Raw API response:', response);
 
           // Store token in local storage
           localStorage.setItem('token', response.token);
 
-          // Create a properly formatted user object
-          const user: User = {
-            id: response.user.id,
-            firstName: response.user.firstName || '',
-            lastName: response.user.lastName || '',
-            email: response.user.email || '',
-            //role: this.getRoleFromString(response.user.role) || response.user.role,
-            roles: response.user.roles || [],
-            isActive: response.user.isActive || true
-          };
+          // Check if user data exists in the response
+          if (response.user) {
+            // Create a properly formatted user object
+            const user: User = {
+              id: response.user.id,
+              firstName: response.user.firstName || '',
+              lastName: response.user.lastName || '',
+              email: response.user.email || '',
+              roles: response.user.roles || [],
+              isActive: response.user.isActive || true
+            };
 
-          // Store user data
-          localStorage.setItem('currentUser', JSON.stringify(response.user));
+            // Store user data
+            localStorage.setItem('currentUser', JSON.stringify(response.user));
 
-          // Update current user subject
-          this.currentUserSubject.next(user);
+            // Update current user subject
+            this.currentUserSubject.next(user);
+          } else {
+            // Extract user info from the JWT token
+            try {
+              const decodedToken: any = jwtDecode(response.token);
+
+              // Create a minimal user object from token claims
+              const userFromToken: User = {
+                id: decodedToken.nameid || '',
+                email: decodedToken.email || '',
+                firstName: '',
+                lastName: '',
+                roles: [{ name: decodedToken.role }],
+                isActive: true
+              };
+
+              // Store and use this user data
+              localStorage.setItem('currentUser', JSON.stringify(userFromToken));
+              this.currentUserSubject.next(userFromToken);
+            } catch (error) {
+              console.error('Error decoding JWT token:', error);
+              // Re-throw to trigger error handler
+              throw new Error('Unable to retrieve user information');
+            }
+          }
         })
       );
   }

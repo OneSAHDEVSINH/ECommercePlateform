@@ -109,24 +109,24 @@
                         <div class="form-check">
                           <input class="form-check-input"
                                  type="checkbox"
-                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.VIEW)"
-                                 (change)="togglePermission(module.id!, PermissionType.VIEW)">
+                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.View)"
+                                 (change)="togglePermission(module.id!, PermissionType.View)">
                         </div>
                       </td>
                       <td class="text-center">
                         <div class="form-check">
                           <input class="form-check-input"
                                  type="checkbox"
-                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.EDIT)"
-                                 (change)="togglePermission(module.id!, PermissionType.EDIT)">
+                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Edit)"
+                                 (change)="togglePermission(module.id!, PermissionType.Edit)">
                         </div>
                       </td>
                       <td class="text-center">
                         <div class="form-check">
                           <input class="form-check-input"
                                  type="checkbox"
-                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.DELETE)"
-                                 (change)="togglePermission(module.id!, PermissionType.DELETE)">
+                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Delete)"
+                                 (change)="togglePermission(module.id!, PermissionType.Delete)">
                         </div>
                       </td>
                     </tr>
@@ -191,11 +191,11 @@
                 <td>{{ role.createdOn | date: 'medium' }}</td>
                 <td>
                   <button class="btn btn-sm btn-info mr-1" (click)="editRole(role)"
-                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.EDIT }">
+                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Edit }">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deleteRole(role.id!)"
-                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.DELETE }">
+                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Delete }">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>

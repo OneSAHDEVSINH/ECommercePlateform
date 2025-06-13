@@ -223,6 +223,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
+import { jwtDecode } from 'jwt-decode';
 
 @Component({
   selector: 'app-login',
@@ -371,23 +372,36 @@ export class LoginComponent implements OnInit, OnDestroy {
       next: (response) => {
         console.log('Auth response:', response);
 
-        // Check if the user has Admin role by checking the actual structure
+        // Check if the user has Admin role - handle cases with or without user object
         let isAdmin = false;
 
-        // Check for role in various formats
-        if (response.user.roles) {
-          // If roles is an array of objects
-          if (Array.isArray(response.user.roles) && typeof response.user.roles[0] === 'object') {
-            isAdmin = response.user.roles.some((role: any) => role.name === 'Admin');
+        if (response.token) {
+          // If we have a token but no user, we can still check for admin role
+          if (!response.user) {
+            try {
+              // Use the JWT token directly to check for admin role
+              const token = response.token;
+              const decodedToken: any = jwtDecode(token);
+              // Check if the role claim indicates admin
+              isAdmin = decodedToken.role === 'Admin';
+            } catch (error) {
+              console.error('Error decoding token to check admin role:', error);
+            }
+          } else if (response.user.roles) {
+            // Normal case with user object
+            // If roles is an array of objects
+            if (Array.isArray(response.user.roles) && typeof response.user.roles[0] === 'object') {
+              isAdmin = response.user.roles.some((role: any) => role.name === 'Admin');
+            }
+            // If roles is an array of strings
+            else if (Array.isArray(response.user.roles)) {
+              isAdmin = response.user.roles.some(role => role.name === 'Admin');
+            }
           }
-          // If roles is an array of strings
-          else if (Array.isArray(response.user.roles)) {
-            isAdmin = response.user.roles.some(role => role.name === 'Admin');
+          // Legacy check for role property (not roles)
+          else if (response.user.roles === 'Admin') {
+            isAdmin = true;
           }
-        }
-        // Legacy check for role property (not roles)
-        else if (response.user.roles === 'Admin') {
-          isAdmin = true;
         }
 
         if (isAdmin) {

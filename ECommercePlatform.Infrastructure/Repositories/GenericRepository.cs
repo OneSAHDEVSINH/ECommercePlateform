@@ -1,5 +1,5 @@
 using ECommercePlatform.Application.Common.Extensions;
-using ECommercePlatform.Application.Interfaces.IGeneral;
+using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;

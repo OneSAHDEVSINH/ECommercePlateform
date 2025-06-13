@@ -1,7 +1,7 @@
 using ECommercePlatform.Application.Models;
 using System.Linq.Expressions;
 
-namespace ECommercePlatform.Application.Interfaces.IGeneral
+namespace ECommercePlatform.Application.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {

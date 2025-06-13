@@ -46,19 +46,19 @@ export class PermissionService {
   }
 
   hasViewPermission(moduleName: string): boolean {
-    return this.hasPermission(moduleName, PermissionType.VIEW);
+    return this.hasPermission(moduleName, PermissionType.View);
   }
 
   hasCreatePermission(moduleName: string): boolean {
-    return this.hasPermission(moduleName, PermissionType.ADD);
+    return this.hasPermission(moduleName, PermissionType.Add);
   }
 
   hasEditPermission(moduleName: string): boolean {
-    return this.hasPermission(moduleName, PermissionType.EDIT);
+    return this.hasPermission(moduleName, PermissionType.Edit);
   }
 
   hasDeletePermission(moduleName: string): boolean {
-    return this.hasPermission(moduleName, PermissionType.DELETE);
+    return this.hasPermission(moduleName, PermissionType.Delete);
   }
 
   isSuperAdmin(): boolean {

@@ -9,14 +9,9 @@ namespace ECommercePlatform.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     //[Authorize]
-    public class AuthorizationController : ControllerBase
+    public class AuthorizationController(IUnitOfWork unitOfWork) : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-
-        public AuthorizationController(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         [HttpGet("check")]
         public async Task<IActionResult> CheckPermission([FromQuery] string moduleRoute, [FromQuery] string permissionType)
@@ -29,7 +24,7 @@ namespace ECommercePlatform.API.Controllers
             }
 
             // Check for super admin
-            if (User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
+            if (User.HasClaim(c => (c.Type == "SuperAdmin" || c.Type == "Admin") && c.Value == "true"))
             {
                 return Ok(true);
             }
