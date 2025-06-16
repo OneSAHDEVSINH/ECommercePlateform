@@ -15,8 +15,6 @@ namespace ECommercePlatform.Domain.Entities
         private Permission() { }
 
         public static Permission Create(
-            string name,
-            string description,
             PermissionType type,
             Guid moduleId)
         {
@@ -29,9 +27,7 @@ namespace ECommercePlatform.Domain.Entities
             };
         }
 
-        public void Update(string name,
-            string description,
-            PermissionType type,
+        public void Update(PermissionType type,
             Guid moduleId)
         {
             //Name = name;

@@ -47,26 +47,26 @@ export class PermissionGuard implements CanActivate {
       });
     }
 
-    // Check if the user is an admin
-    if (!this.authService.isAdmin()) {
-      // Not an admin, redirect back to login with access denied message
-      this.router.navigate(['/admin/login']);
-      return false;
-    }
+    //// Check if the user is an admin
+    //if (!this.authService.isAdmin()) {
+    //  // Not an admin, redirect back to login with access denied message
+    //  this.router.navigate(['/admin/login']);
+    //  return false;
+    //}
 
     // Check if route is exempt from permission checks (like dashboard)
     if (route.data['exempt'] === true) {
       return true;
     }
 
+    // If user is admin and route has adminOnly flag, allow without checking permissions
+    if (this.authorizationService.isAdmin && route.data['adminOnly'] === true) {
+      return true;
+    }
+
     // Get module route and required permission from route data
     const moduleRoute = route.data['moduleRoute'] || this.getModuleRouteFromUrl(state.url);
     const requiredPermission = route.data['permission'] as PermissionType || PermissionType.View;
-
-    // If this is an admin-only section and user is super admin, allow without further checks
-    if (route.data['adminOnly'] && this.authService.isSuperAdmin()) {
-      return true;
-    }
 
     // Check permission with the authorization service
     return this.authorizationService.checkPermission(moduleRoute, requiredPermission).pipe(
@@ -77,7 +77,9 @@ export class PermissionGuard implements CanActivate {
 
         // No permission, redirect to dashboard with notification
         console.warn(`Access denied to ${moduleRoute}: Missing ${requiredPermission} permission`);
-        return this.router.createUrlTree(['/admin/dashboard']);
+        return this.router.createUrlTree(['/admin/dashboard'], {
+          queryParams: { accessDenied: 'true', module: moduleRoute }
+        });
       }),
       catchError(error => {
         console.error('Permission check failed:', error);

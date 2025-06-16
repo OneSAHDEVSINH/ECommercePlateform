@@ -14,6 +14,10 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
+  // Authentication state change subject
+  private authStateChangeSubject = new BehaviorSubject<boolean>(false);
+  public authStateChange$ = this.authStateChangeSubject.asObservable();
+
   private apiUrl = environment.apiUrl;
   //private apiUrl = '/Auth';
   //private apiUrl = 'https://localhost:44362/Auth';
@@ -47,6 +51,7 @@ export class AuthService {
     localStorage.setItem('token', 'fake-jwt-token');
     localStorage.setItem('currentUser', JSON.stringify(mockUser));
     this.currentUserSubject.next(mockUser);
+    this.authStateChangeSubject.next(true);
     console.warn('DEV MODE: Auto-login enabled. Remove before production!');
   }
 
@@ -71,7 +76,7 @@ export class AuthService {
       localStorage.setItem('token', response.token);
       localStorage.setItem('currentUser', JSON.stringify(response.user));
       this.currentUserSubject.next(response.user);
-
+      this.authStateChangeSubject.next(true);
       return of(response);
     }
 
@@ -102,6 +107,7 @@ export class AuthService {
 
             // Update current user subject
             this.currentUserSubject.next(user);
+            this.authStateChangeSubject.next(true);
           } else {
             // Extract user info from the JWT token
             try {
@@ -120,6 +126,7 @@ export class AuthService {
               // Store and use this user data
               localStorage.setItem('currentUser', JSON.stringify(userFromToken));
               this.currentUserSubject.next(userFromToken);
+              this.authStateChangeSubject.next(true);
             } catch (error) {
               console.error('Error decoding JWT token:', error);
               // Re-throw to trigger error handler
@@ -137,6 +144,7 @@ export class AuthService {
 
     // Update current user subject
     this.currentUserSubject.next(null);
+    this.authStateChangeSubject.next(false);
   }
 
   private loadCurrentUser(): void {
@@ -144,6 +152,9 @@ export class AuthService {
     if (userJson) {
       const user = JSON.parse(userJson) as User;
       this.currentUserSubject.next(user);
+      this.authStateChangeSubject.next(true);
+    } else {
+      this.authStateChangeSubject.next(false);
     }
   }
 
@@ -207,5 +218,15 @@ export class AuthService {
   // Delete user
   deleteUser(userId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/users/${userId}`);
+  }
+
+  // Development mode methods
+  enableDevMode(enable: boolean): void {
+    this.devMode = enable;
+    console.log(`Dev mode ${enable ? 'enabled' : 'disabled'}`);
+  }
+
+  isDevMode(): boolean {
+    return this.devMode;
   }
 }

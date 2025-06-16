@@ -1,9 +1,11 @@
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Identity;
 
 namespace ECommercePlatform.Infrastructure
 {
-    public class UnitOfWork(AppDbContext context) : IUnitOfWork, IDisposable
+    public class UnitOfWork(AppDbContext context, UserManager<User> UserManager, RoleManager<Role> RoleManager, SignInManager<User> SignInManager) : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _context = context;
         private ICountryRepository? _countryRepository;
@@ -16,6 +18,10 @@ namespace ECommercePlatform.Infrastructure
         private IPermissionRepository? _permissionRepository;
         private IRoleRepository? _roleRepository;
         private IUserRoleRepository? _userRoleRepository;
+
+        private readonly UserManager<User> _userManager = UserManager;
+        private readonly RoleManager<Role> _roleManager = RoleManager;
+        private readonly SignInManager<User> _signInManager = SignInManager;
 
         public ICountryRepository Countries => _countryRepository ??= new CountryRepository(_context);
 
@@ -36,6 +42,11 @@ namespace ECommercePlatform.Infrastructure
         public IRoleRepository Roles => _roleRepository ??= new RoleRepository(_context);
 
         public IUserRoleRepository UserRoles => _userRoleRepository ??= new UserRoleRepository(_context);
+
+
+        public UserManager<User> UserManager => _userManager;
+        public RoleManager<Role> RoleManager => _roleManager;
+        public SignInManager<User> SignInManager => _signInManager;
 
         public async Task<int> CompleteAsync()
         {

@@ -8,11 +8,10 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class AuthorizationController(IUnitOfWork unitOfWork) : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-
         [HttpGet("check")]
         public async Task<IActionResult> CheckPermission([FromQuery] string moduleRoute, [FromQuery] string permissionType)
         {
@@ -24,14 +23,16 @@ namespace ECommercePlatform.API.Controllers
             }
 
             // Check for super admin
-            if (User.HasClaim(c => (c.Type == "SuperAdmin" || c.Type == "Admin") && c.Value == "true"))
+            if (User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
             {
                 return Ok(true);
             }
 
-            if (!Guid.TryParse(userIdClaim.Value, out var userId))
+            // Check direct permission claim
+            var requiredPermission = $"{moduleRoute}:{permissionType}";
+            if (User.HasClaim(c => c.Type == "Permission" && c.Value == requiredPermission))
             {
-                return BadRequest("Invalid user ID format");
+                return Ok(true);
             }
 
             // Find module by route
@@ -43,12 +44,17 @@ namespace ECommercePlatform.API.Controllers
             }
 
             // Get user roles
-            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var userRoles = await _unitOfWork.UserManager.GetRolesAsync(
+                await _unitOfWork.UserManager.FindByIdAsync(userIdClaim.Value));
 
-            foreach (var userRole in userRoles)
+            foreach (var roleName in userRoles)
             {
+                // Get role by name
+                var role = await _unitOfWork.RoleManager.FindByNameAsync(roleName);
+                if (role == null) continue;
+
                 // Get role permissions
-                var rolePermissions = await _unitOfWork.RolePermissions.GetByRoleIdAsync(userRole.RoleId);
+                var rolePermissions = await _unitOfWork.RolePermissions.GetByRoleIdAsync(Guid.Parse(role.Id));
 
                 foreach (var rolePermission in rolePermissions)
                 {
@@ -66,6 +72,20 @@ namespace ECommercePlatform.API.Controllers
 
             // If we get here, no matching permission was found
             return Ok(false);
+        }
+
+        [HttpGet("user-permissions")]
+        public IActionResult GetUserPermissions()
+        {
+            // Extract permission claims from the token
+            var permissions = User.Claims
+                .Where(c => c.Type == "Permission")
+                .Select(c => c.Value)
+                .ToList();
+
+            var isAdmin = User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true");
+
+            return Ok(new { permissions, isAdmin });
         }
     }
 }

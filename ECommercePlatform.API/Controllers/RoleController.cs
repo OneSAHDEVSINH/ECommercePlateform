@@ -1,4 +1,6 @@
 using ECommercePlatform.API.Middleware;
+using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Features.Role.Commands.AssignPermissions;
 using ECommercePlatform.Application.Features.Role.Commands.Create;
 using ECommercePlatform.Application.Features.Role.Commands.Delete;
 using ECommercePlatform.Application.Features.Role.Commands.Update;
@@ -14,13 +16,13 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class RoleController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        //[HasPermission("Role", "View")]
+        [HasPermission("roles", "View")]
         public async Task<IActionResult> GetAllRoles([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllRolesQuery(activeOnly));
@@ -32,7 +34,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        //[HasPermission("Role", "View")]
+        [HasPermission("roles", "View")]
         public async Task<IActionResult> GetPagedRoles([FromQuery] GetPagedRolesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -44,7 +46,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        //[HasPermission("Role", "View")]
+        [HasPermission("roles", "View")]
         public async Task<IActionResult> GetRoleById(Guid id)
         {
             var result = await _mediator.Send(new GetRoleByIdQuery(id));
@@ -56,7 +58,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}/permissions")]
-        //[HasPermission("Role", "View")]
+        [HasPermission("roles", "View")]
         public async Task<IActionResult> GetRoleWithPermissions(Guid id)
         {
             var result = await _mediator.Send(new GetRoleWithPermissionsQuery(id));
@@ -68,8 +70,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        //[HasPermission("Role", "Add")]
-        public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command)
+        [HasPermission("roles", "Add")]
+        public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
         {
             if (command == null)
             {
@@ -85,8 +87,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        //[HasPermission("Role", "Edit")]
-        public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateRoleCommand command)
+        [HasPermission("roles", "Edit")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleCommand command)
         {
             if (id != command.Id)
                 return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
@@ -102,8 +104,8 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[HasPermission("Role", "Delete")]
-        public async Task<IActionResult> DeleteRole(Guid id)
+        [HasPermission("roles", "Delete")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteRoleCommand(id));
 
@@ -113,6 +115,24 @@ namespace ECommercePlatform.API.Controllers
             return result.Error.Contains("not found")
                 ? NotFound(new { message = result.Error })
                 : BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost("{id}/permissions")]
+        [HasPermission("roles", "Edit")]
+        public async Task<IActionResult> AssignPermissions(Guid id, [FromBody] List<AssignPermissionDto> permissions)
+        {
+            var command = new AssignPermissionsToRoleCommand
+            {
+                RoleId = id,
+                Permissions = permissions
+            };
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
         }
     }
 }

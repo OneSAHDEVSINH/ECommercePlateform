@@ -10,7 +10,7 @@ namespace ECommercePlatform.Application.DTOs
 {
     public class RoleDto
     {
-        public Guid Id { get; init; }
+        public string? Id { get; init; }
         public string? Name { get; init; }
         public string? Description { get; init; }
         public bool IsActive { get; init; }
@@ -87,7 +87,7 @@ namespace ECommercePlatform.Application.DTOs
 
     public class RoleListDto
     {
-        public Guid Id { get; init; }
+        public string? Id { get; init; }
         public string? Name { get; init; }
         public string? Description { get; init; }
         public bool IsActive { get; init; }

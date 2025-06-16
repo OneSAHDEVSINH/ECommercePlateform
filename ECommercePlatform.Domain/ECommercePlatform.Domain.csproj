@@ -10,6 +10,9 @@
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <PackageReference Include="CSharpFunctionalExtensions.FluentAssertions" Version="3.0.0" />
     <PackageReference Include="FluentAssertions.CSharpFunctionalExtensions" Version="1.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.6" />
   </ItemGroup>
 
 </Project>

@@ -8,10 +8,12 @@ using ECommercePlatform.Application.Interfaces.IState;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Mappings;
 using ECommercePlatform.Application.Services;
+using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Infrastructure;
 using ECommercePlatform.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -39,6 +41,31 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Configure Identity
+builder.Services.AddIdentity<User, Role>(options =>
+{
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 8;
+
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    // User settings
+    options.User.RequireUniqueEmail = true;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register MediatR, FluentValidation, and other application services
 builder.Services.AddApplicationServices();
@@ -122,6 +149,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddSingleton<IAuthorizationHandler, AdminBypassHandler>();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
 builder.Services.AddAuthorizationBuilder()
     // Define the "Permission" policy
@@ -135,8 +163,7 @@ builder.Services.AddAuthorizationBuilder()
         .Build());
 
 builder.Services.AddCors();
-builder.Services.AddDbContext<ECommercePlatform.Infrastructure.AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 //To ignore databse warning datateti,e now admin seed from here. use anly one either from here or from AppDbContext.
 //.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 // Add JWT Authentication
@@ -188,9 +215,51 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        var dbContext = services.GetRequiredService<ECommercePlatform.Infrastructure.AppDbContext>();
+        var dbContext = services.GetRequiredService<AppDbContext>();
         dbContext.Database.Migrate(); // This will apply any pending migrations and create the database if it doesn't exist
-        Console.WriteLine("Database migrated successfully.");
+        // Create super admin user with password
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        var roleManager = services.GetRequiredService<RoleManager<Role>>();
+        // Check if roles exist, if not create them
+        if (!await roleManager.RoleExistsAsync("SuperAdmin"))
+        {
+            // Role might already be seeded in DbContext but without password hash
+            var superAdminRole = await roleManager.FindByNameAsync("SuperAdmin");
+            if (superAdminRole == null)
+            {
+                superAdminRole = new Role("SuperAdmin")
+                {
+                    Description = "Super Administrator with all permissions",
+                    IsActive = true
+                };
+                await roleManager.CreateAsync(superAdminRole);
+            }
+        }
+
+        // Check if admin user exists, if not create it
+        var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
+        if (adminUser == null)
+        {
+            adminUser = new User
+            {
+                UserName = "admin@admin.com",
+                Email = "admin@admin.com",
+                EmailConfirmed = true,
+                FirstName = "Admin",
+                LastName = "User",
+                PhoneNumber = "1234567890",
+                PhoneNumberConfirmed = true,
+                IsActive = true
+            };
+
+            var result = await userManager.CreateAsync(adminUser, "Admin@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "SuperAdmin");
+            }
+        }
+
+        Console.WriteLine("Database initialized and super admin created successfully.");
     }
     catch (Exception ex)
     {
@@ -240,7 +309,7 @@ app.UseValidationMiddleware();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UsePermissionMiddleware();
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");

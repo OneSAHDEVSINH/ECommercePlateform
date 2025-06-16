@@ -1,19 +1,24 @@
-﻿namespace ECommercePlatform.Domain.Entities
-{
-    public class UserRole : BaseEntity
-    {
-        public Guid UserId { get; private set; }
-        public Guid RoleId { get; private set; }
+﻿using Microsoft.AspNetCore.Identity;
 
+namespace ECommercePlatform.Domain.Entities
+{
+    public class UserRole : IdentityUserRole<string>
+    {
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
         public User? User { get; set; }
         public Role? Role { get; set; }
 
         // Private constructor for EF Core
-        private UserRole() { }
+        public UserRole() { }
 
         public static UserRole Create(
-            Guid userId,
-            Guid roleId)
+            string userId,
+            string roleId)
         {
             return new UserRole
             {
@@ -22,8 +27,8 @@
             };
         }
 
-        public void Update(Guid userId,
-            Guid roleId)
+        public void Update(string userId,
+            string roleId)
         {
             UserId = userId;
             RoleId = roleId;

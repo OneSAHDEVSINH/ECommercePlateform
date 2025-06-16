@@ -35,12 +35,12 @@ export class UserService {
     }).pipe(catchError(this.handleError));
   }
 
-  createUser(user: User): Observable<User> {
+  createUser(user: any): Observable<User> {
     return this.http.post<User>(this.apiUrl, user)
       .pipe(catchError(this.handleError));
   }
 
-  updateUser(id: string, user: User): Observable<void> {
+  updateUser(id: string, user: any): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}`, user)
       .pipe(catchError(this.handleError));
   }
@@ -55,8 +55,18 @@ export class UserService {
       .pipe(catchError(this.handleError));
   }
 
+  assignRolesToUser(userId: string, roleIds: string[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${userId}/roles`, { roleIds })
+      .pipe(catchError(this.handleError));
+  }
+
+  resetPassword(userId: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${userId}/reset-password`, { newPassword })
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: any) {
     console.error('An error occurred', error);
-    return throwError(() => new Error(error.message || error.error?.message || 'Server error'));
+    return throwError(() => error);
   }
 }

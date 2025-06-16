@@ -1,26 +1,35 @@
 using ECommercePlatform.Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace ECommercePlatform.Domain.Entities
 {
-    public class User : BaseEntity
+    public class User : IdentityUser
     {
-        public string? FirstName { get; private set; }
-        public string? LastName { get; private set; }
-        public byte[]? Avatar { get; private set; }
-        public Gender Gender { get; private set; }
-        public DateOnly DateOfBirth { get; private set; }
-        public string? PhoneNumber { get; private set; }
-        public string? Email { get; private set; }
-        public string? Password { get; private set; }
-        public string? Bio { get; private set; }
-        //public UserRole? Role { get; private set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public byte[]? Avatar { get; set; }
+        public Gender Gender { get; set; }
+        public DateOnly DateOfBirth { get; set; }
+        //public string? PhoneNumber { get; set; }
+        //public string? Email { get; set; }
+        //public string? Password { get; set; }
+        public string? Bio { get; set; }
+        //public UserRole? Role { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
         public ICollection<Address>? Addresses { get; set; }
         public ICollection<Order>? Orders { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
+        // Default parameterless constructor required by EF Core
+        public User() { }
 
-        // Replace 'With' method with a proper implementation  
+        // With method for creating modified copies
         public User With(
             string? firstName = null,
             string? lastName = null,
@@ -33,12 +42,13 @@ namespace ECommercePlatform.Domain.Entities
             UserRole? role = null
         )
         {
-            return new User
+            var user = new User
             {
                 Id = this.Id,
+                UserName = this.UserName,
                 CreatedOn = this.CreatedOn,
                 CreatedBy = this.CreatedBy,
-                ModifiedOn = this.ModifiedOn,
+                ModifiedOn = DateTime.Now,
                 ModifiedBy = this.ModifiedBy,
                 IsActive = this.IsActive,
                 IsDeleted = this.IsDeleted,
@@ -48,54 +58,70 @@ namespace ECommercePlatform.Domain.Entities
                 DateOfBirth = dateOfBirth ?? this.DateOfBirth,
                 PhoneNumber = phoneNumber ?? this.PhoneNumber,
                 Email = email ?? this.Email,
-                Password = password ?? this.Password,
                 Bio = bio ?? this.Bio,
-                //Role = role ?? this.Role,
                 Addresses = this.Addresses,
                 Orders = this.Orders,
-                Reviews = this.Reviews
+                Reviews = this.Reviews,
+                UserRoles = this.UserRoles
             };
+
+            if (role != null && !user.UserRoles.Any(r => r.RoleId == role.RoleId))
+            {
+                user.UserRoles.Add(role);
+            }
+
+            return user;
         }
 
-        // Ensure AdminCreate is implemented correctly  
+        // Factory method for creating admin users
         public static User AdminCreate(
-            Guid id,
-    string firstName,
-    string lastName,
-    Gender gender,
-    DateOnly dateOfBirth,
-    string phoneNumber,
-    string email,
-    string password,
-    string bio,
-    UserRole userRole,
-    string createdBy,
-    DateTime createdOn,
-    bool isActive = true,
-    bool isDeleted = false,
-    string? modifiedBy = null,
-    DateTime? modifiedOn = null
-)
+            string id,
+            string firstName,
+            string lastName,
+            Gender gender,
+            DateOnly dateOfBirth,
+            string phoneNumber,
+            string email,
+            string password,
+            string bio,
+            UserRole userRole,
+            string createdBy,
+            DateTime createdOn,
+            bool isActive = true,
+            bool isDeleted = false,
+            string? modifiedBy = null,
+            DateTime? modifiedOn = null
+        )
         {
-            return new User
+            var user = new User
             {
                 Id = id,
+                UserName = email, // Using email as username
+                NormalizedUserName = email.ToUpper(),
+                Email = email,
+                NormalizedEmail = email.ToUpper(),
                 FirstName = firstName,
                 LastName = lastName,
                 Gender = gender,
                 DateOfBirth = dateOfBirth,
                 PhoneNumber = phoneNumber,
-                Email = email,
-                Password = password,
                 Bio = bio,
-                //Role = userRole,
                 IsActive = isActive,
                 IsDeleted = isDeleted,
                 CreatedBy = createdBy,
                 CreatedOn = createdOn,
-                ModifiedBy = modifiedBy,
-                ModifiedOn = modifiedOn ?? createdOn
+                ModifiedBy = modifiedBy ?? createdBy,
+                ModifiedOn = modifiedOn ?? createdOn,
+                EmailConfirmed = true,
+                SecurityStamp = Guid.NewGuid().ToString()
             };
+
+            if (userRole != null)
+            {
+                user.UserRoles.Add(userRole);
+            }
+
+            return user;
         }
     }
 }

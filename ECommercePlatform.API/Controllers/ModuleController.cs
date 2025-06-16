@@ -16,13 +16,13 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class ModuleController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        //[HasPermission("Module", "View")]
+        [HasPermission("modules", "View")]
         public async Task<IActionResult> GetAllModules([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllModulesQuery(activeOnly));
@@ -34,7 +34,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        //[HasPermission("Module", "View")]
+        [HasPermission("modules", "View")]
         public async Task<IActionResult> GetPagedModules([FromQuery] GetPagedModulesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -46,7 +46,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        //[HasPermission("Module", "View")]
+        [HasPermission("modules", "View")]
         public async Task<IActionResult> GetModuleById(Guid id)
         {
             var result = await _mediator.Send(new GetModuleByIdQuery(id));
@@ -58,7 +58,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("by-route/{route}")]
-        //[HasPermission("Module", "View")]
+        [HasPermission("modules", "View")]
         public async Task<IActionResult> GetModuleByRoute(string route)
         {
             var result = await _mediator.Send(new GetModuleByRouteQuery(route));
@@ -70,7 +70,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}/permissions")]
-        //[HasPermission("Module", "View")]
+        [HasPermission("modules", "View")]
         public async Task<IActionResult> GetModuleWithPermissions(Guid id)
         {
             var result = await _mediator.Send(new GetModuleWithPermissionsQuery(id));
@@ -82,7 +82,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("with-permissions")]
-        //[HasPermission("Module", "View")]
+        [HasPermission("modules", "View")]
         public async Task<IActionResult> GetAllModulesWithPermissions([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllModulesWithPermissionsQuery { ActiveOnly = activeOnly });
@@ -94,7 +94,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        //[HasPermission("Module", "Add")]
+        [HasPermission("modules", "Add")]
         public async Task<IActionResult> CreateModule([FromBody] CreateModuleCommand command)
         {
             var result = await _mediator.Send(command);
@@ -106,7 +106,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        //[HasPermission("Module", "Edit")]
+        [HasPermission("modules", "Edit")]
         public async Task<IActionResult> UpdateModule(Guid id, [FromBody] UpdateModuleCommand command)
         {
             if (id != command.Id)
@@ -123,7 +123,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[HasPermission("Module", "Delete")]
+        [HasPermission("modules", "Delete")]
         public async Task<IActionResult> DeleteModule(Guid id)
         {
             var result = await _mediator.Send(new DeleteModuleCommand(id));

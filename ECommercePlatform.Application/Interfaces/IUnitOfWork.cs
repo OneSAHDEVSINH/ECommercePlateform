@@ -1,3 +1,6 @@
+using ECommercePlatform.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+
 namespace ECommercePlatform.Application.Interfaces
 {
     public interface IUnitOfWork : IDisposable
@@ -12,6 +15,9 @@ namespace ECommercePlatform.Application.Interfaces
         IRolePermissionRepository RolePermissions { get; }
         IRoleRepository Roles { get; }
         IUserRoleRepository UserRoles { get; }
+        UserManager<User> UserManager { get; }
+        RoleManager<Role> RoleManager { get; }
+        SignInManager<User> SignInManager { get; }
         // Shall be added more repositories as properties
 
         Task<int> CompleteAsync();

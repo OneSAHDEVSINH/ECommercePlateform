@@ -6,8 +6,8 @@ namespace ECommercePlatform.Application.DTOs
     public class UserRoleDto
     {
         public Guid Id { get; init; }
-        public Guid UserId { get; init; }
-        public Guid RoleId { get; init; }
+        public string? UserId { get; init; }
+        public string? RoleId { get; init; }
         public string? UserName { get; init; }
         public string? UserEmail { get; init; }
         public string? RoleName { get; init; }
@@ -20,7 +20,6 @@ namespace ECommercePlatform.Application.DTOs
         {
             return new UserRoleDto
             {
-                Id = userRole.Id,
                 UserId = userRole.UserId,
                 RoleId = userRole.RoleId,
                 UserName = userRole.User != null ? $"{userRole.User.FirstName} {userRole.User.LastName}".Trim() : null,
@@ -50,8 +49,8 @@ namespace ECommercePlatform.Application.DTOs
     public class UserRoleListDto
     {
         public Guid Id { get; init; }
-        public Guid UserId { get; init; }
-        public Guid RoleId { get; init; }
+        public string? UserId { get; init; }
+        public string? RoleId { get; init; }
         public string? UserName { get; init; }
         public string? RoleName { get; init; }
         public bool IsActive { get; init; }
@@ -60,7 +59,6 @@ namespace ECommercePlatform.Application.DTOs
         {
             return new UserRoleListDto
             {
-                Id = userRole.Id,
                 UserId = userRole.UserId,
                 RoleId = userRole.RoleId,
                 UserName = userRole.User != null ? $"{userRole.User.FirstName} {userRole.User.LastName}".Trim() : null,

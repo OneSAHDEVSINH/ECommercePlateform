@@ -9,7 +9,7 @@ namespace ECommercePlatform.Application.DTOs
 {
     public class UserDto
     {
-        public Guid Id { get; init; }
+        public string? Id { get; init; }
         public string? FirstName { get; init; }
         public string? LastName { get; init; }
         public string? Email { get; init; }
@@ -31,7 +31,7 @@ namespace ECommercePlatform.Application.DTOs
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                Password = user.Password,
+                Password = user.PasswordHash,
                 PhoneNumber = user.PhoneNumber,
                 Gender = user.Gender,
                 DateOfBirth = user.DateOfBirth,
@@ -93,7 +93,7 @@ namespace ECommercePlatform.Application.DTOs
 
     public class UserListDto
     {
-        public Guid Id { get; init; }
+        public string? Id { get; init; }
         public string? FirstName { get; init; }
         public string? LastName { get; init; }
         public string? Email { get; init; }

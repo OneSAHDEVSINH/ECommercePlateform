@@ -13,13 +13,13 @@ namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class CountryController(IMediator mediator) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        //[HasPermission("Country", "View")]
+        [HasPermission("countries", "View")]
         public async Task<IActionResult> GetAllCountries()
         {
             var result = await _mediator.Send(new GetAllCountriesQuery());
@@ -31,7 +31,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        //[HasPermission("Country", "View")]
+        [HasPermission("countries", "View")]
         public async Task<IActionResult> GetPagedCountries([FromQuery] GetPagedCountriesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -43,7 +43,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        //[HasPermission("Country", "View")]
+        [HasPermission("countries", "View")]
         public async Task<IActionResult> GetCountryById(Guid id)
         {
             var result = await _mediator.Send(new GetCountryByIdQuery(id));
@@ -56,7 +56,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpPost]
         //[Authorize(Roles = "Admin")]
-        //[HasPermission("Country", "Add")]
+        [HasPermission("countries", "Add")]
         public async Task<IActionResult> CreateCountry([FromBody] CreateCountryCommand command)
         {
             var result = await _mediator.Send(command);
@@ -69,7 +69,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpPut("{id}")]
         //[Authorize(Roles = "Admin")]
-        //[HasPermission("Country", "Edit")]
+        [HasPermission("countries", "Edit")]
         public async Task<IActionResult> UpdateCountry(Guid id, [FromBody] UpdateCountryCommand command)
         {
             if (id != command.Id)
@@ -87,7 +87,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpDelete("{id}")]
         //[Authorize(Roles = "Admin")]
-        //[HasPermission("Country", "Delete")]
+        [HasPermission("countries", "Delete")]
         public async Task<IActionResult> DeleteCountry(Guid id)
         {
             var result = await _mediator.Send(new DeleteCountryCommand(id));

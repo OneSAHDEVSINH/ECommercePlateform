@@ -1,14 +1,24 @@
-﻿namespace ECommercePlatform.Domain.Entities
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace ECommercePlatform.Domain.Entities
 {
-    public class Role : BaseEntity
+    public class Role : IdentityRole
     {
-        public string? Name { get; private set; }
-        public string? Description { get; private set; }
+        public string? Description { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
 
-        public ICollection<UserRole>? UserRoles { get; set; }
-        public ICollection<RolePermission>? RolePermissions { get; set; }
+        public virtual ICollection<UserRole>? UserRoles { get; set; }
+        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
 
-        private Role() { }
+        public Role() : base() { }
+        public Role(string roleName) : base(roleName)
+        {
+        }
 
         public static Role Create(
             string name,
