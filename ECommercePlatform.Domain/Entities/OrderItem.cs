@@ -13,9 +13,9 @@ namespace ECommercePlatform.Domain.Entities
         public decimal TotalPrice { get; private set; }
 
         // Navigation properties
-        public Order? Order { get; private set; }
-        public Product? Product { get; private set; }
-        public ProductVariant? ProductVariant { get; private set; }
+        public virtual Order? Order { get; private set; }
+        public virtual Product? Product { get; private set; }
+        public virtual ProductVariant? ProductVariant { get; private set; }
 
         private OrderItem() { }
     }

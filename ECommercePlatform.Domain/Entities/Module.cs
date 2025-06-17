@@ -8,7 +8,8 @@
         public string? Icon { get; private set; }
         public int DisplayOrder { get; private set; }
 
-        public ICollection<Permission>? Permissions { get; set; }
+        // Updated navigation property
+        public virtual ICollection<RolePermission>? RolePermissions { get; private set; }
 
         private Module() { }
 
@@ -21,6 +22,7 @@
         {
             return new Module
             {
+                Id = Guid.NewGuid(),
                 Name = name,
                 Description = description,
                 Route = route,
@@ -40,6 +42,7 @@
             Route = route;
             Icon = icon;
             DisplayOrder = displayOrder;
+            ModifiedOn = DateTime.Now;
         }
     }
 }

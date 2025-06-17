@@ -1,9 +1,8 @@
-using ECommercePlatform.API.Middleware;
+using ECommercePlatform.Application.Common.Authorization.Attributes;
 using ECommercePlatform.Application.Features.Modules.Commands.Create;
 using ECommercePlatform.Application.Features.Modules.Commands.Delete;
 using ECommercePlatform.Application.Features.Modules.Commands.Update;
 using ECommercePlatform.Application.Features.Modules.Queries.GetAllModules;
-using ECommercePlatform.Application.Features.Modules.Queries.GetAllModulesWithPermission;
 using ECommercePlatform.Application.Features.Modules.Queries.GetModuleById;
 using ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRoute;
 using ECommercePlatform.Application.Features.Modules.Queries.GetModuleWithPermissions;

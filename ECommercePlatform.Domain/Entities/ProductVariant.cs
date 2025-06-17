@@ -10,8 +10,8 @@ namespace ECommercePlatform.Domain.Entities
         public bool IsAvailable { get; private set; } = true;
 
         // Navigation properties
-        public Product? Product { get; private set; }
-        public ICollection<OrderItem>? OrderItems { get; private set; }
+        public virtual Product? Product { get; private set; }
+        public virtual ICollection<OrderItem>? OrderItems { get; private set; }
 
         private ProductVariant() { }
     }

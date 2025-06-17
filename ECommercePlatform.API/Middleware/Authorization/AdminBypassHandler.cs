@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
-namespace ECommercePlatform.API.Middleware
+namespace ECommercePlatform.API.Middleware.Authorization
 {
     public class AdminBypassHandler : IAuthorizationHandler
     {

@@ -7,9 +7,9 @@ namespace ECommercePlatform.Domain.Entities
         public Guid? ParentCategoryId { get; private set; }
 
         // Navigation properties
-        public Category? ParentCategory { get; private set; }
-        public ICollection<Category>? Subcategories { get; private set; }
-        public ICollection<Product>? Products { get; private set; }
+        public virtual Category? ParentCategory { get; private set; }
+        public virtual ICollection<Category>? Subcategories { get; private set; }
+        public virtual ICollection<Product>? Products { get; private set; }
 
         private Category() { }
     }

@@ -4,13 +4,17 @@ using ECommercePlatform.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using static ECommercePlatform.Domain.Entities.Permission;
 
 namespace ECommercePlatform.Infrastructure
 {
-    public class AppDbContext : IdentityDbContext<User, Role, string, IdentityUserClaim<string>, UserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
+    public class AppDbContext : IdentityDbContext<User, Role, Guid, IdentityUserClaim<Guid>, UserRole, IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
     {
-        private readonly ICurrentUserService _currentUserService;
+        private readonly ICurrentUserService? _currentUserService;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+            : base(options)
+        {
+        }
 
         public AppDbContext(
             DbContextOptions<AppDbContext> options,
@@ -35,7 +39,6 @@ namespace ECommercePlatform.Infrastructure
         public DbSet<Category> Categories { get; set; }
         //public DbSet<Role> Roles { get; set; }
         //public DbSet<UserRole> UserRoles { get; set; }
-        public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<Module> Modules { get; set; }
 
@@ -54,7 +57,7 @@ namespace ECommercePlatform.Infrastructure
         private void UpdateAuditFields()
         {
             var now = DateTime.Now;
-            var userId = _currentUserService.IsAuthenticated
+            var userId = _currentUserService?.IsAuthenticated ?? false
                 ? _currentUserService.UserId ?? _currentUserService.Email ?? "system"
                 : "system";
 
@@ -62,18 +65,54 @@ namespace ECommercePlatform.Infrastructure
             {
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.CreatedBy = userId;
-                    entry.Entity.CreatedOn = now;
-                    //entry.Entity.ModifiedBy = userId;
-                    //entry.Entity.ModifiedOn = now;
+                    entry.Entity.SetCreatedBy(userId);
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    // Don't modify creation fields
-                    //entry.Property(e => e.CreatedBy).IsModified = false;
-                    //entry.Property(e => e.CreatedOn).IsModified = false;
+                    entry.Entity.SetModifiedBy(userId);
+                }
+            }
 
-                    // Update modification fields
+            // Handle Role entity separately as it doesn't inherit from BaseEntity
+            foreach (var entry in ChangeTracker.Entries<Role>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedOn = now;
+                }
+            }
+
+            // Handle User entity separately
+            foreach (var entry in ChangeTracker.Entries<User>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedOn = now;
+                }
+            }
+
+            // Handle UserRole entity separately
+            foreach (var entry in ChangeTracker.Entries<UserRole>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
                     entry.Entity.ModifiedBy = userId;
                     entry.Entity.ModifiedOn = now;
                 }
@@ -109,11 +148,31 @@ namespace ECommercePlatform.Infrastructure
                     .IsRequired();
             });
 
-            // Seed default admin user
-            SeedDefaultAdmin(modelBuilder);
+            // Configure RolePermission
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(rp => rp.Role)
+                    .WithMany(r => r.RolePermissions)
+                    .HasForeignKey(rp => rp.RoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(rp => rp.Module)
+                    .WithMany(m => m.RolePermissions)
+                    .HasForeignKey(rp => rp.ModuleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Ensure unique combination of Role and Module
+                entity.HasIndex(rp => new { rp.RoleId, rp.ModuleId })
+                    .IsUnique();
+            });
 
             // Apply entity configurations
             ApplyEntityConfigurations(modelBuilder);
+
+            // Seed data
+            SeedData(modelBuilder);
         }
 
         private static void ApplyEntityConfigurations(ModelBuilder modelBuilder)
@@ -131,6 +190,7 @@ namespace ECommercePlatform.Infrastructure
             ConfigureCouponEntity(modelBuilder);
             ConfigureOrderItemEntity(modelBuilder);
             ConfigureProductVariantEntity(modelBuilder);
+            ConfigureModuleEntity(modelBuilder);
             // Add more configuration methods as needed
         }
 
@@ -161,6 +221,21 @@ namespace ECommercePlatform.Infrastructure
         //            .OnDelete(DeleteBehavior.Restrict);
         //    });
         //}
+
+        private static void ConfigureModuleEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Module>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Route).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.Icon).HasMaxLength(50);
+
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.Route).IsUnique();
+            });
+        }
 
         private static void ConfigureAddressEntity(ModelBuilder modelBuilder)
         {
@@ -346,357 +421,16 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        //private static void SeedDefaultAdmin(ModelBuilder modelBuilder)
-        //{
-        //    // Create fixed GUIDs for entities
-        //    var adminUserId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F");
-        //    var adminRoleId = Guid.Parse("D4DE1B4D-B43B-4A55-B47A-1E92E71C3143");
-        //    var userRoleId = Guid.Parse("F8B7B597-14FF-4B33-A8B3-0EA4DE9F9DAE");
-        //    var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0);
-
-        //    // Seed admin role
-        //    modelBuilder.Entity<Role>().HasData(
-        //        new
-        //        {
-        //            Id = adminRoleId,
-        //            Name = "Admin",
-        //            Description = "Administrator role with all permissions",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        }
-        //    );
-
-        //    // Seed admin user
-        //    modelBuilder.Entity<User>().HasData(
-        //        new
-        //        {
-        //            Id = adminUserId,
-        //            FirstName = "Admin",
-        //            LastName = "User",
-        //            Gender = Gender.Male,
-        //            DateOfBirth = new DateOnly(1990, 1, 1),
-        //            PhoneNumber = "1234567890",
-        //            Email = "admin@admin.com",
-        //            Password = "Admin@1234",
-        //            Bio = "System Administrator",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        }
-        //    );
-
-        //    // Seed the user-role relationship
-        //    modelBuilder.Entity<UserRole>().HasData(
-        //        new
-        //        {
-        //            Id = userRoleId,
-        //            UserId = adminUserId,
-        //            RoleId = adminRoleId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        }
-        //    );
-
-        //    // Module IDs
-        //    var dashboardModuleId = Guid.Parse("8160be48-f4fd-4905-879b-e8038d64fde8");
-        //    var usersModuleId = Guid.Parse("5d24ad3c-1189-43cc-a823-e882d84edb53");
-        //    var rolesModuleId = Guid.Parse("666c62d8-94fd-4d1e-a98c-d783e97bdbac");
-        //    var countriesModuleId = Guid.Parse("d5212365-524a-4afc-a44b-c1436c48f3a5");
-        //    var statesModuleId = Guid.Parse("a7b3d254-9047-405f-aef3-7f9a6ed13c54");
-        //    var citiesModuleId = Guid.Parse("27786d06-cdc7-4c27-a6a4-aac1622b110b");
-
-        //    // Seed default modules
-        //    modelBuilder.Entity<Module>().HasData(
-        //        new
-        //        {
-        //            Id = dashboardModuleId,
-        //            Name = "Dashboard",
-        //            Route = "dashboard",
-        //            Description = "Main admin dashboard",
-        //            DisplayOrder = 1,
-        //            Icon = "fas fa-tachometer-alt",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = usersModuleId,
-        //            Name = "Users",
-        //            Route = "users",
-        //            Description = "User management",
-        //            DisplayOrder = 2,
-        //            Icon = "fas fa-users",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = rolesModuleId,
-        //            Name = "Roles",
-        //            Route = "roles",
-        //            Description = "Role management",
-        //            DisplayOrder = 3,
-        //            Icon = "fas fa-user-shield",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = countriesModuleId,
-        //            Name = "Countries",
-        //            Route = "countries",
-        //            Description = "Country management",
-        //            DisplayOrder = 4,
-        //            Icon = "fas fa-globe",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = statesModuleId,
-        //            Name = "States",
-        //            Route = "states",
-        //            Description = "State management",
-        //            DisplayOrder = 5,
-        //            Icon = "fas fa-map",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = citiesModuleId,
-        //            Name = "Cities",
-        //            Route = "cities",
-        //            Description = "City management",
-        //            DisplayOrder = 6,
-        //            Icon = "fas fa-city",
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        }
-        //    );
-
-        //    // Permission IDs
-        //    var dashboardViewId = Guid.Parse("565c7647-7611-4d34-ae76-5eba0d4e1822");
-        //    var usersViewId = Guid.Parse("bf2f6ca5-dac3-4725-9407-c713a88ed19b");
-        //    var rolesViewId = Guid.Parse("b684f1b4-0c54-466f-ba92-5e575061318b");
-        //    var countriesViewId = Guid.Parse("d45768db-7234-4c97-aabd-0e8a74548138");
-        //    var statesViewId = Guid.Parse("87104812-ebf5-45df-8f1c-41ef41a2d1de");
-        //    var citiesViewId = Guid.Parse("c35b8160-2ef9-4936-8913-c35a5ac95a03");
-
-        //    // Seed basic permissions with enum values
-        //    modelBuilder.Entity<Permission>().HasData(
-        //        new
-        //        {
-        //            Id = dashboardViewId,
-        //            Name = "View Dashboard",
-        //            Description = "Permission to view the admin dashboard",
-        //            Type = PermissionType.View,
-        //            ModuleId = dashboardModuleId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = usersViewId,
-        //            Name = "View Users",
-        //            Description = "Permission to view users",
-        //            Type = PermissionType.View,
-        //            ModuleId = usersModuleId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = rolesViewId,
-        //            Name = "View Roles",
-        //            Description = "Permission to view roles",
-        //            Type = PermissionType.View,
-        //            ModuleId = rolesModuleId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = countriesViewId,
-        //            Name = "View Countries",
-        //            Description = "Permission to view countries",
-        //            Type = PermissionType.View,
-        //            ModuleId = countriesModuleId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = statesViewId,
-        //            Name = "View States",
-        //            Description = "Permission to view states",
-        //            Type = PermissionType.View,
-        //            ModuleId = statesModuleId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = citiesViewId,
-        //            Name = "View Cities",
-        //            Description = "Permission to view cities",
-        //            Type = PermissionType.View,
-        //            ModuleId = citiesModuleId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        }
-        //    );
-
-        //    // Assign permissions to admin role
-        //    modelBuilder.Entity<RolePermission>().HasData(
-        //        new
-        //        {
-        //            Id = Guid.Parse("54477EED-7960-4F78-9212-D6B3446A3553"),
-        //            RoleId = adminRoleId,
-        //            PermissionId = dashboardViewId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = Guid.Parse("5FD34CD1-368F-4FDA-A626-79C2E5C37B1A"),
-        //            RoleId = adminRoleId,
-        //            PermissionId = usersViewId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = Guid.Parse("C16E7C9B-ED37-401D-BF52-4C52BE030451"),
-        //            RoleId = adminRoleId,
-        //            PermissionId = rolesViewId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = Guid.Parse("264C6B33-9C91-4B01-A2BE-243D9F91110C"),
-        //            RoleId = adminRoleId,
-        //            PermissionId = countriesViewId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = Guid.Parse("7ECD8D51-8077-4F1C-B83D-9A2C6B9E20EA"),
-        //            RoleId = adminRoleId,
-        //            PermissionId = statesViewId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        },
-        //        new
-        //        {
-        //            Id = Guid.Parse("75137078-D567-4F2F-9BE7-6F6E8BDCA429"),
-        //            RoleId = adminRoleId,
-        //            PermissionId = citiesViewId,
-        //            IsActive = true,
-        //            CreatedBy = "System",
-        //            CreatedOn = fixedDate,
-        //            ModifiedBy = "System",
-        //            ModifiedOn = fixedDate,
-        //            IsDeleted = false
-        //        }
-        //    );
-
-        //    // Optionally: Seed all permissions and assign to admin role for full access
-        //    // (If you want to guarantee admin always has all permissions by default)
-        //    // You can add logic here to seed all permissions and role-permissions if needed.
-        //}
-
-        private static void SeedDefaultAdmin(ModelBuilder modelBuilder)
+        private static void SeedData(ModelBuilder modelBuilder)
         {
-            // Create fixed IDs for entities
-            var adminUserId = "E65A3A8A-2407-4965-9B71-B9A1D8E2C34F";
-            var adminRoleId = "D4DE1B4D-B43B-4A55-B47A-1E92E71C3143";
-            var fixedDate = new DateTime(2025, 5, 2, 3, 18, 0);
+            // Fixed IDs and date
+            var adminUserId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F");
+            var adminRoleId = Guid.Parse("D4DE1B4D-B43B-4A55-B47A-1E92E71C3143");
+            var fixedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-            // Seed admin role
+            // Seed SuperAdmin role
             modelBuilder.Entity<Role>().HasData(
-                new Role
+                new
                 {
                     Id = adminRoleId,
                     Name = "SuperAdmin",
@@ -707,11 +441,13 @@ namespace ECommercePlatform.Infrastructure
                     CreatedOn = fixedDate,
                     ModifiedBy = "System",
                     ModifiedOn = fixedDate,
-                    IsDeleted = false
+                    IsDeleted = false,
+                    ConcurrencyStamp = Guid.NewGuid().ToString()
                 }
             );
 
-            // Seed admin user with hashed password
+            // Seed SuperAdmin user
+            var hasher = new PasswordHasher<User>();
             var superAdmin = new User
             {
                 Id = adminUserId,
@@ -720,9 +456,9 @@ namespace ECommercePlatform.Infrastructure
                 Email = "admin@admin.com",
                 NormalizedEmail = "ADMIN@ADMIN.COM",
                 EmailConfirmed = true,
-                FirstName = "Admin",
-                LastName = "User",
-                Gender = Gender.Male,
+                FirstName = "Super",
+                LastName = "Admin",
+                Gender = Gender.Other,
                 DateOfBirth = new DateOnly(1990, 1, 1),
                 PhoneNumber = "1234567890",
                 PhoneNumberConfirmed = true,
@@ -733,16 +469,18 @@ namespace ECommercePlatform.Infrastructure
                 ModifiedBy = "System",
                 ModifiedOn = fixedDate,
                 IsDeleted = false,
-                SecurityStamp = Guid.NewGuid().ToString()
+                SecurityStamp = Guid.NewGuid().ToString(),
+                ConcurrencyStamp = Guid.NewGuid().ToString()
             };
 
-            // Note: Password will be hashed by the UserManager when configuring services
-            // For now, we'll set a placeholder security stamp
+            // Hash the password
+            superAdmin.PasswordHash = hasher.HashPassword(superAdmin, "Admin@123");
+
             modelBuilder.Entity<User>().HasData(superAdmin);
 
-            // Seed the user-role relationship
+            // Seed UserRole
             modelBuilder.Entity<UserRole>().HasData(
-                new UserRole
+                new
                 {
                     UserId = adminUserId,
                     RoleId = adminRoleId,
@@ -755,123 +493,54 @@ namespace ECommercePlatform.Infrastructure
                 }
             );
 
-            // Module IDs
-            var dashboardModuleId = Guid.Parse("8160be48-f4fd-4905-879b-e8038d64fde8");
-            var usersModuleId = Guid.Parse("5d24ad3c-1189-43cc-a823-e882d84edb53");
-            var rolesModuleId = Guid.Parse("666c62d8-94fd-4d1e-a98c-d783e97bdbac");
-            var moduleManagementId = Guid.Parse("9abf7324-f67b-46be-b1c4-ce20976c98b3");
-            var countriesModuleId = Guid.Parse("d5212365-524a-4afc-a44b-c1436c48f3a5");
-            var statesModuleId = Guid.Parse("a7b3d254-9047-405f-aef3-7f9a6ed13c54");
-            var citiesModuleId = Guid.Parse("27786d06-cdc7-4c27-a6a4-aac1622b110b");
+            // Fix for CS0746: Anonymous type member declarator issue
+            var modules = new[]
+            {
+                new { Id = Guid.NewGuid(), Name = "Dashboard", Route = "dashboard", Description = "Main dashboard", DisplayOrder = 1, Icon = "fas fa-tachometer-alt" },
+                new { Id = Guid.NewGuid(), Name = "Users", Route = "users", Description = "User management", DisplayOrder = 2, Icon = "fas fa-users" },
+                new { Id = Guid.NewGuid(), Name = "Roles", Route = "roles", Description = "Role management", DisplayOrder = 3, Icon = "fas fa-user-shield" },
+                new { Id = Guid.NewGuid(), Name = "Modules", Route = "modules", Description = "Module management", DisplayOrder = 4, Icon = "fas fa-cubes" },
+                new { Id = Guid.NewGuid(), Name = "Cities", Route = "cities", Description = "City management", DisplayOrder = 5, Icon = "fas fa-city" },
+                new { Id = Guid.NewGuid(), Name = "States", Route = "states", Description = "State management", DisplayOrder = 6, Icon = "fas fa-map" },
+                new { Id = Guid.NewGuid(), Name = "Countries", Route = "countries", Description = "Country management", DisplayOrder = 7, Icon = "fas fa-globe" }
+            };
 
-            // Seed default modules
-            modelBuilder.Entity<Module>().HasData(
-                new
+            foreach (var module in modules)
+            {
+                modelBuilder.Entity<Module>().HasData(new
                 {
-                    Id = dashboardModuleId,
-                    Name = "Dashboard",
-                    Route = "dashboard",
-                    Description = "Main admin dashboard",
-                    DisplayOrder = 1,
-                    Icon = "fas fa-tachometer-alt",
+                    module.Id,
+                    module.Name,
+                    module.Route,
+                    module.Description,
+                    module.DisplayOrder,
+                    module.Icon,
                     IsActive = true,
                     CreatedBy = "System",
                     CreatedOn = fixedDate,
                     ModifiedBy = "System",
                     ModifiedOn = fixedDate,
                     IsDeleted = false
-                },
-                new
+                });
+
+                // Seed RolePermissions - Grant SuperAdmin all permissions for all modules
+                modelBuilder.Entity<RolePermission>().HasData(new
                 {
-                    Id = usersModuleId,
-                    Name = "Users",
-                    Route = "users",
-                    Description = "User management",
-                    DisplayOrder = 2,
-                    Icon = "fas fa-users",
+                    Id = Guid.NewGuid(),
+                    RoleId = adminRoleId,
+                    ModuleId = module.Id,
+                    CanView = true,
+                    CanAdd = true,
+                    CanEdit = true,
+                    CanDelete = true,
                     IsActive = true,
                     CreatedBy = "System",
                     CreatedOn = fixedDate,
                     ModifiedBy = "System",
                     ModifiedOn = fixedDate,
                     IsDeleted = false
-                },
-                new
-                {
-                    Id = rolesModuleId,
-                    Name = "Roles",
-                    Route = "roles",
-                    Description = "Role management",
-                    DisplayOrder = 3,
-                    Icon = "fas fa-user-shield",
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                },
-                new
-                {
-                    Id = moduleManagementId,
-                    Name = "Modules",
-                    Route = "modules",
-                    Description = "Module management",
-                    DisplayOrder = 4,
-                    Icon = "fas fa-cubes",
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                },
-                new
-                {
-                    Id = countriesModuleId,
-                    Name = "Countries",
-                    Route = "countries",
-                    Description = "Country management",
-                    DisplayOrder = 5,
-                    Icon = "fas fa-globe",
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                },
-                new
-                {
-                    Id = statesModuleId,
-                    Name = "States",
-                    Route = "states",
-                    Description = "State management",
-                    DisplayOrder = 6,
-                    Icon = "fas fa-map",
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                },
-                new
-                {
-                    Id = citiesModuleId,
-                    Name = "Cities",
-                    Route = "cities",
-                    Description = "City management",
-                    DisplayOrder = 7,
-                    Icon = "fas fa-city",
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                }
-            );
+                });
+            }
         }
     }
 }

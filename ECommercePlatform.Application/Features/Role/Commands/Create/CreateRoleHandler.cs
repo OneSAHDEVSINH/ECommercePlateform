@@ -2,9 +2,7 @@ using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
-using ECommercePlatform.Domain.Enums;
 using MediatR;
-using System.ComponentModel.DataAnnotations;
 
 namespace ECommercePlatform.Application.Features.Role.Commands.Create
 {

@@ -2,7 +2,7 @@
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 
-namespace ECommercePlatform.Application.Features.User.Commands.AssignRoles
+namespace ECommercePlatform.Application.Features.User.Commands.AssignRolesToUser
 {
     public class AssignRolesToUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<AssignRolesToUserCommand, AppResult>
     {

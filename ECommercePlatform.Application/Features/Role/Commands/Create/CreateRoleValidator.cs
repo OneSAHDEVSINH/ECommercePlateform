@@ -21,7 +21,8 @@ namespace ECommercePlatform.Application.Features.Role.Commands.Create
                 .When(x => !string.IsNullOrEmpty(x.Description));
 
             RuleForEach(x => x.Permissions)
-                .ChildRules(permission => {
+                .ChildRules(permission =>
+                {
                     permission.RuleFor(p => p.ModuleId)
                         .NotEmpty().WithMessage("Module ID is required for permission.");
 

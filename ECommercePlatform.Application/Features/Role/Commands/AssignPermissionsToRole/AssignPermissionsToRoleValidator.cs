@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace ECommercePlatform.Application.Features.Role.Commands.AssignPermissions
+namespace ECommercePlatform.Application.Features.Role.Commands.AssignPermissionsToRole
 {
     public class AssignPermissionsToRoleValidator : AbstractValidator<AssignPermissionsToRoleCommand>
     {
@@ -13,7 +13,8 @@ namespace ECommercePlatform.Application.Features.Role.Commands.AssignPermissions
                 .NotNull().WithMessage("Permissions collection cannot be null.");
 
             RuleForEach(x => x.Permissions)
-                .ChildRules(permission => {
+                .ChildRules(permission =>
+                {
                     permission.RuleFor(p => p.ModuleId)
                         .NotEmpty().WithMessage("Module ID is required for permission.");
 

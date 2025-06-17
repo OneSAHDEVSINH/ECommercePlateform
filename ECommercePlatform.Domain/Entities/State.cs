@@ -5,9 +5,11 @@ namespace ECommercePlatform.Domain.Entities
         public string? Name { get; private set; }
         public string? Code { get; private set; }
         public Guid CountryId { get; private set; }
-        public Country? Country { get; set; }
-        public ICollection<City>? Cities { get; set; }
-        public ICollection<Address>? Addresses { get; set; }
+
+        //Navigation properties
+        public virtual Country? Country { get; private set; }
+        public virtual ICollection<City>? Cities { get; private set; }
+        public virtual ICollection<Address>? Addresses { get; set; }
 
         private State() { }
 

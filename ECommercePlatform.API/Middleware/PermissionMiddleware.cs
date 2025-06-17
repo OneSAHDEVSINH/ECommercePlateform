@@ -1,7 +1,10 @@
+// API/Middleware/PermissionMiddleware.cs
+using ECommercePlatform.Application.Common.Authorization.Attributes;
+
+//using ECommercePlatform.Application.Authorization.Requirements;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using System.Reflection;
 
 namespace ECommercePlatform.API.Middleware
 {
@@ -33,11 +36,15 @@ namespace ECommercePlatform.API.Middleware
             foreach (var permission in permissions)
             {
                 var requirement = new PermissionRequirement(permission.Module, permission.Permission);
-                var authResult = await authorizationService.AuthorizeAsync(context.User, null, requirement);
-                
+                var authResult = await authorizationService.AuthorizeAsync(
+                    context.User,
+                    null,
+                    requirement);
+
                 if (!authResult.Succeeded)
                 {
                     context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    await context.Response.WriteAsync("Access denied. You do not have permission to access this resource.");
                     return;
                 }
             }
@@ -46,7 +53,6 @@ namespace ECommercePlatform.API.Middleware
         }
     }
 
-    // Extension method used to add the middleware to the HTTP request pipeline
     public static class PermissionMiddlewareExtensions
     {
         public static IApplicationBuilder UsePermissionMiddleware(this IApplicationBuilder builder)
@@ -54,4 +60,4 @@ namespace ECommercePlatform.API.Middleware
             return builder.UseMiddleware<PermissionMiddleware>();
         }
     }
-} 
+}

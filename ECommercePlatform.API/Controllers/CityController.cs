@@ -1,4 +1,4 @@
-﻿using ECommercePlatform.API.Middleware;
+﻿using ECommercePlatform.Application.Common.Authorization.Attributes;
 using ECommercePlatform.Application.Features.Cities.Commands.Create;
 using ECommercePlatform.Application.Features.Cities.Commands.Delete;
 using ECommercePlatform.Application.Features.Cities.Commands.Update;

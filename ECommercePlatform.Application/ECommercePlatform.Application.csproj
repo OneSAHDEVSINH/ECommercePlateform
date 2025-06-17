@@ -7,6 +7,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Interfaces\ICity\**" />
+    <Compile Remove="Interfaces\ICountry\**" />
+    <Compile Remove="Interfaces\IProduct\**" />
+    <Compile Remove="Interfaces\IState\**" />
+    <EmbeddedResource Remove="Interfaces\ICity\**" />
+    <EmbeddedResource Remove="Interfaces\ICountry\**" />
+    <EmbeddedResource Remove="Interfaces\IProduct\**" />
+    <EmbeddedResource Remove="Interfaces\IState\**" />
+    <None Remove="Interfaces\ICity\**" />
+    <None Remove="Interfaces\ICountry\**" />
+    <None Remove="Interfaces\IProduct\**" />
+    <None Remove="Interfaces\IState\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\CityService.cs" />
+    <Compile Remove="Services\CountryService.cs" />
+    <Compile Remove="Services\ProductService.cs" />
+    <Compile Remove="Services\StateService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <PackageReference Include="CSharpFunctionalExtensions.FluentAssertions" Version="3.0.0" />
@@ -35,6 +57,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ECommercePlatform.Domain\ECommercePlatform.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\Authorization\Handlers\" />
+    <Folder Include="Common\Authorization\Requirements\" />
   </ItemGroup>
 
 </Project>

@@ -13,21 +13,25 @@ namespace ECommercePlatform.Application.Features.Role.Commands.Update
             RuleFor(x => x.Id)
                 .NotEmpty().WithMessage("Role ID is required.");
 
-            When(x => !string.IsNullOrEmpty(x.Name), () => {
+            When(x => !string.IsNullOrEmpty(x.Name), () =>
+            {
                 RuleFor(x => x.Name!.Trim())
                     .MaximumLength(100).WithMessage("Role name must not exceed 100 characters.")
                     .Must(name => NameRegex.IsMatch(name))
                         .WithMessage("Role name must contain only letters, numbers, and spaces.");
             });
 
-            When(x => !string.IsNullOrEmpty(x.Description), () => {
+            When(x => !string.IsNullOrEmpty(x.Description), () =>
+            {
                 RuleFor(x => x.Description)
                     .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
             });
 
-            When(x => x.Permissions != null && x.Permissions.Any(), () => {
+            When(x => x.Permissions != null && x.Permissions.Any(), () =>
+            {
                 RuleForEach(x => x.Permissions!)
-                    .ChildRules(permission => {
+                    .ChildRules(permission =>
+                    {
                         permission.RuleFor(p => p.ModuleId)
                             .NotEmpty().WithMessage("Module ID is required for permission.");
 

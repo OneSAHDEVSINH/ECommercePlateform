@@ -3,7 +3,7 @@ using ECommercePlatform.Application.Common.Models;
 using MediatR;
 using System.Text.Json.Serialization;
 
-namespace ECommercePlatform.Application.Features.User.Commands.AssignRoles
+namespace ECommercePlatform.Application.Features.User.Commands.AssignRolesToUser
 {
     public record AssignRolesToUserCommand : IRequest<AppResult>, ITransactionalBehavior, IAuditableUpdateRequest
     {

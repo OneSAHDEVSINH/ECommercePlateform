@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using ECommercePlatform.Application.DTOs;
+﻿using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
@@ -13,20 +12,29 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<List<RolePermission>> GetByRoleIdAsync(Guid roleId)
         {
             return await _context.RolePermissions
-                .Include(rp => rp.Permission)
-                    .ThenInclude(p => p.Module)
+                .Include(rp => rp.Module)
                 .Include(rp => rp.Role)
                 .Where(rp => rp.RoleId == roleId && !rp.IsDeleted)
                 .ToListAsync();
         }
 
-        public async Task<List<RolePermission>> GetByPermissionIdAsync(Guid permissionId)
+        public async Task<List<RolePermission>> GetByModuleIdAsync(Guid moduleId)
         {
             return await _context.RolePermissions
                 .Include(rp => rp.Role)
-                .Include(rp => rp.Permission)
-                .Where(rp => rp.PermissionId == permissionId && !rp.IsDeleted)
+                .Include(rp => rp.Module)
+                .Where(rp => rp.ModuleId == moduleId && !rp.IsDeleted)
                 .ToListAsync();
+        }
+
+        public async Task<RolePermission?> GetByRoleAndModuleAsync(Guid roleId, Guid moduleId)
+        {
+            return await _context.RolePermissions
+                .Include(rp => rp.Module)
+                .Include(rp => rp.Role)
+                .FirstOrDefaultAsync(rp => rp.RoleId == roleId &&
+                                          rp.ModuleId == moduleId &&
+                                          !rp.IsDeleted);
         }
 
         public async Task DeleteByRoleIdAsync(Guid roleId)
@@ -39,22 +47,12 @@ namespace ECommercePlatform.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> ExistsAsync(Guid roleId, Guid permissionId)
+        public async Task<bool> ExistsAsync(Guid roleId, Guid moduleId)
         {
             return await _context.RolePermissions
                 .AnyAsync(rp => rp.RoleId == roleId &&
-                               rp.PermissionId == permissionId &&
+                               rp.ModuleId == moduleId &&
                                !rp.IsDeleted);
-        }
-
-        public async Task<List<RolePermission>> GetByRoleIdAndModuleIdAsync(Guid roleId, Guid moduleId)
-        {
-            return await _context.RolePermissions
-                .Include(rp => rp.Permission)
-                .Where(rp => rp.RoleId == roleId &&
-                           rp.Permission.ModuleId == moduleId &&
-                           !rp.IsDeleted)
-                .ToListAsync();
         }
 
         public async Task<bool> AnyAsync(Expression<Func<RolePermission, bool>> predicate)
@@ -71,14 +69,43 @@ namespace ECommercePlatform.Infrastructure.Repositories
         {
             return await _context.RolePermissions
                 .Include(rp => rp.Role)
-                .Include(rp => rp.Permission)
-                    .ThenInclude(p => p.Module)
+                .Include(rp => rp.Module)
                 .Where(rp => rp.IsActive && !rp.IsDeleted)
                 .OrderBy(rp => rp.Role.Name)
+                .ThenBy(rp => rp.Module.DisplayOrder)
                 .ToListAsync();
         }
 
-        // Search function for role permissions - updated to remove references to Permission.Name
+        public async Task AddRangeAsync(IEnumerable<RolePermission> rolePermissions)
+        {
+            await _context.RolePermissions.AddRangeAsync(rolePermissions);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateRolePermissionsAsync(Guid roleId, List<RoleModulePermissionDto> permissions)
+        {
+            // Remove existing permissions for the role
+            var existingPermissions = await _context.RolePermissions
+                .Where(rp => rp.RoleId == roleId)
+                .ToListAsync();
+
+            _context.RolePermissions.RemoveRange(existingPermissions);
+
+            // Add new permissions
+            var newPermissions = permissions.Select(p => RolePermission.Create(
+                roleId,
+                p.ModuleId,
+                p.CanView,
+                p.CanAdd,
+                p.CanEdit,
+                p.CanDelete
+            ));
+
+            await _context.RolePermissions.AddRangeAsync(newPermissions);
+            await _context.SaveChangesAsync();
+        }
+
+        // Updated search function
         private static IQueryable<RolePermission> ApplyRolePermissionSearch(
             IQueryable<RolePermission> query, string searchText)
         {
@@ -89,15 +116,11 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return query.Where(rp =>
                 (rp.Role != null && rp.Role.Name != null &&
                     EF.Functions.Like(rp.Role.Name.ToLower(), $"%{searchTerm}%")) ||
-                // Search by permission type instead of name
-                (rp.Permission != null &&
-                    EF.Functions.Like(rp.Permission.Type.ToString().ToLower(), $"%{searchTerm}%")) ||
-                (rp.Permission != null && rp.Permission.Module != null &&
-                    rp.Permission.Module.Name != null &&
-                    EF.Functions.Like(rp.Permission.Module.Name.ToLower(), $"%{searchTerm}%")));
+                (rp.Module != null && rp.Module.Name != null &&
+                    EF.Functions.Like(rp.Module.Name.ToLower(), $"%{searchTerm}%")));
         }
 
-        // Get paginated role permissions with filters
+        // Existing pagination methods remain mostly the same but remove Permission references
         public async Task<PagedResponse<RolePermission>> GetPagedRolePermissionsAsync(
             PagedRequest request,
             Guid? roleId = null,
@@ -105,7 +128,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
             bool activeOnly = true,
             CancellationToken cancellationToken = default)
         {
-            // Create base filter based on provided parameters
             Expression<Func<RolePermission, bool>> baseFilter;
 
             if (roleId.HasValue && moduleId.HasValue)
@@ -113,10 +135,10 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 baseFilter = activeOnly
                     ? rp => rp.IsActive && !rp.IsDeleted &&
                            rp.RoleId == roleId.Value &&
-                           rp.Permission.ModuleId == moduleId.Value
+                           rp.ModuleId == moduleId.Value
                     : rp => !rp.IsDeleted &&
                            rp.RoleId == roleId.Value &&
-                           rp.Permission.ModuleId == moduleId.Value;
+                           rp.ModuleId == moduleId.Value;
             }
             else if (roleId.HasValue)
             {
@@ -127,8 +149,8 @@ namespace ECommercePlatform.Infrastructure.Repositories
             else if (moduleId.HasValue)
             {
                 baseFilter = activeOnly
-                    ? rp => rp.IsActive && !rp.IsDeleted && rp.Permission.ModuleId == moduleId.Value
-                    : rp => !rp.IsDeleted && rp.Permission.ModuleId == moduleId.Value;
+                    ? rp => rp.IsActive && !rp.IsDeleted && rp.ModuleId == moduleId.Value
+                    : rp => !rp.IsDeleted && rp.ModuleId == moduleId.Value;
             }
             else
             {
@@ -137,23 +159,18 @@ namespace ECommercePlatform.Infrastructure.Repositories
                     : rp => !rp.IsDeleted;
             }
 
-            // Define a search function that includes related entities
             static IQueryable<RolePermission> searchWithInclude(IQueryable<RolePermission> query, string? searchText)
             {
-                // First include related entities
                 var queryWithInclude = query
                     .Include(rp => rp.Role)
-                    .Include(rp => rp.Permission)
-                        .ThenInclude(p => p.Module);
+                    .Include(rp => rp.Module);
 
-                // Then apply search if text is provided
                 if (!string.IsNullOrWhiteSpace(searchText))
                     return ApplyRolePermissionSearch(queryWithInclude, searchText);
 
                 return queryWithInclude;
             }
 
-            // Use the generic paging method
             return await GetPagedAsync(
                 request,
                 baseFilter,
@@ -161,7 +178,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 cancellationToken);
         }
 
-        // Get paginated role permission DTOs
         public async Task<PagedResponse<RolePermissionDto>> GetPagedRolePermissionDtosAsync(
             PagedRequest request,
             Guid? roleId = null,
@@ -176,7 +192,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 activeOnly,
                 cancellationToken);
 
-            // Map entities to DTOs
             var dtos = pagedEntities.Items.Select(rp => (RolePermissionDto)rp).ToList();
 
             return new PagedResponse<RolePermissionDto>

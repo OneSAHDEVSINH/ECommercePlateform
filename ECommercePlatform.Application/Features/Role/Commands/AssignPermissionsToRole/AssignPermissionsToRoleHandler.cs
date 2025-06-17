@@ -1,10 +1,9 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
-using ECommercePlatform.Domain.Enums;
 using MediatR;
 
-namespace ECommercePlatform.Application.Features.Role.Commands.AssignPermissions
+namespace ECommercePlatform.Application.Features.Role.Commands.AssignPermissionsToRole
 {
     public class AssignPermissionsToRoleHandler(IUnitOfWork unitOfWork) : IRequestHandler<AssignPermissionsToRoleCommand, AppResult>
     {

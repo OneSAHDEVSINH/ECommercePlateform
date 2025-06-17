@@ -3,29 +3,58 @@
     public class RolePermission : BaseEntity
     {
         public Guid RoleId { get; private set; }
-        public Guid PermissionId { get; private set; }
+        public Guid ModuleId { get; private set; }
+        public bool CanView { get; private set; }
+        public bool CanAdd { get; private set; }
+        public bool CanEdit { get; private set; }
+        public bool CanDelete { get; private set; }
 
-        public Role? Role { get; set; }
-        public Permission? Permission { get; set; }
+        //Navigation Properties
+        public virtual Role? Role { get; private set; }
+        public virtual Module? Module { get; private set; }
 
         private RolePermission() { }
 
         public static RolePermission Create(
             Guid roleId,
-            Guid permissionId)
+            Guid moduleId,
+            bool canView = false,
+            bool canAdd = false,
+            bool canEdit = false,
+            bool canDelete = false)
         {
             return new RolePermission
             {
+                Id = Guid.NewGuid(),
                 RoleId = roleId,
-                PermissionId = permissionId
+                ModuleId = moduleId,
+                CanView = canView,
+                CanAdd = canAdd,
+                CanEdit = canEdit,
+                CanDelete = canDelete
             };
         }
 
-        public void Update(Guid roleId,
-            Guid permissionId)
+        public void UpdatePermissions(
+            bool canView,
+            bool canAdd,
+            bool canEdit,
+            bool canDelete)
         {
-            RoleId = roleId;
-            PermissionId = permissionId;
+            CanView = canView;
+            CanAdd = canAdd;
+            CanEdit = canEdit;
+            CanDelete = canDelete;
+            ModifiedOn = DateTime.Now;
+        }
+
+        public void SetAllPermissions(bool value)
+        {
+            CanView = value;
+            CanAdd = value;
+            CanEdit = value;
+            CanDelete = value;
+            ModifiedOn = DateTime.Now;
         }
     }
 }

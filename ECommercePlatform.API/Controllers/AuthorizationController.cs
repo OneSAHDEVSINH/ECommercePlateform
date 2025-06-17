@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ECommercePlatform.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Domain.Entities;
 using System.Security.Claims;
 
 namespace ECommercePlatform.API.Controllers

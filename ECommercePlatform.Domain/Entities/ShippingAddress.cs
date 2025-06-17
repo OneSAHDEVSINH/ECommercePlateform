@@ -15,11 +15,11 @@ namespace ECommercePlatform.Domain.Entities
         public bool IsDefault { get; private set; }
 
         // Navigation properties
-        public User? User { get; private set; }
-        public City? City { get; private set; }
-        public State? State { get; private set; }
-        public Country? Country { get; private set; }
-        public ICollection<Order>? Orders { get; private set; }
+        public virtual User? User { get; private set; }
+        public virtual City? City { get; private set; }
+        public virtual State? State { get; private set; }
+        public virtual Country? Country { get; private set; }
+        public virtual ICollection<Order>? Orders { get; private set; }
 
         private ShippingAddress() { }
     }

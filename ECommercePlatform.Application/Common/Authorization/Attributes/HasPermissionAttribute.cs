@@ -1,6 +1,7 @@
+// Application/Authorization/Attributes/HasPermissionAttribute.cs
 using Microsoft.AspNetCore.Authorization;
 
-namespace ECommercePlatform.API.Middleware
+namespace ECommercePlatform.Application.Common.Authorization.Attributes
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
     public class HasPermissionAttribute : AuthorizeAttribute
@@ -9,11 +10,10 @@ namespace ECommercePlatform.API.Middleware
         {
             Module = module;
             Permission = permission;
-            //Policy = $"Permission:{module}:{permission}";
-            Policy = "Permission";
+            Policy = $"Permission:{module}:{permission}";
         }
-        // These will be populated into the requirement by the AuthorizationPolicyProvider
+
         public string Module { get; }
-        public string Permission { get; }        
+        public string Permission { get; }
     }
 }

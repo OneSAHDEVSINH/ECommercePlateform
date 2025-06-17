@@ -2,7 +2,7 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,16 +11,11 @@ using System.Text;
 
 namespace ECommercePlatform.Application.Services
 {
-    public class IdentityAuthService : IAuthService
+    public class IdentityAuthService(IConfiguration configuration, IUnitOfWork unitOfWork, IPermissionService permissionService) : IAuthService
     {
-        private readonly IConfiguration _configuration;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public IdentityAuthService(IConfiguration configuration, IUnitOfWork unitOfWork)
-        {
-            _configuration = configuration;
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IPermissionService _permissionService = permissionService;
 
         public async Task<AuthResultDto> LoginAsync(LoginDto loginDto)
         {
@@ -52,7 +47,7 @@ namespace ECommercePlatform.Application.Services
                 {
                     roles.Add(new RoleDto
                     {
-                        Id = Guid.Parse(role.Id),
+                        Id = role.Id,
                         Name = role.Name,
                         Description = role.Description,
                         IsActive = role.IsActive
@@ -60,8 +55,11 @@ namespace ECommercePlatform.Application.Services
                 }
             }
 
-            // Generate JWT token
-            var token = await GenerateJwtTokenAsync(user, userRoles);
+            // Get user permissions
+            var permissions = await _permissionService.GetUserPermissionsAsync(user.Id);
+
+            // Generate JWT token with permissions
+            var token = await GenerateJwtTokenAsync(user, userRoles, permissions);
 
             return new AuthResultDto
             {
@@ -72,14 +70,55 @@ namespace ECommercePlatform.Application.Services
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
-                    Password = user.Password,
+                    Password = user.PasswordHash,
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Bio = user.Bio,
                     Roles = roles,
-                    IsActive = user.IsActive
-                }
+                    IsActive = user.IsActive,
+                    CreatedOn = user.CreatedOn
+                },
+                Permissions = permissions
             };
         }
 
-        private async Task<string> GenerateJwtTokenAsync(User user, IList<string> roles)
+        public async Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            if (!roleIds.Any())
+                return new List<UserPermissionDto>();
+
+            // Get all role permissions for these roles
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Group by module and aggregate permissions
+            var permissions = rolePermissions
+                .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                .Select(g => new UserPermissionDto
+                {
+                    ModuleName = g.Key.Name,
+                    CanView = g.Any(rp => rp.CanView),
+                    CanAdd = g.Any(rp => rp.CanAdd),
+                    CanEdit = g.Any(rp => rp.CanEdit),
+                    CanDelete = g.Any(rp => rp.CanDelete)
+                })
+                .ToList();
+
+            return permissions;
+        }
+
+        private async Task<string> GenerateJwtTokenAsync(User user, IList<string> roles, List<UserPermissionDto> permissions)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user), "User cannot be null");
@@ -91,15 +130,16 @@ namespace ECommercePlatform.Application.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}")
             };
 
             // Add all roles as claims
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
-                
+
                 // Check if this is the SuperAdmin role
                 if (role == "SuperAdmin")
                 {
@@ -107,49 +147,26 @@ namespace ECommercePlatform.Application.Services
                 }
             }
 
-            // Add user permissions based on roles
-            var userPermissions = new HashSet<string>();
-            
-            // Get all modules with their permissions
-            var modules = await _unitOfWork.Modules.GetAllModulesWithPermissionsAsync();
-            
-            foreach (var role in roles)
-            {
-                // Get role by name
-                var appRole = await _unitOfWork.RoleManager.FindByNameAsync(role);
-                if (appRole != null)
-                {
-                    // Get role permissions
-                    var rolePermissions = await _unitOfWork.RolePermissions.GetByRoleIdAsync(Guid.Parse(appRole.Id));
-                    
-                    foreach (var permission in rolePermissions)
-                    {
-                        // Find the module and permission type
-                        var module = modules.FirstOrDefault(m => m.Permissions.Any(p => p.Id == permission.PermissionId));
-                        if (module != null)
-                        {
-                            var modulePermission = module.Permissions.FirstOrDefault(p => p.Id == permission.PermissionId);
-                            if (modulePermission != null)
-                            {
-                                var permissionKey = $"{module.Route}:{modulePermission.Type}";
-                                userPermissions.Add(permissionKey);
-                            }
-                        }
-                    }
-                }
-            }
-
             // Add module permissions as claims
-            foreach (var permission in userPermissions)
+            foreach (var permission in permissions)
             {
-                claims.Add(new Claim("Permission", permission));
+                if (permission.CanView)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:View"));
+                if (permission.CanAdd)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:Add"));
+                if (permission.CanEdit)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:Edit"));
+                if (permission.CanDelete)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:Delete"));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddHours(24),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"]
             };
@@ -158,4 +175,4 @@ namespace ECommercePlatform.Application.Services
             return tokenHandler.WriteToken(token);
         }
     }
-} 
+}

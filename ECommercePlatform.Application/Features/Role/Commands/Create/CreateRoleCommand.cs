@@ -1,7 +1,6 @@
 using ECommercePlatform.Application.Common.Interfaces;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Domain.Enums;
 using MediatR;
 using System.Text.Json.Serialization;
 

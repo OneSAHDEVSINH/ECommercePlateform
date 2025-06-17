@@ -1,6 +1,4 @@
-using ECommercePlatform.API.Middleware;
-using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Features.Role.Commands.AssignPermissions;
+using ECommercePlatform.Application.Common.Authorization.Attributes;
 using ECommercePlatform.Application.Features.Role.Commands.Create;
 using ECommercePlatform.Application.Features.Role.Commands.Delete;
 using ECommercePlatform.Application.Features.Role.Commands.Update;

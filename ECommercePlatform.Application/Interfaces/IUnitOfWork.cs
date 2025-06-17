@@ -7,11 +7,9 @@ namespace ECommercePlatform.Application.Interfaces
     {
         ICountryRepository Countries { get; }
         IUserRepository Users { get; }
-        IProductRepository Products { get; }
         IStateRepository States { get; }
         ICityRepository Cities { get; }
         IModuleRepository Modules { get; }
-        IPermissionRepository Permissions { get; }
         IRolePermissionRepository RolePermissions { get; }
         IRoleRepository Roles { get; }
         IUserRoleRepository UserRoles { get; }

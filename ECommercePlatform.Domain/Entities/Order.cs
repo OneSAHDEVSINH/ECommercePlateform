@@ -15,10 +15,10 @@ namespace ECommercePlatform.Domain.Entities
         public Guid? CouponId { get; private set; }
 
         // Navigation properties
-        public User? User { get; private set; }
-        public ShippingAddress? ShippingAddress { get; private set; }
-        public Coupon? Coupon { get; private set; }
-        public ICollection<OrderItem>? OrderItems { get; private set; }
+        public virtual User? User { get; private set; }
+        public virtual ShippingAddress? ShippingAddress { get; private set; }
+        public virtual Coupon? Coupon { get; private set; }
+        public virtual ICollection<OrderItem>? OrderItems { get; private set; }
 
         private Order() { }
     }

@@ -35,16 +35,6 @@ namespace ECommercePlatform.Application.Mappings
             CreateMap<UpdateCityDto, City>();
             CreateMap<UpdateCityCommand, City>();
 
-            // Product mappings
-            CreateMap<Product, ProductDto>()
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : string.Empty))
-                .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants));
-            CreateMap<CreateProductDto, Product>();
-            CreateMap<UpdateProductDto, Product>();
-
-            // ProductVariant mappings
-            CreateMap<ProductVariant, ProductVariantDto>();
-
             // User mappings
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()));

@@ -7,11 +7,11 @@ namespace ECommercePlatform.Domain.Enums
         Other
     }
 
-    public enum PermissionType
-    {
-        View,
-        Add,
-        Edit,
-        Delete
-    }
+    //public enum PermissionType
+    //{
+    //    View,
+    //    Add,
+    //    Edit,
+    //    Delete
+    //}
 }

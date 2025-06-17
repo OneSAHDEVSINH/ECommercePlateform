@@ -8,8 +8,8 @@ namespace ECommercePlatform.Domain.Entities
         public string? Comment { get; private set; }
 
         // Navigation properties
-        public Product? Product { get; private set; }
-        public User? User { get; private set; }
+        public virtual Product? Product { get; private set; }
+        public virtual User? User { get; private set; }
 
         private Review() { }
     }

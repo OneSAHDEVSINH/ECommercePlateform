@@ -19,7 +19,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<User?> FindUserByEmailAndPasswordAsync(string email, string password)
         {
             return await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && !u.IsDeleted);
+                .FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password && !u.IsDeleted);
         }
 
         public async Task<User?> FindUserWithRolesByEmailAsync(string email)
@@ -53,8 +53,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
                         .ThenInclude(r => r.RolePermissions)
-                            .ThenInclude(rp => rp.Permission)
-                                .ThenInclude(p => p.Module)
+                            .ThenInclude(rp => rp.Module)
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
         }
 

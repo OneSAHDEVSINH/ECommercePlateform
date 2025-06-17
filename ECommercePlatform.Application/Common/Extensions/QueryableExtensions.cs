@@ -1,4 +1,5 @@
 ﻿using ECommercePlatform.Application.Models;
+using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -7,6 +8,23 @@ namespace ECommercePlatform.Application.Common.Extensions
 {
     public static class QueryableExtensions
     {
+        public static IQueryable<RolePermission> IncludeRelated(this IQueryable<RolePermission> query)
+        {
+            return query
+                .Include(rp => rp.Role)
+                .Include(rp => rp.Module);
+        }
+
+        public static IQueryable<RolePermission> WhereActive(this IQueryable<RolePermission> query)
+        {
+            return query.Where(rp => rp.IsActive && !rp.IsDeleted);
+        }
+
+        public static IQueryable<RolePermission> WhereModuleActive(this IQueryable<RolePermission> query)
+        {
+            return query.Where(rp => rp.Module.IsActive && !rp.Module.IsDeleted);
+        }
+
         public static IQueryable<T> ApplyFilter<T>(
             this IQueryable<T> query,
             Expression<Func<T, bool>> filterExpression)

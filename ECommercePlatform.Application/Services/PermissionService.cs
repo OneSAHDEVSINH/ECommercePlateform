@@ -1,0 +1,96 @@
+﻿using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace ECommercePlatform.Application.Services
+{
+    public class PermissionService(IUnitOfWork unitOfWork) : IPermissionService
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<bool> UserHasPermissionAsync(Guid userId, string moduleName, string permission)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            // Get role permissions for these roles and the specified module
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.Name == moduleName &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Check if any role has the requested permission
+            return permission.ToLower() switch
+            {
+                "view" => rolePermissions.Any(rp => rp.CanView),
+                "add" => rolePermissions.Any(rp => rp.CanAdd),
+                "edit" => rolePermissions.Any(rp => rp.CanEdit),
+                "delete" => rolePermissions.Any(rp => rp.CanDelete),
+                _ => false
+            };
+        }
+
+        public async Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            // Get all role permissions for these roles
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Group by module and aggregate permissions
+            var permissions = rolePermissions
+                .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                .Select(g => new UserPermissionDto
+                {
+                    ModuleName = g.Key.Name,
+                    CanView = g.Any(rp => rp.CanView),
+                    CanAdd = g.Any(rp => rp.CanAdd),
+                    CanEdit = g.Any(rp => rp.CanEdit),
+                    CanDelete = g.Any(rp => rp.CanDelete)
+                })
+                .ToList();
+
+            return permissions;
+        }
+
+        public async Task<bool> UserCanAccessModuleAsync(Guid userId, string moduleName)
+        {
+            return await UserHasPermissionAsync(userId, moduleName, "view");
+        }
+
+        public async Task<List<string>> GetUserPermissionClaimsAsync(Guid userId)
+        {
+            var permissions = await GetUserPermissionsAsync(userId);
+            var claims = new List<string>();
+
+            foreach (var permission in permissions)
+            {
+                if (permission.CanView)
+                    claims.Add($"{permission.ModuleName}:View");
+                if (permission.CanAdd)
+                    claims.Add($"{permission.ModuleName}:Add");
+                if (permission.CanEdit)
+                    claims.Add($"{permission.ModuleName}:Edit");
+                if (permission.CanDelete)
+                    claims.Add($"{permission.ModuleName}:Delete");
+            }
+
+            return claims;
+        }
+    }
+}

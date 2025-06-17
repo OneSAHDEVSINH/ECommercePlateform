@@ -1,9 +1,10 @@
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
+using ECommercePlatform.Application.Features.User.Queries.GetUserWithRoles;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 
-namespace ECommercePlatform.Application.Features.User.Queries.GetUserWithRoles
+namespace ECommercePlatform.Application.Features.User.Queries.GetAllUsers
 {
     public class GetUserWithRolesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetUserWithRolesQuery, AppResult<UserDto>>
     {

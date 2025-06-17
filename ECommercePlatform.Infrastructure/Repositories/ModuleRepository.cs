@@ -47,14 +47,15 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public new async Task<Module?> GetByIdAsync(Guid id)
         {
             return await _context.Modules
-                .Include(m => m.Permissions)
+                .Include(m => m.RolePermissions) // Changed from Permissions
                 .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
         }
+
 
         public new async Task<List<Module>> GetAllAsync()
         {
             return await _context.Modules
-                .Include(m => m.Permissions)
+                .Include(m => m.RolePermissions) // Changed from Permissions
                 .Where(m => !m.IsDeleted)
                 .OrderBy(m => m.DisplayOrder)
                 .ToListAsync();
@@ -63,7 +64,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<List<Module>> GetActiveModulesAsync()
         {
             return await _context.Modules
-                .Include(m => m.Permissions)
+                .Include(m => m.RolePermissions)
                 .Where(m => m.IsActive && !m.IsDeleted)
                 .OrderBy(m => m.DisplayOrder)
                 .ToListAsync();
@@ -72,7 +73,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<Module?> GetByRouteAsync(string route)
         {
             return await _context.Modules
-                .Include(m => m.Permissions)
+                .Include(m => m.RolePermissions)
                 .FirstOrDefaultAsync(m => m.Route != null &&
                                          m.Route.ToLower() == route.ToLower() &&
                                          !m.IsDeleted);
@@ -173,7 +174,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             {
                 // First include related entities
                 var queryWithInclude = query
-                    .Include(m => m.Permissions);
+                    .Include(m => m.RolePermissions);
 
                 // Then apply search if text is provided
                 if (!string.IsNullOrWhiteSpace(searchText))

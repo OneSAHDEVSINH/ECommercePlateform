@@ -1,21 +1,16 @@
 ﻿//using ECommercePlatform.Application.Features.Role.Commands.Update;
-using ECommercePlatform.Application.Features.Role.Commands.Update;
 using ECommercePlatform.Domain.Entities;
-using ECommercePlatform.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ECommercePlatform.Application.DTOs
 {
     public class RoleDto
     {
-        public string? Id { get; init; }
+        public Guid Id { get; init; }
         public string? Name { get; init; }
         public string? Description { get; init; }
         public bool IsActive { get; init; }
         public DateTime CreatedOn { get; init; }
-        public List<RolePermissionDto>? Permissions { get; init; }
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
 
         // Explicit conversion operator from Role to RoleDto
         public static explicit operator RoleDto(Role role)
@@ -28,20 +23,15 @@ namespace ECommercePlatform.Application.DTOs
                 IsActive = role.IsActive,
                 CreatedOn = role.CreatedOn,
                 Permissions = role.RolePermissions?
-                    .Where(rp => rp != null && rp.Permission != null)
-                    .Select(rp => new RolePermissionDto
+                    .GroupBy(rp => new { rp.ModuleId, rp.Module?.Name })
+                    .Select(g => new RoleModulePermissionDto
                     {
-                        Id = rp.Id,
-                        RoleId = rp.RoleId,
-                        PermissionId = rp.PermissionId,
-                        RoleName = role.Name,
-                        //PermissionName = rp.Permission?.Name,
-                        PermissionType = rp.Permission?.Type ?? PermissionType.View,
-                        ModuleId = rp.Permission?.ModuleId ?? Guid.Empty,
-                        ModuleName = rp.Permission?.Module?.Name,
-                        ModuleRoute = rp.Permission?.Module?.Route,
-                        IsActive = rp.IsActive,
-                        CreatedOn = rp.CreatedOn
+                        ModuleId = g.Key.ModuleId,
+                        ModuleName = g.Key.Name,
+                        CanView = g.First().CanView,
+                        CanAdd = g.First().CanAdd,
+                        CanEdit = g.First().CanEdit,
+                        CanDelete = g.First().CanDelete
                     })
                     .ToList()
             };
@@ -53,7 +43,7 @@ namespace ECommercePlatform.Application.DTOs
         public required string Name { get; init; }
         public string? Description { get; init; }
         public bool IsActive { get; init; } = true;
-        public List<ModulePermissionRequest>? Permissions { get; init; }
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
     }
 
     public class UpdateRoleDto
@@ -61,33 +51,37 @@ namespace ECommercePlatform.Application.DTOs
         public required string Name { get; init; }
         public string? Description { get; init; }
         public bool IsActive { get; init; } = true;
-        public List<ModulePermissionRequest>? Permissions { get; init; }
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
 
-        public static explicit operator UpdateRoleDto(UpdateRoleCommand command)
-        {
-            return new UpdateRoleDto
-            {
-                Name = command.Name,
-                Description = command.Description,
-                IsActive = (bool)command.IsActive,
-                Permissions = command.Permissions?.Select(p => new ModulePermissionRequest
-                {
-                    ModuleId = p.ModuleId,
-                    PermissionTypes = new List<string> { p.PermissionType }
-                }).ToList()
-            };
-        }
+        //public static explicit operator UpdateRoleDto(UpdateRoleCommand command)
+        //{
+        //    return new UpdateRoleDto
+        //    {
+        //        Name = command.Name,
+        //        Description = command.Description,
+        //        IsActive = (bool)command.IsActive,
+        //        Permissions = command.Permissions?.Select(p => new ModulePermissionRequest
+        //        {
+        //            ModuleId = p.ModuleId,
+        //            PermissionTypes = new List<string> { p.PermissionType }
+        //        }).ToList()
+        //    };
+        //}
     }
 
-    public class ModulePermissionRequest
+    public class RoleModulePermissionDto
     {
         public Guid ModuleId { get; init; }
-        public List<string> PermissionTypes { get; init; } = new();
+        public string? ModuleName { get; init; }
+        public bool CanView { get; init; }
+        public bool CanAdd { get; init; }
+        public bool CanEdit { get; init; }
+        public bool CanDelete { get; init; }
     }
 
     public class RoleListDto
     {
-        public string? Id { get; init; }
+        public Guid Id { get; init; }
         public string? Name { get; init; }
         public string? Description { get; init; }
         public bool IsActive { get; init; }
@@ -102,7 +96,9 @@ namespace ECommercePlatform.Application.DTOs
                 Name = role.Name,
                 Description = role.Description,
                 IsActive = role.IsActive,
-                PermissionCount = role.RolePermissions?.Count ?? 0,
+                PermissionCount = role.RolePermissions?
+                    .Where(rp => rp.CanView || rp.CanAdd || rp.CanEdit || rp.CanDelete)
+                    .Count() ?? 0,
                 CreatedOn = role.CreatedOn
             };
         }

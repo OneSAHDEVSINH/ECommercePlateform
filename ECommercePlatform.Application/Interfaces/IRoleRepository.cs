@@ -13,11 +13,11 @@ namespace ECommercePlatform.Application.Interfaces
         new Task<Role?> GetByIdAsync(Guid id);
         new Task<List<Role>> GetAllAsync();
         Task<List<Role>> GetActiveRolesAsync();
-        Task<List<Role>> GetRolesByPermissionIdAsync(Guid permissionId);
         Task<bool> AnyAsync(Expression<Func<Role, bool>> predicate);
         IQueryable<Role> AsQueryable();
         Task<Role?> GetRoleWithPermissionsAsync(Guid id);
         Task<Role?> GetRoleWithUsersAsync(Guid id);
+        Task<Role?> GetRoleWithModulePermissionsAsync(Guid id);
         Task<Result<string>> EnsureNameIsUniqueAsync(string name, Guid? excludeId = null);
 
         // Pagination methods

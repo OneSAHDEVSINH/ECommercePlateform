@@ -1,13 +1,12 @@
 ﻿using ECommercePlatform.Domain.Entities;
-using System;
 
 namespace ECommercePlatform.Application.DTOs
 {
     public class UserRoleDto
     {
         public Guid Id { get; init; }
-        public string? UserId { get; init; }
-        public string? RoleId { get; init; }
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
         public string? UserName { get; init; }
         public string? UserEmail { get; init; }
         public string? RoleName { get; init; }
@@ -49,8 +48,8 @@ namespace ECommercePlatform.Application.DTOs
     public class UserRoleListDto
     {
         public Guid Id { get; init; }
-        public string? UserId { get; init; }
-        public string? RoleId { get; init; }
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
         public string? UserName { get; init; }
         public string? RoleName { get; init; }
         public bool IsActive { get; init; }

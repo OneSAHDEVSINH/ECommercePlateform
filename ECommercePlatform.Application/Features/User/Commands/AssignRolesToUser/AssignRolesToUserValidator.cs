@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace ECommercePlatform.Application.Features.User.Commands.AssignRoles
+namespace ECommercePlatform.Application.Features.User.Commands.AssignRolesToUser
 {
     public class AssignRolesToUserValidator : AbstractValidator<AssignRolesToUserCommand>
     {

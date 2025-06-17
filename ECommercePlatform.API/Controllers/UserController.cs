@@ -1,11 +1,10 @@
-using ECommercePlatform.API.Middleware;
+using ECommercePlatform.Application.Common.Authorization.Attributes;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Features.User.Commands.Create;
 using ECommercePlatform.Application.Features.User.Commands.Delete;
 using ECommercePlatform.Application.Features.User.Commands.Update;
 using ECommercePlatform.Application.Features.User.Queries.GetAllUsers;
 using ECommercePlatform.Application.Features.User.Queries.GetPagedUsers;
-using ECommercePlatform.Application.Features.User.Queries.GetUserByEmail;
 using ECommercePlatform.Application.Features.User.Queries.GetUserById;
 using ECommercePlatform.Application.Features.User.Queries.GetUsersByRoleId;
 using ECommercePlatform.Application.Features.User.Queries.GetUserWithRoles;

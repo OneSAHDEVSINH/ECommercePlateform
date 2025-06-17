@@ -15,9 +15,9 @@ namespace ECommercePlatform.Domain.Entities
         public Guid? ProductVariantId { get; private set; }
 
         // Navigation properties
-        public Product? Product { get; private set; }
-        public ProductVariant? ProductVariant { get; private set; }
-        public ICollection<Order>? Orders { get; private set; }
+        public virtual Product? Product { get; private set; }
+        public virtual ProductVariant? ProductVariant { get; private set; }
+        public virtual ICollection<Order>? Orders { get; private set; }
 
         private Coupon() { }
     }

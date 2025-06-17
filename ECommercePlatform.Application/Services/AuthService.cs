@@ -2,6 +2,7 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,10 +11,11 @@ using System.Text;
 
 namespace ECommercePlatform.Application.Services
 {
-    public class AuthService(IConfiguration configuration, IUserRepository userRepository) : IAuthService
+    public class AuthService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork) : IAuthService
     {
         private readonly IConfiguration _configuration = configuration;
         private readonly IUserRepository _userRepository = userRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<AuthResultDto> LoginAsync(LoginDto loginDto)
         {
@@ -27,7 +29,7 @@ namespace ECommercePlatform.Application.Services
             var userWithRoles = await _userRepository.FindUserWithRolesByEmailAsync(loginDto.Email);
             var token = GenerateJwtToken(userWithRoles);
 
-            // Map roles to RoleDto objects, not just strings
+            // Map roles to RoleDto objects
             var roleDtos = userWithRoles.UserRoles?
                 .Where(ur => ur.Role != null)
                 .Select(ur => new RoleDto
@@ -36,23 +38,67 @@ namespace ECommercePlatform.Application.Services
                     Name = ur.Role.Name,
                     Description = ur.Role.Description,
                     IsActive = ur.Role.IsActive
-                    // Permissions would be null here since we're not loading them
                 })
                 .ToList() ?? new List<RoleDto>();
+
+            // Get user permissions
+            var permissions = await GetUserPermissionsAsync(userWithRoles.Id);
 
             return new AuthResultDto
             {
                 Token = token,
-                //User = new UserDto
-                //{
-                //    Id = userWithRoles.Id,
-                //    FirstName = userWithRoles.FirstName,
-                //    LastName = userWithRoles.LastName,
-                //    Email = userWithRoles.Email,
-                //    Roles = roleDtos, // Use the properly mapped RoleDto objects
-                //    IsActive = userWithRoles.IsActive
-                //}
+                User = new UserDto
+                {
+                    Id = userWithRoles.Id,
+                    FirstName = userWithRoles.FirstName,
+                    LastName = userWithRoles.LastName,
+                    Email = userWithRoles.Email,
+                    Password = userWithRoles.PasswordHash, // Use PasswordHash
+                    Roles = roleDtos,
+                    IsActive = userWithRoles.IsActive,
+                    PhoneNumber = userWithRoles.PhoneNumber,
+                    Gender = userWithRoles.Gender,
+                    DateOfBirth = userWithRoles.DateOfBirth,
+                    Bio = userWithRoles.Bio,
+                    CreatedOn = userWithRoles.CreatedOn
+                },
+                Permissions = permissions // ADD THIS
             };
+        }
+
+        public async Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            if (!roleIds.Any())
+                return new List<UserPermissionDto>();
+
+            // Get all role permissions for these roles
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Group by module and aggregate permissions
+            var permissions = rolePermissions
+                .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                .Select(g => new UserPermissionDto
+                {
+                    ModuleName = g.Key.Name,
+                    CanView = g.Any(rp => rp.CanView),
+                    CanAdd = g.Any(rp => rp.CanAdd),
+                    CanEdit = g.Any(rp => rp.CanEdit),
+                    CanDelete = g.Any(rp => rp.CanDelete)
+                })
+                .ToList();
+
+            return permissions;
         }
 
         //private string GenerateJwtToken(User user)

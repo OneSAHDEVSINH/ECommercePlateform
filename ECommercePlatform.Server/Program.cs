@@ -1,10 +1,8 @@
 using ECommercePlatform.API.Middleware;
+using ECommercePlatform.API.Middleware.Authorization;
 using ECommercePlatform.Application.Common;
+using ECommercePlatform.Application.Common.Authorization.Policies;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Interfaces.ICity;
-using ECommercePlatform.Application.Interfaces.ICountry;
-using ECommercePlatform.Application.Interfaces.IProduct;
-using ECommercePlatform.Application.Interfaces.IState;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Mappings;
 using ECommercePlatform.Application.Services;
@@ -31,9 +29,7 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
     options.SuppressMapClientErrors = true;
     options.ClientErrorMapping[StatusCodes.Status404NotFound].Link =
         "https://httpstatuses.com/404";
-});
-
-builder.Services.AddControllers().AddJsonOptions(options =>
+}).AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.WriteIndented = true;
@@ -41,6 +37,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure Identity
 builder.Services.AddIdentity<User, Role>(options =>
@@ -64,71 +63,31 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 // Register MediatR, FluentValidation, and other application services
 builder.Services.AddApplicationServices();
-
-// Register Unit of Work
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Register repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IStateRepository, StateRepository>();
 builder.Services.AddScoped<ICityRepository, CityRepository>();
-builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
 builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
-builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+
+// Register Unit of Work
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 // Register services
-builder.Services.AddScoped<ICountryService, CountryService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IStateService, StateService>();
-builder.Services.AddScoped<ICityService, CityService>();
+//builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthService, IdentityAuthService>(); // Use IdentityAuthService instead
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "JWTToken_Auth_API",
-        Version = "v1",
-        Description = "A clean architecture based ECommercePlatform API"
-    });
-    c.ResolveConflictingActions(
-        apiDescriptions => apiDescriptions.First()
-        );
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-        {
-            new OpenApiSecurityScheme {
-                Reference = new OpenApiReference {
-                    Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
 
 //JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -144,12 +103,36 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345")),
-        ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "YourApp",
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "YourApp",
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
     };
 });
+
+// Register Authorization handlers
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, IdentityPermissionAuthorizationHandler>(); // ADD THIS if you have it
 builder.Services.AddSingleton<IAuthorizationHandler, AdminBypassHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+
+// Configure Authorization
+builder.Services.AddAuthorization(options =>
+{
+    // Define the "Permission" policy
+    options.AddPolicy("Permission", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new PermissionRequirement("", ""));
+    });
+
+    // Set default policy
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 builder.Services.AddAuthorizationBuilder()
     // Define the "Permission" policy
@@ -201,6 +184,41 @@ builder.Services.AddCors(options =>
                           .AllowAnyMethod()
                           .AllowAnyHeader());
 });
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "JWTToken_Auth_API",
+        Version = "v1",
+        Description = "A clean architecture based ECommercePlatform API"
+    });
+    c.ResolveConflictingActions(
+        apiDescriptions => apiDescriptions.First()
+        );
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 //builder.Services.AddSpaStaticFiles(configuration =>
@@ -220,25 +238,55 @@ using (var scope = app.Services.CreateScope())
         // Create super admin user with password
         var userManager = services.GetRequiredService<UserManager<User>>();
         var roleManager = services.GetRequiredService<RoleManager<Role>>();
-        // Check if roles exist, if not create them
-        if (!await roleManager.RoleExistsAsync("SuperAdmin"))
+
+        // Seed roles
+        string[] roleNames = { "SuperAdmin", "Admin", "User" };
+        foreach (var roleName in roleNames)
         {
-            // Role might already be seeded in DbContext but without password hash
-            var superAdminRole = await roleManager.FindByNameAsync("SuperAdmin");
-            if (superAdminRole == null)
+            if (!await roleManager.RoleExistsAsync(roleName))
             {
-                superAdminRole = new Role("SuperAdmin")
+                var role = new Role(roleName)
                 {
-                    Description = "Super Administrator with all permissions",
+                    Description = $"{roleName} role",
                     IsActive = true
                 };
-                await roleManager.CreateAsync(superAdminRole);
+                await roleManager.CreateAsync(role);
+            }
+        }
+        // Seed super admin user
+        var adminEmail = "admin@admin.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser == null)
+        {
+            adminUser = new User
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true,
+                FirstName = "Super",
+                LastName = "Admin",
+                PhoneNumber = "1234567890",
+                PhoneNumberConfirmed = true,
+                IsActive = true,
+                Gender = ECommercePlatform.Domain.Enums.Gender.Other,
+                DateOfBirth = DateOnly.FromDateTime(DateTime.Now.AddYears(-30))
+            };
+
+            var result = await userManager.CreateAsync(adminUser, "Admin@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "SuperAdmin");
+                Console.WriteLine("Super admin user created successfully.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
         }
 
         // Check if admin user exists, if not create it
-        var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
-        if (adminUser == null)
+        var adminUser2 = await userManager.FindByEmailAsync("admin@admin.com");
+        if (adminUser2 == null)
         {
             adminUser = new User
             {
@@ -272,14 +320,16 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
-    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("./v1/swagger.json", "My API V1"); //originally "./swagger/v1/swagger.json"
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommercePlatform API V1");
     });
+}
+else
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 //if (!app.Environment.IsDevelopment())
 //{
@@ -305,13 +355,12 @@ app.UseRouting();
 app.UseCors("AllowAllOrigins");
 // Use custom middleware
 app.UseExceptionMiddleware();
-app.UseValidationMiddleware();
 
 app.UseAuthentication();
 app.UseAuthorization();
 app.UsePermissionMiddleware();
+app.UseValidationMiddleware();
 app.MapControllers();
-
 app.MapFallbackToFile("/index.html");
 
-app.Run();
+await app.RunAsync();

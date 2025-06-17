@@ -1,4 +1,3 @@
-using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;

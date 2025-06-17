@@ -1,8 +1,5 @@
 ﻿using ECommercePlatform.Application.Features.Modules.Commands.Update;
 using ECommercePlatform.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ECommercePlatform.Application.DTOs
 {
@@ -16,7 +13,6 @@ namespace ECommercePlatform.Application.DTOs
         public int DisplayOrder { get; init; }
         public bool IsActive { get; init; }
         public DateTime CreatedOn { get; init; }
-        public List<PermissionDto>? Permissions { get; init; }
 
         // Explicit conversion operator from Module entity to ModuleDto
         public static explicit operator ModuleDto(Module module)
@@ -30,10 +26,7 @@ namespace ECommercePlatform.Application.DTOs
                 Icon = module.Icon,
                 DisplayOrder = module.DisplayOrder,
                 IsActive = module.IsActive,
-                CreatedOn = module.CreatedOn,
-                Permissions = module.Permissions?
-                    .Select(permission => (PermissionDto)permission)
-                    .ToList()
+                CreatedOn = module.CreatedOn
             };
         }
     }
@@ -80,7 +73,6 @@ namespace ECommercePlatform.Application.DTOs
         public string? Icon { get; init; }
         public int DisplayOrder { get; init; }
         public bool IsActive { get; init; }
-        public int PermissionCount { get; init; }
 
         public static explicit operator ModuleListDto(Module module)
         {
@@ -92,8 +84,7 @@ namespace ECommercePlatform.Application.DTOs
                 Route = module.Route,
                 Icon = module.Icon,
                 DisplayOrder = module.DisplayOrder,
-                IsActive = module.IsActive,
-                PermissionCount = module.Permissions?.Count ?? 0
+                IsActive = module.IsActive
             };
         }
     }

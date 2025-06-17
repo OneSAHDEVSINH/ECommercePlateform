@@ -3,7 +3,7 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 
-namespace ECommercePlatform.Application.Features.Modules.Queries.GetAllModulesWithPermission
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetAllModulesWithPermissions
 {
     public class GetAllModulesWithPermissionsHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllModulesWithPermissionsQuery, AppResult<List<ModuleDto>>>
     {

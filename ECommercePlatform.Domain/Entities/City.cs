@@ -6,9 +6,9 @@ namespace ECommercePlatform.Domain.Entities
         public Guid StateId { get; private set; }
 
         // Navigation properties
-        public State? State { get; set; }
+        public virtual State? State { get; private set; }
 
-        public ICollection<Address>? Addresses { get; set; }
+        public virtual ICollection<Address>? Addresses { get; private set; }
 
         private City() { }
 

@@ -2,7 +2,7 @@
 
 namespace ECommercePlatform.Domain.Entities
 {
-    public class Role : IdentityRole
+    public class Role : IdentityRole<Guid>
     {
         public string? Description { get; set; }
         public DateTime CreatedOn { get; set; } = DateTime.Now;
@@ -12,8 +12,9 @@ namespace ECommercePlatform.Domain.Entities
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; }
 
-        public virtual ICollection<UserRole>? UserRoles { get; set; }
-        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
+        //Navigation properties
+        public virtual ICollection<UserRole>? UserRoles { get; private set; }
+        public virtual ICollection<RolePermission>? RolePermissions { get; private set; }
 
         public Role() : base() { }
         public Role(string roleName) : base(roleName)
@@ -21,13 +22,19 @@ namespace ECommercePlatform.Domain.Entities
         }
 
         public static Role Create(
+            Guid id,
             string name,
-            string description)
+            string description,
+            string createdBy)
         {
             return new Role
             {
+                Id = id,
                 Name = name,
-                Description = description
+                NormalizedName = name.ToUpper(),
+                Description = description,
+                CreatedBy = createdBy,
+                CreatedOn = DateTime.Now
             };
         }
 

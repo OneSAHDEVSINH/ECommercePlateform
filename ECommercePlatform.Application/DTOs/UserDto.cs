@@ -1,15 +1,12 @@
 ﻿using ECommercePlatform.Application.Features.User.Commands.Update;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ECommercePlatform.Application.DTOs
 {
     public class UserDto
     {
-        public string? Id { get; init; }
+        public Guid Id { get; init; }
         public string? FirstName { get; init; }
         public string? LastName { get; init; }
         public string? Email { get; init; }
@@ -31,7 +28,7 @@ namespace ECommercePlatform.Application.DTOs
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                Password = user.PasswordHash,
+                Password = user.PasswordHash!,
                 PhoneNumber = user.PhoneNumber,
                 Gender = user.Gender,
                 DateOfBirth = user.DateOfBirth,
@@ -93,7 +90,7 @@ namespace ECommercePlatform.Application.DTOs
 
     public class UserListDto
     {
-        public string? Id { get; init; }
+        public Guid Id { get; init; }
         public string? FirstName { get; init; }
         public string? LastName { get; init; }
         public string? Email { get; init; }
