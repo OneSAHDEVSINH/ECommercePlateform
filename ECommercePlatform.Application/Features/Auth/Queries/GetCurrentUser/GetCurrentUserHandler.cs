@@ -41,13 +41,18 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
 
                 var userDto = new UserDto
                 {
-                    Id = user.Id,  // Keep as Guid instead of converting to string
+                    Id = user.Id,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
-                    Password = user.Password,  // Consider removing this for security reasons
+                    Password = user.PasswordHash,
                     IsActive = user.IsActive,
-                    Roles = rolesDto  // Set the Roles collection instead of a single role
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Bio = user.Bio,
+                    CreatedOn = user.CreatedOn,
+                    Roles = rolesDto
                 };
 
                 return AppResult<UserDto>.Success(userDto);

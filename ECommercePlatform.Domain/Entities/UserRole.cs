@@ -12,8 +12,8 @@ namespace ECommercePlatform.Domain.Entities
         public bool IsDeleted { get; set; }
 
         //Navigation properties
-        public virtual User? User { get; private set; }
-        public virtual Role? Role { get; private set; }
+        public virtual User? User { get; set; }
+        public virtual Role? Role { get; set; }
 
         // Private constructor for EF Core
         public UserRole() { }

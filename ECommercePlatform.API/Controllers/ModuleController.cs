@@ -5,7 +5,6 @@ using ECommercePlatform.Application.Features.Modules.Commands.Update;
 using ECommercePlatform.Application.Features.Modules.Queries.GetAllModules;
 using ECommercePlatform.Application.Features.Modules.Queries.GetModuleById;
 using ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRoute;
-using ECommercePlatform.Application.Features.Modules.Queries.GetModuleWithPermissions;
 using ECommercePlatform.Application.Features.Modules.Queries.GetPagedModules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +20,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        [HasPermission("modules", "View")]
+        [HasPermission("Modules", "View")]
         public async Task<IActionResult> GetAllModules([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllModulesQuery(activeOnly));
@@ -33,7 +32,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        [HasPermission("modules", "View")]
+        [HasPermission("Modules", "View")]
         public async Task<IActionResult> GetPagedModules([FromQuery] GetPagedModulesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -45,7 +44,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [HasPermission("modules", "View")]
+        [HasPermission("Modules", "View")]
         public async Task<IActionResult> GetModuleById(Guid id)
         {
             var result = await _mediator.Send(new GetModuleByIdQuery(id));
@@ -57,7 +56,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("by-route/{route}")]
-        [HasPermission("modules", "View")]
+        [HasPermission("Modules", "View")]
         public async Task<IActionResult> GetModuleByRoute(string route)
         {
             var result = await _mediator.Send(new GetModuleByRouteQuery(route));
@@ -68,32 +67,10 @@ namespace ECommercePlatform.API.Controllers
             return NotFound(new { message = result.Error });
         }
 
-        [HttpGet("{id}/permissions")]
-        [HasPermission("modules", "View")]
-        public async Task<IActionResult> GetModuleWithPermissions(Guid id)
-        {
-            var result = await _mediator.Send(new GetModuleWithPermissionsQuery(id));
-
-            if (result.IsSuccess)
-                return Ok(result.Value);
-
-            return NotFound(new { message = result.Error });
-        }
-
-        [HttpGet("with-permissions")]
-        [HasPermission("modules", "View")]
-        public async Task<IActionResult> GetAllModulesWithPermissions([FromQuery] bool activeOnly = true)
-        {
-            var result = await _mediator.Send(new GetAllModulesWithPermissionsQuery { ActiveOnly = activeOnly });
-
-            if (result.IsSuccess)
-                return Ok(result.Value);
-
-            return BadRequest(new { message = result.Error });
-        }
+        // REMOVED: GetModuleWithPermissions and GetAllModulesWithPermissions endpoints
 
         [HttpPost]
-        [HasPermission("modules", "Add")]
+        [HasPermission("Modules", "Add")]
         public async Task<IActionResult> CreateModule([FromBody] CreateModuleCommand command)
         {
             var result = await _mediator.Send(command);
@@ -105,7 +82,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("modules", "Edit")]
+        [HasPermission("Modules", "Edit")]
         public async Task<IActionResult> UpdateModule(Guid id, [FromBody] UpdateModuleCommand command)
         {
             if (id != command.Id)
@@ -122,7 +99,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HasPermission("modules", "Delete")]
+        [HasPermission("Modules", "Delete")]
         public async Task<IActionResult> DeleteModule(Guid id)
         {
             var result = await _mediator.Send(new DeleteModuleCommand(id));

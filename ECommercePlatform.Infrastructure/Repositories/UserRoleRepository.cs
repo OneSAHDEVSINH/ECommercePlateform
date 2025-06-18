@@ -171,7 +171,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
             // Map entities to DTOs with conversion
             var dtos = pagedEntities.Items.Select(ur => new UserRoleDto
             {
-                Id = ur.Id,
                 UserId = ur.UserId,
                 RoleId = ur.RoleId,
                 UserName = $"{ur.User?.FirstName} {ur.User?.LastName}",

@@ -44,44 +44,20 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                 );
 
                 if (request.IsActive.HasValue)
-                    module.IsActive = request.IsActive.Value;
-
-                module.ModifiedBy = request.ModifiedBy;
-                module.ModifiedOn = request.ModifiedOn;
+                {
+                    module.SetActive(request.IsActive.Value, request.ModifiedBy ?? "system");
+                }
+                else
+                {
+                    module.SetModifiedBy(request.ModifiedBy ?? "system");
+                }
 
                 // Update module in database
                 await _unitOfWork.Modules.UpdateAsync(module);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Reload the module to ensure we have updated data
-                var updatedModule = await _unitOfWork.Modules.GetByIdAsync(module.Id);
-                if (updatedModule == null)
-                    return AppResult<ModuleDto>.Failure("Module was updated but could not be retrieved.");
-
                 // Map to DTO and return
-                var moduleDto = new ModuleDto
-                {
-                    Id = updatedModule.Id,
-                    Name = updatedModule.Name,
-                    Description = updatedModule.Description,
-                    Route = updatedModule.Route,
-                    Icon = updatedModule.Icon,
-                    DisplayOrder = updatedModule.DisplayOrder,
-                    IsActive = updatedModule.IsActive,
-                    CreatedOn = updatedModule.CreatedOn,
-                    Permissions = updatedModule.Permissions?.Select(p => new PermissionDto
-                    {
-                        Id = p.Id,
-                        //Name = p.Name,
-                        //Description = p.Description,
-                        Type = p.Type,
-                        ModuleId = p.ModuleId,
-                        ModuleName = updatedModule.Name,
-                        ModuleRoute = updatedModule.Route,
-                        IsActive = p.IsActive,
-                        CreatedOn = p.CreatedOn
-                    }).ToList() ?? new List<PermissionDto>()
-                };
+                var moduleDto = (ModuleDto)module;
 
                 return AppResult<ModuleDto>.Success(moduleDto);
             }

@@ -17,30 +17,8 @@ namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleById
                 if (module == null)
                     return AppResult<ModuleDto>.Failure($"Module with ID {request.Id} not found.");
 
-                // Map to DTO
-                var moduleDto = new ModuleDto
-                {
-                    Id = module.Id,
-                    Name = module.Name,
-                    Description = module.Description,
-                    Route = module.Route,
-                    Icon = module.Icon,
-                    DisplayOrder = module.DisplayOrder,
-                    IsActive = module.IsActive,
-                    CreatedOn = module.CreatedOn,
-                    Permissions = module.Permissions?.Select(p => new PermissionDto
-                    {
-                        Id = p.Id,
-                        //Name = p.Name,
-                        //Description = p.Description,
-                        Type = p.Type,
-                        ModuleId = p.ModuleId,
-                        ModuleName = module.Name,
-                        ModuleRoute = module.Route,
-                        IsActive = p.IsActive,
-                        CreatedOn = p.CreatedOn
-                    }).ToList()
-                };
+                // Map to DTO using the explicit operator
+                var moduleDto = (ModuleDto)module;
 
                 return AppResult<ModuleDto>.Success(moduleDto);
             }

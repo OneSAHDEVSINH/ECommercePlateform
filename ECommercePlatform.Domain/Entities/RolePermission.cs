@@ -2,16 +2,16 @@
 {
     public class RolePermission : BaseEntity
     {
-        public Guid RoleId { get; private set; }
-        public Guid ModuleId { get; private set; }
-        public bool CanView { get; private set; }
-        public bool CanAdd { get; private set; }
-        public bool CanEdit { get; private set; }
-        public bool CanDelete { get; private set; }
+        public Guid RoleId { get; set; }
+        public Guid ModuleId { get; set; }
+        public bool CanView { get; set; }
+        public bool CanAdd { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
 
         //Navigation Properties
-        public virtual Role? Role { get; private set; }
-        public virtual Module? Module { get; private set; }
+        public virtual Role? Role { get; set; }
+        public virtual Module? Module { get; set; }
 
         private RolePermission() { }
 

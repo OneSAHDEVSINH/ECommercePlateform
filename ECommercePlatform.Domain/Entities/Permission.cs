@@ -4,18 +4,18 @@
 //{
 //    public class Permission : BaseEntity
 //    {
-//        //public string? Name { get; private set; }
-//        //public string? Description { get; private set; }
-//        //public PermissionType Type { get; private set; }
-//        public bool CanView { get; private set; }
-//        public bool CanAdd { get; private set; }
-//        public bool CanEdit { get; private set; }
-//        public bool CanDelete { get; private set; }
-//        public Guid ModuleId { get; private set; }
+//        //public string? Name { get; set; }
+//        //public string? Description { get; set; }
+//        //public PermissionType Type { get; set; }
+//        public bool CanView { get; set; }
+//        public bool CanAdd { get; set; }
+//        public bool CanEdit { get; set; }
+//        public bool CanDelete { get; set; }
+//        public Guid ModuleId { get; set; }
 
 //        //Navigation properties
-//        public virtual Module? Module { get; private set; }
-//        public virtual ICollection<RolePermission>? RolePermissions { get; private set; }
+//        public virtual Module? Module { get; set; }
+//        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
 
 //        private Permission() { }
 

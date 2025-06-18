@@ -34,6 +34,7 @@ namespace ECommercePlatform.API.Middleware
 
             var statusCode = exception switch
             {
+                ResourceNotFoundException => (int)HttpStatusCode.NotFound,
                 KeyNotFoundException => (int)HttpStatusCode.NotFound,
                 ArgumentException => (int)HttpStatusCode.BadRequest,
                 UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
@@ -60,6 +61,19 @@ namespace ECommercePlatform.API.Middleware
             var json = JsonSerializer.Serialize(response, _jsonSerializerOptions);
 
             await context.Response.WriteAsync(json);
+        }
+
+        public class ResourceNotFoundException : Exception
+        {
+            public string ResourceName { get; }
+            public object ResourceId { get; }
+
+            public ResourceNotFoundException(string resourceName, object resourceId)
+                : base($"{resourceName} with ID {resourceId} was not found")
+            {
+                ResourceName = resourceName;
+                ResourceId = resourceId;
+            }
         }
     }
 }

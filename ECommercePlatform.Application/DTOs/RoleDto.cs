@@ -12,7 +12,6 @@ namespace ECommercePlatform.Application.DTOs
         public DateTime CreatedOn { get; init; }
         public List<RoleModulePermissionDto>? Permissions { get; init; }
 
-        // Explicit conversion operator from Role to RoleDto
         public static explicit operator RoleDto(Role role)
         {
             return new RoleDto
@@ -23,7 +22,8 @@ namespace ECommercePlatform.Application.DTOs
                 IsActive = role.IsActive,
                 CreatedOn = role.CreatedOn,
                 Permissions = role.RolePermissions?
-                    .GroupBy(rp => new { rp.ModuleId, rp.Module?.Name })
+                    .Where(rp => !rp.IsDeleted && rp.Module != null)
+                    .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
                     .Select(g => new RoleModulePermissionDto
                     {
                         ModuleId = g.Key.ModuleId,

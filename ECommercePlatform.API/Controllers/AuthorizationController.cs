@@ -8,15 +8,23 @@ namespace ECommercePlatform.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class AuthorizationController(IUnitOfWork unitOfWork) : ControllerBase
+    public class AuthorizationController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPermissionService _permissionService;
+
+        public AuthorizationController(IUnitOfWork unitOfWork, IPermissionService permissionService)
+        {
+            _unitOfWork = unitOfWork;
+            _permissionService = permissionService;
+        }
+
         [HttpGet("check")]
         public async Task<IActionResult> CheckPermission([FromQuery] string moduleRoute, [FromQuery] string permissionType)
         {
             // Get user ID from claims
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             {
                 return Unauthorized();
             }
@@ -24,67 +32,138 @@ namespace ECommercePlatform.API.Controllers
             // Check for super admin
             if (User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
             {
-                return Ok(true);
+                return Ok(new { hasPermission = true, reason = "SuperAdmin" });
             }
 
             // Check direct permission claim
             var requiredPermission = $"{moduleRoute}:{permissionType}";
             if (User.HasClaim(c => c.Type == "Permission" && c.Value == requiredPermission))
             {
-                return Ok(true);
+                return Ok(new { hasPermission = true, reason = "JWT Claim" });
             }
 
             // Find module by route
-            var modules = await _unitOfWork.Modules.FindAsync(m => m.Route == moduleRoute && m.IsActive);
-            var module = modules.FirstOrDefault();
+            var module = await _unitOfWork.Modules.GetByRouteAsync(moduleRoute);
             if (module == null)
             {
-                return NotFound($"Module with route '{moduleRoute}' not found");
+                return NotFound(new { message = $"Module with route '{moduleRoute}' not found" });
             }
 
-            // Get user roles
-            var userRoles = await _unitOfWork.UserManager.GetRolesAsync(
-                await _unitOfWork.UserManager.FindByIdAsync(userIdClaim.Value));
+            // Check permission through database
+            var hasPermission = await _permissionService.UserHasPermissionAsync(
+                userId,
+                module.Name ?? moduleRoute,
+                permissionType);
 
-            foreach (var roleName in userRoles)
+            return Ok(new
             {
-                // Get role by name
-                var role = await _unitOfWork.RoleManager.FindByNameAsync(roleName);
-                if (role == null) continue;
-
-                // Get role permissions
-                var rolePermissions = await _unitOfWork.RolePermissions.GetByRoleIdAsync(Guid.Parse(role.Id));
-
-                foreach (var rolePermission in rolePermissions)
-                {
-                    // Get permission details
-                    var permission = await _unitOfWork.Permissions.GetByIdAsync(rolePermission.PermissionId);
-
-                    // Check if this permission matches the requirement
-                    if (permission.ModuleId == module.Id &&
-                        permission.Type.ToString().Equals(permissionType, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return Ok(true);
-                    }
-                }
-            }
-
-            // If we get here, no matching permission was found
-            return Ok(false);
+                hasPermission,
+                reason = hasPermission ? "Database Check" : "No Permission"
+            });
         }
 
         [HttpGet("user-permissions")]
-        public IActionResult GetUserPermissions()
+        public async Task<IActionResult> GetUserPermissions()
         {
-            // Extract permission claims from the token
-            var permissions = User.Claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                // If no user ID, just return JWT claims
+                var claimPermissions = User.Claims
+                    .Where(c => c.Type == "Permission")
+                    .Select(c => c.Value)
+                    .ToList();
+
+                return Ok(new
+                {
+                    permissions = claimPermissions,
+                    isAdmin = User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"),
+                    source = "JWT Claims Only"
+                });
+            }
+
+            // Get permissions from database
+            var dbPermissions = await _permissionService.GetUserPermissionsAsync(userId);
+
+            // Also get JWT claim permissions for comparison
+            var jwtPermissions = User.Claims
                 .Where(c => c.Type == "Permission")
                 .Select(c => c.Value)
                 .ToList();
 
             var isAdmin = User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true");
 
-            return Ok(new { permissions, isAdmin });
+            return Ok(new
+            {
+                permissions = dbPermissions,
+                jwtPermissions,
+                isAdmin,
+                source = "Database"
+            });
+        }
+
+        [HttpGet("modules")]
+        public async Task<IActionResult> GetUserAccessibleModules()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            // Get all modules
+            var allModules = await _unitOfWork.Modules.GetActiveModulesAsync();
+
+            // If super admin, return all modules
+            if (User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
+            {
+                return Ok(allModules.Select(m => new
+                {
+                    m.Id,
+                    m.Name,
+                    m.Route,
+                    m.Icon,
+                    m.DisplayOrder,
+                    permissions = new
+                    {
+                        canView = true,
+                        canAdd = true,
+                        canEdit = true,
+                        canDelete = true
+                    }
+                }));
+            }
+
+            // Get user permissions
+            var userPermissions = await _permissionService.GetUserPermissionsAsync(userId);
+
+            // Filter modules user has access to
+            var accessibleModules = allModules
+                .Where(m => userPermissions.Any(p => p.ModuleName == m.Name && p.CanView))
+                .Select(m =>
+                {
+                    var permission = userPermissions.First(p => p.ModuleName == m.Name);
+                    return new
+                    {
+                        m.Id,
+                        m.Name,
+                        m.Route,
+                        m.Icon,
+                        m.DisplayOrder,
+                        permissions = new
+                        {
+                            canView = permission.CanView,
+                            canAdd = permission.CanAdd,
+                            canEdit = permission.CanEdit,
+                            canDelete = permission.CanDelete
+                        }
+                    };
+                })
+                .OrderBy(m => m.DisplayOrder);
+
+            return Ok(accessibleModules);
         }
     }
 }

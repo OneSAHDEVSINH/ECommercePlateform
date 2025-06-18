@@ -2,13 +2,13 @@ namespace ECommercePlatform.Domain.Entities
 {
     public class City : BaseEntity
     {
-        public string? Name { get; private set; }
-        public Guid StateId { get; private set; }
+        public string? Name { get; set; }
+        public Guid StateId { get; set; }
 
         // Navigation properties
-        public virtual State? State { get; private set; }
+        public virtual State? State { get; set; }
 
-        public virtual ICollection<Address>? Addresses { get; private set; }
+        public virtual ICollection<Address>? Addresses { get; set; }
 
         private City() { }
 

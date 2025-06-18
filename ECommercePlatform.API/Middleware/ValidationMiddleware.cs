@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
 
 namespace ECommercePlatform.API.Middleware
 {
-    public class ValidationMiddleware(RequestDelegate next)
+    public class ValidationMiddleware(RequestDelegate next, ILogger<ValidationMiddleware> logger)
     {
         private readonly RequestDelegate _next = next;
+        private readonly ILogger _logger = logger;
         private static readonly JsonSerializerOptions CachedJsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public async Task InvokeAsync(HttpContext context)
@@ -29,6 +31,11 @@ namespace ECommercePlatform.API.Middleware
                         // Check if this is a validation problem
                         if (problemDetailsFeature is ValidationProblemDetails validationProblem)
                         {
+                            // Log validation failures for analysis
+                            _logger.LogWarning("Validation failed for {EndpointName}: {ValidationErrors}",
+                                endpoint?.DisplayName,
+                                string.Join("; ", validationProblem.Errors.Select(e => $"{e.Key}: {string.Join(", ", e.Value)}")));
+
                             // Format the validation error in a consistent way
                             var errors = validationProblem.Errors
                                 .SelectMany(e => e.Value.Select(error => new { Field = e.Key, Message = error }))

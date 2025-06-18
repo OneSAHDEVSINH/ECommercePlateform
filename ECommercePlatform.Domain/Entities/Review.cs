@@ -2,14 +2,14 @@ namespace ECommercePlatform.Domain.Entities
 {
     public class Review : BaseEntity
     {
-        public Guid ProductId { get; private set; }
-        public Guid UserId { get; private set; }
-        public int Rating { get; private set; }
-        public string? Comment { get; private set; }
+        public Guid ProductId { get; set; }
+        public Guid UserId { get; set; }
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
 
         // Navigation properties
-        public virtual Product? Product { get; private set; }
-        public virtual User? User { get; private set; }
+        public virtual Product? Product { get; set; }
+        public virtual User? User { get; set; }
 
         private Review() { }
     }

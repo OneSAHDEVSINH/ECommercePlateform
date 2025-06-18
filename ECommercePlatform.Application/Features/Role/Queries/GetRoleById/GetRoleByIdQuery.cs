@@ -1,8 +1,0 @@
-using ECommercePlatform.Application.Common.Models;
-using ECommercePlatform.Application.DTOs;
-using MediatR;
-
-namespace ECommercePlatform.Application.Features.Role.Queries.GetRoleById
-{
-    public record GetRoleByIdQuery(Guid Id) : IRequest<AppResult<RoleDto>>;
-}

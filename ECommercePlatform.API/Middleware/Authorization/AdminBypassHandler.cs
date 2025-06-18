@@ -12,8 +12,8 @@ namespace ECommercePlatform.API.Middleware.Authorization
             {
                 if (requirement is PermissionRequirement)
                 {
-                    // Check if user is Admin (super admin)
-                    if (IsAdminUser(context.User))
+                    // Check if user is SuperAdmin
+                    if (IsSuperAdmin(context.User))
                     {
                         context.Succeed(requirement);
                     }
@@ -23,10 +23,11 @@ namespace ECommercePlatform.API.Middleware.Authorization
             return Task.CompletedTask;
         }
 
-        private bool IsAdminUser(ClaimsPrincipal user)
+        private bool IsSuperAdmin(ClaimsPrincipal user)
         {
-            // Check for Admin role claim
-            return user.IsInRole("Admin") || user.HasClaim(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+            // Check for SuperAdmin role or claim
+            return user.IsInRole("SuperAdmin") ||
+                   user.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true");
         }
     }
 }

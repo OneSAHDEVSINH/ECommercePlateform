@@ -1,16 +1,19 @@
-// API/Middleware/PermissionMiddleware.cs
 using ECommercePlatform.Application.Common.Authorization.Attributes;
-
-//using ECommercePlatform.Application.Authorization.Requirements;
+using ECommercePlatform.Application.Common.Authorization.Requirements;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
 namespace ECommercePlatform.API.Middleware
 {
-    public class PermissionMiddleware(RequestDelegate next)
+    public class PermissionMiddleware
     {
-        private readonly RequestDelegate _next = next;
+        private readonly RequestDelegate _next;
+
+        public PermissionMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
 
         public async Task InvokeAsync(HttpContext context, IAuthorizationService authorizationService)
         {
@@ -44,7 +47,12 @@ namespace ECommercePlatform.API.Middleware
                 if (!authResult.Succeeded)
                 {
                     context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    await context.Response.WriteAsync("Access denied. You do not have permission to access this resource.");
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        message = "Access denied",
+                        module = permission.Module,
+                        permission = permission.Permission
+                    });
                     return;
                 }
             }

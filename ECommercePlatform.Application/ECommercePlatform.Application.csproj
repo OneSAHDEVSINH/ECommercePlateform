@@ -7,14 +7,38 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Modules\Queries\GetAllModulesWithPermissions\**" />
+    <Compile Remove="Features\Modules\Queries\GetModuleWithPermissions\**" />
+    <Compile Remove="Features\Roles\Commands\AssignPermissionsToRole\**" />
+    <Compile Remove="Features\Roles\Queries\GetRolesByPermissionId\**" />
+    <Compile Remove="Features\Roles\Queries\GetRoleWithPermissions\**" />
+    <Compile Remove="Features\Role\Commands\AssignPermissionsToRole\**" />
+    <Compile Remove="Features\Role\Queries\GetRolesByPermissionId\**" />
+    <Compile Remove="Features\Role\Queries\GetRoleWithPermissions\**" />
     <Compile Remove="Interfaces\ICity\**" />
     <Compile Remove="Interfaces\ICountry\**" />
     <Compile Remove="Interfaces\IProduct\**" />
     <Compile Remove="Interfaces\IState\**" />
+    <EmbeddedResource Remove="Features\Modules\Queries\GetAllModulesWithPermissions\**" />
+    <EmbeddedResource Remove="Features\Modules\Queries\GetModuleWithPermissions\**" />
+    <EmbeddedResource Remove="Features\Roles\Commands\AssignPermissionsToRole\**" />
+    <EmbeddedResource Remove="Features\Roles\Queries\GetRolesByPermissionId\**" />
+    <EmbeddedResource Remove="Features\Roles\Queries\GetRoleWithPermissions\**" />
+    <EmbeddedResource Remove="Features\Role\Commands\AssignPermissionsToRole\**" />
+    <EmbeddedResource Remove="Features\Role\Queries\GetRolesByPermissionId\**" />
+    <EmbeddedResource Remove="Features\Role\Queries\GetRoleWithPermissions\**" />
     <EmbeddedResource Remove="Interfaces\ICity\**" />
     <EmbeddedResource Remove="Interfaces\ICountry\**" />
     <EmbeddedResource Remove="Interfaces\IProduct\**" />
     <EmbeddedResource Remove="Interfaces\IState\**" />
+    <None Remove="Features\Modules\Queries\GetAllModulesWithPermissions\**" />
+    <None Remove="Features\Modules\Queries\GetModuleWithPermissions\**" />
+    <None Remove="Features\Roles\Commands\AssignPermissionsToRole\**" />
+    <None Remove="Features\Roles\Queries\GetRolesByPermissionId\**" />
+    <None Remove="Features\Roles\Queries\GetRoleWithPermissions\**" />
+    <None Remove="Features\Role\Commands\AssignPermissionsToRole\**" />
+    <None Remove="Features\Role\Queries\GetRolesByPermissionId\**" />
+    <None Remove="Features\Role\Queries\GetRoleWithPermissions\**" />
     <None Remove="Interfaces\ICity\**" />
     <None Remove="Interfaces\ICountry\**" />
     <None Remove="Interfaces\IProduct\**" />
@@ -61,7 +85,6 @@
 
   <ItemGroup>
     <Folder Include="Common\Authorization\Handlers\" />
-    <Folder Include="Common\Authorization\Requirements\" />
   </ItemGroup>
 
 </Project>

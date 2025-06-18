@@ -10,10 +10,9 @@ namespace ECommercePlatform.Application.DTOs
     {
         public string? Token { get; init; }
         public UserDto? User { get; init; }
-        public List<UserPermissionDto>? Permissions { get; init; } // ADD THIS
+        public List<UserPermissionDto>? Permissions { get; init; }
     }
 
-    // ADD THIS NEW DTO
     public class UserPermissionDto
     {
         public required string ModuleName { get; init; }

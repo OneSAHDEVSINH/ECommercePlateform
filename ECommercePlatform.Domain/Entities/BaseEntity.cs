@@ -2,13 +2,13 @@ namespace ECommercePlatform.Domain.Entities
 {
     public abstract class BaseEntity
     {
-        public Guid Id { get; protected set; }
-        public DateTime CreatedOn { get; protected set; } = DateTime.Now;
-        public string? CreatedBy { get; protected set; }
-        public DateTime ModifiedOn { get; protected set; } = DateTime.Now;
-        public string? ModifiedBy { get; protected set; }
-        public bool IsActive { get; protected set; } = true;
-        public bool IsDeleted { get; protected set; }
+        public Guid Id { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
 
         public virtual void SetCreatedBy(string createdBy)
         {

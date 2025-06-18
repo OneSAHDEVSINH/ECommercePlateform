@@ -17,7 +17,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -297,13 +297,15 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
                     b.Property<string>("Icon")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -318,105 +320,130 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Route")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Route")
+                        .IsUnique();
 
                     b.ToTable("Modules");
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"),
+                            Id = new Guid("9a3d7141-4e96-4a5a-b1c5-b6b757abc0e7"),
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Main admin dashboard",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Main dashboard",
                             DisplayOrder = 1,
                             Icon = "fas fa-tachometer-alt",
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Dashboard",
                             Route = "dashboard"
                         },
                         new
                         {
-                            Id = new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"),
+                            Id = new Guid("d5c05957-17e5-46f7-b32d-be1d81e317ae"),
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "User management",
                             DisplayOrder = 2,
                             Icon = "fas fa-users",
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Users",
                             Route = "users"
                         },
                         new
                         {
-                            Id = new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"),
+                            Id = new Guid("52136bb4-ee50-4175-9b40-836cac5d587c"),
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Role management",
                             DisplayOrder = 3,
                             Icon = "fas fa-user-shield",
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Roles",
                             Route = "roles"
                         },
                         new
                         {
-                            Id = new Guid("d5212365-524a-4afc-a44b-c1436c48f3a5"),
+                            Id = new Guid("4ea6364a-7f9e-4b3b-a138-bb9caa2653a7"),
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Country management",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Module management",
                             DisplayOrder = 4,
-                            Icon = "fas fa-globe",
+                            Icon = "fas fa-cubes",
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Countries",
-                            Route = "countries"
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Modules",
+                            Route = "modules"
                         },
                         new
                         {
-                            Id = new Guid("a7b3d254-9047-405f-aef3-7f9a6ed13c54"),
+                            Id = new Guid("f86a8772-d8e8-4256-9a17-453a9a65015f"),
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "State management",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "City management",
                             DisplayOrder = 5,
+                            Icon = "fas fa-city",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Cities",
+                            Route = "cities"
+                        },
+                        new
+                        {
+                            Id = new Guid("24203e63-035e-4119-9e6a-27b2ccbf5c79"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "State management",
+                            DisplayOrder = 6,
                             Icon = "fas fa-map",
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "States",
                             Route = "states"
                         },
                         new
                         {
-                            Id = new Guid("27786d06-cdc7-4c27-a6a4-aac1622b110b"),
+                            Id = new Guid("a095a01d-9e88-4570-bdfd-9e0bc05f14f4"),
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "City management",
-                            DisplayOrder = 6,
-                            Icon = "fas fa-city",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Country management",
+                            DisplayOrder = 7,
+                            Icon = "fas fa-globe",
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Cities",
-                            Route = "cities"
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Countries",
+                            Route = "countries"
                         });
                 });
 
@@ -558,137 +585,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasIndex("ProductVariantId");
 
                     b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Permission", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ModifiedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModuleId");
-
-                    b.ToTable("Permissions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"),
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Permission to view the admin dashboard",
-                            IsActive = true,
-                            IsDeleted = false,
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            ModuleId = new Guid("8160be48-f4fd-4905-879b-e8038d64fde8"),
-                            Name = "View Dashboard",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"),
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Permission to view users",
-                            IsActive = true,
-                            IsDeleted = false,
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            ModuleId = new Guid("5d24ad3c-1189-43cc-a823-e882d84edb53"),
-                            Name = "View Users",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"),
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Permission to view roles",
-                            IsActive = true,
-                            IsDeleted = false,
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            ModuleId = new Guid("666c62d8-94fd-4d1e-a98c-d783e97bdbac"),
-                            Name = "View Roles",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("d45768db-7234-4c97-aabd-0e8a74548138"),
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Permission to view countries",
-                            IsActive = true,
-                            IsDeleted = false,
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            ModuleId = new Guid("d5212365-524a-4afc-a44b-c1436c48f3a5"),
-                            Name = "View Countries",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("87104812-ebf5-45df-8f1c-41ef41a2d1de"),
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Permission to view states",
-                            IsActive = true,
-                            IsDeleted = false,
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            ModuleId = new Guid("a7b3d254-9047-405f-aef3-7f9a6ed13c54"),
-                            Name = "View States",
-                            Type = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("c35b8160-2ef9-4936-8913-c35a5ac95a03"),
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Permission to view cities",
-                            IsActive = true,
-                            IsDeleted = false,
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            ModuleId = new Guid("27786d06-cdc7-4c27-a6a4-aac1622b110b"),
-                            Name = "View Cities",
-                            Type = 0
-                        });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Product", b =>
@@ -853,6 +749,10 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -875,24 +775,36 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("Roles", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"),
+                            ConcurrencyStamp = "1c078e6d-2fb7-4a5d-b170-4a4eced5c4d5",
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Administrator role with all permissions",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Super Administrator with all permissions",
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Admin"
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "SuperAdmin",
+                            NormalizedName = "SUPERADMIN"
                         });
                 });
 
@@ -901,6 +813,18 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("CanAdd")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanEdit")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanView")
+                        .HasColumnType("bit");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -920,7 +844,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<DateTime>("ModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("PermissionId")
+                    b.Property<Guid>("ModuleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("RoleId")
@@ -928,83 +852,124 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PermissionId");
+                    b.HasIndex("ModuleId");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("RoleId", "ModuleId")
+                        .IsUnique();
 
                     b.ToTable("RolePermissions");
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("54477eed-7960-4f78-9212-d6b3446a3553"),
+                            Id = new Guid("e536a58d-09a3-4a69-8436-5725bf7ffbad"),
+                            CanAdd = true,
+                            CanDelete = true,
+                            CanEdit = true,
+                            CanView = true,
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            PermissionId = new Guid("565c7647-7611-4d34-ae76-5eba0d4e1822"),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModuleId = new Guid("9a3d7141-4e96-4a5a-b1c5-b6b757abc0e7"),
                             RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
                         },
                         new
                         {
-                            Id = new Guid("5fd34cd1-368f-4fda-a626-79c2e5c37b1a"),
+                            Id = new Guid("12d57212-45ac-4420-a202-7ff04de2709e"),
+                            CanAdd = true,
+                            CanDelete = true,
+                            CanEdit = true,
+                            CanView = true,
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            PermissionId = new Guid("bf2f6ca5-dac3-4725-9407-c713a88ed19b"),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModuleId = new Guid("d5c05957-17e5-46f7-b32d-be1d81e317ae"),
                             RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
                         },
                         new
                         {
-                            Id = new Guid("c16e7c9b-ed37-401d-bf52-4c52be030451"),
+                            Id = new Guid("4cf71f31-fb3f-4960-a352-4d29299b5d6f"),
+                            CanAdd = true,
+                            CanDelete = true,
+                            CanEdit = true,
+                            CanView = true,
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            PermissionId = new Guid("b684f1b4-0c54-466f-ba92-5e575061318b"),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModuleId = new Guid("52136bb4-ee50-4175-9b40-836cac5d587c"),
                             RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
                         },
                         new
                         {
-                            Id = new Guid("264c6b33-9c91-4b01-a2be-243d9f91110c"),
+                            Id = new Guid("33eb3761-ce64-4720-9e0f-434887d40261"),
+                            CanAdd = true,
+                            CanDelete = true,
+                            CanEdit = true,
+                            CanView = true,
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            PermissionId = new Guid("d45768db-7234-4c97-aabd-0e8a74548138"),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModuleId = new Guid("4ea6364a-7f9e-4b3b-a138-bb9caa2653a7"),
                             RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
                         },
                         new
                         {
-                            Id = new Guid("7ecd8d51-8077-4f1c-b83d-9a2c6b9e20ea"),
+                            Id = new Guid("d28f26b6-55d1-45a4-a69b-7d26a293d945"),
+                            CanAdd = true,
+                            CanDelete = true,
+                            CanEdit = true,
+                            CanView = true,
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            PermissionId = new Guid("87104812-ebf5-45df-8f1c-41ef41a2d1de"),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModuleId = new Guid("f86a8772-d8e8-4256-9a17-453a9a65015f"),
                             RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
                         },
                         new
                         {
-                            Id = new Guid("75137078-d567-4f2f-9be7-6f6e8bdca429"),
+                            Id = new Guid("86acd9e0-16f1-474f-a85d-a4bdbbf27e8c"),
+                            CanAdd = true,
+                            CanDelete = true,
+                            CanEdit = true,
+                            CanView = true,
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
                             IsDeleted = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            PermissionId = new Guid("c35b8160-2ef9-4936-8913-c35a5ac95a03"),
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModuleId = new Guid("24203e63-035e-4119-9e6a-27b2ccbf5c79"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
+                        },
+                        new
+                        {
+                            Id = new Guid("b2cdafc8-599b-45b5-ac32-fb84b0c896a5"),
+                            CanAdd = true,
+                            CanDelete = true,
+                            CanEdit = true,
+                            CanView = true,
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ModuleId = new Guid("a095a01d-9e88-4570-bdfd-9e0bc05f14f4"),
                             RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143")
                         });
                 });
@@ -1129,10 +1094,17 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
                     b.Property<byte[]>("Avatar")
                         .HasColumnType("varbinary(max)");
 
                     b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedBy")
@@ -1145,14 +1117,14 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Gender")
                         .HasColumnType("int");
@@ -1164,9 +1136,13 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
@@ -1174,45 +1150,82 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<DateTime>("ModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"),
+                            AccessFailedCount = 0,
                             Bio = "System Administrator",
+                            ConcurrencyStamp = "6e8b9d2c-79f8-4c0d-8c5b-b7e3d2e0fcc8",
                             CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DateOfBirth = new DateOnly(1990, 1, 1),
                             Email = "admin@admin.com",
-                            FirstName = "Admin",
-                            Gender = 0,
+                            EmailConfirmed = true,
+                            FirstName = "Super",
+                            Gender = 2,
                             IsActive = true,
                             IsDeleted = false,
-                            LastName = "User",
+                            LastName = "Admin",
+                            LockoutEnabled = false,
                             ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            Password = "Admin@1234",
-                            PhoneNumber = "1234567890"
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            NormalizedEmail = "ADMIN@ADMIN.COM",
+                            NormalizedUserName = "ADMIN@ADMIN.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAELST0qdl0q97wkBBDJGfpJbVjWOLG22r8WQZlTKUeeoQQbPsQj0rr9bvBUEJnk9Blw==",
+                            PhoneNumber = "1234567890",
+                            PhoneNumberConfirmed = true,
+                            SecurityStamp = "f7426c48-c7c4-4c44-a30c-adcb4d1c8636",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@admin.com"
                         });
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.UserRole", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CreatedBy")
@@ -1233,33 +1246,112 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Property<DateTime>("ModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                    b.HasKey("UserId", "RoleId");
 
-                    b.Property<Guid>("UserId")
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("UserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f"),
+                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"),
+                            CreatedBy = "System",
+                            CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            IsDeleted = false,
+                            ModifiedBy = "System",
+                            ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
+                    b.ToTable("RoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserClaims", (string)null);
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("f8b7b597-14ff-4b33-a8b3-0ea4de9f9dae"),
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            IsDeleted = false,
-                            ModifiedBy = "System",
-                            ModifiedOn = new DateTime(2025, 5, 2, 3, 18, 0, 0, DateTimeKind.Unspecified),
-                            RoleId = new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143"),
-                            UserId = new Guid("e65a3a8a-2407-4965-9b71-b9a1d8e2c34f")
-                        });
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("UserTokens", (string)null);
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Address", b =>
@@ -1285,7 +1377,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
                         .WithMany("Addresses")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("City");
@@ -1348,7 +1440,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Coupon");
@@ -1383,17 +1475,6 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Navigation("ProductVariant");
                 });
 
-            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Permission", b =>
-                {
-                    b.HasOne("ECommercePlatform.Domain.Entities.Module", "Module")
-                        .WithMany("Permissions")
-                        .HasForeignKey("ModuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Module");
-                });
-
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Product", b =>
                 {
                     b.HasOne("ECommercePlatform.Domain.Entities.Category", "Category")
@@ -1426,7 +1507,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasOne("ECommercePlatform.Domain.Entities.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -1436,9 +1517,9 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.RolePermission", b =>
                 {
-                    b.HasOne("ECommercePlatform.Domain.Entities.Permission", "Permission")
+                    b.HasOne("ECommercePlatform.Domain.Entities.Module", "Module")
                         .WithMany("RolePermissions")
-                        .HasForeignKey("PermissionId")
+                        .HasForeignKey("ModuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1448,7 +1529,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Permission");
+                    b.Navigation("Module");
 
                     b.Navigation("Role");
                 });
@@ -1518,6 +1599,42 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.Role", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.HasOne("ECommercePlatform.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
@@ -1544,17 +1661,12 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Module", b =>
                 {
-                    b.Navigation("Permissions");
+                    b.Navigation("RolePermissions");
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
-                });
-
-            modelBuilder.Entity("ECommercePlatform.Domain.Entities.Permission", b =>
-                {
-                    b.Navigation("RolePermissions");
                 });
 
             modelBuilder.Entity("ECommercePlatform.Domain.Entities.Product", b =>

@@ -1,4 +1,4 @@
-﻿using ECommercePlatform.Application.Features.User.Commands.Update;
+﻿using ECommercePlatform.Application.Features.Users.Commands.Update;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Domain.Enums;
 

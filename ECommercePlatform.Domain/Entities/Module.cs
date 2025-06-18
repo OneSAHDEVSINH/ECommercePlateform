@@ -2,14 +2,14 @@
 {
     public class Module : BaseEntity
     {
-        public string? Name { get; private set; }
-        public string? Description { get; private set; }
-        public string? Route { get; private set; }
-        public string? Icon { get; private set; }
-        public int DisplayOrder { get; private set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? Route { get; set; }
+        public string? Icon { get; set; }
+        public int DisplayOrder { get; set; }
 
         // Updated navigation property
-        public virtual ICollection<RolePermission>? RolePermissions { get; private set; }
+        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
 
         private Module() { }
 

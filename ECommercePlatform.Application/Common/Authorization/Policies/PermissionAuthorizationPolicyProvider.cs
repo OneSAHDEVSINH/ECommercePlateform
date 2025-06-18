@@ -1,16 +1,12 @@
 //using ECommercePlatform.Application.Authorization.Requirements;
+using ECommercePlatform.Application.Common.Authorization.Requirements;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
 namespace ECommercePlatform.Application.Common.Authorization.Policies
 {
-    public class PermissionAuthorizationPolicyProvider : DefaultAuthorizationPolicyProvider
+    public class PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options) : DefaultAuthorizationPolicyProvider(options)
     {
-        public PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options)
-            : base(options)
-        {
-        }
-
         public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
         {
             // Check if policy exists in options first
@@ -34,7 +30,6 @@ namespace ECommercePlatform.Application.Common.Authorization.Policies
                     return policyBuilder.Build();
                 }
             }
-
             return null;
         }
     }

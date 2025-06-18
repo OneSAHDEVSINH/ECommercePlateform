@@ -7,14 +7,14 @@ namespace ECommercePlatform.Domain.Entities
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public byte[]? Avatar { get; private set; }
+        public byte[]? Avatar { get; set; }
         public Gender Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }
-        //public string? PhoneNumber { get; private set; }
-        //public string? Email { get; private set; }
-        //public string? Password { get; private set; }
+        //public string? PhoneNumber { get; set; }
+        //public string? Email { get; set; }
+        //public string? Password { get; set; }
         public string? Bio { get; set; }
-        //public UserRole? Role { get; private set; }
+        //public UserRole? Role { get; set; }
         public DateTime CreatedOn { get; set; } = DateTime.Now;
         public string? CreatedBy { get; set; }
         public DateTime ModifiedOn { get; set; } = DateTime.Now;
@@ -23,10 +23,10 @@ namespace ECommercePlatform.Domain.Entities
         public bool IsDeleted { get; set; }
 
         //Navigation properties
-        public virtual ICollection<Address>? Addresses { get; private set; }
-        public virtual ICollection<Order>? Orders { get; private set; }
-        public virtual ICollection<Review>? Reviews { get; private set; }
-        public virtual ICollection<UserRole> UserRoles { get; private set; } = new List<UserRole>();
+        public virtual ICollection<Address>? Addresses { get; set; }
+        public virtual ICollection<Order>? Orders { get; set; }
+        public virtual ICollection<Review>? Reviews { get; set; }
+        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
         // Default parameterless constructor required by EF Core
         public User() { }

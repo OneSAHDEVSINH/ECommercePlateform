@@ -2,23 +2,23 @@ namespace ECommercePlatform.Domain.Entities
 {
     public class Order : BaseEntity
     {
-        public Guid UserId { get; private set; }
-        public string? OrderNumber { get; private set; }
-        public DateTime OrderDate { get; private set; } = DateTime.Now;
-        public decimal SubTotal { get; private set; }
-        public decimal DiscountAmount { get; private set; }
-        public decimal TaxAmount { get; private set; }
-        public decimal ShippingAmount { get; private set; }
-        public decimal TotalAmount { get; private set; }
-        public OrderStatus Status { get; private set; } = OrderStatus.Pending;
-        public Guid? ShippingAddressId { get; private set; }
-        public Guid? CouponId { get; private set; }
+        public Guid UserId { get; set; }
+        public string? OrderNumber { get; set; }
+        public DateTime OrderDate { get; set; } = DateTime.Now;
+        public decimal SubTotal { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal ShippingAmount { get; set; }
+        public decimal TotalAmount { get; set; }
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public Guid? ShippingAddressId { get; set; }
+        public Guid? CouponId { get; set; }
 
         // Navigation properties
-        public virtual User? User { get; private set; }
-        public virtual ShippingAddress? ShippingAddress { get; private set; }
-        public virtual Coupon? Coupon { get; private set; }
-        public virtual ICollection<OrderItem>? OrderItems { get; private set; }
+        public virtual User? User { get; set; }
+        public virtual ShippingAddress? ShippingAddress { get; set; }
+        public virtual Coupon? Coupon { get; set; }
+        public virtual ICollection<OrderItem>? OrderItems { get; set; }
 
         private Order() { }
     }

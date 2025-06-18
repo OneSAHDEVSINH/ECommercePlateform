@@ -1,11 +1,10 @@
 using ECommercePlatform.Application.Common.Authorization.Attributes;
-using ECommercePlatform.Application.Features.Role.Commands.Create;
-using ECommercePlatform.Application.Features.Role.Commands.Delete;
-using ECommercePlatform.Application.Features.Role.Commands.Update;
-using ECommercePlatform.Application.Features.Role.Queries.GetAllRoles;
-using ECommercePlatform.Application.Features.Role.Queries.GetPagedRoles;
-using ECommercePlatform.Application.Features.Role.Queries.GetRoleById;
-using ECommercePlatform.Application.Features.Role.Queries.GetRoleWithPermissions;
+using ECommercePlatform.Application.Features.Roles.Commands.Create;
+using ECommercePlatform.Application.Features.Roles.Commands.Delete;
+using ECommercePlatform.Application.Features.Roles.Commands.Update;
+using ECommercePlatform.Application.Features.Roles.Queries.GetAllRoles;
+using ECommercePlatform.Application.Features.Roles.Queries.GetPagedRoles;
+using ECommercePlatform.Application.Features.Roles.Queries.GetRoleById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +19,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        [HasPermission("roles", "View")]
+        [HasPermission("Roles", "View")]
         public async Task<IActionResult> GetAllRoles([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllRolesQuery(activeOnly));
@@ -32,7 +31,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        [HasPermission("roles", "View")]
+        [HasPermission("Roles", "View")]
         public async Task<IActionResult> GetPagedRoles([FromQuery] GetPagedRolesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -44,7 +43,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [HasPermission("roles", "View")]
+        [HasPermission("Roles", "View")]
         public async Task<IActionResult> GetRoleById(Guid id)
         {
             var result = await _mediator.Send(new GetRoleByIdQuery(id));
@@ -55,27 +54,15 @@ namespace ECommercePlatform.API.Controllers
             return NotFound(new { message = result.Error });
         }
 
-        [HttpGet("{id}/permissions")]
-        [HasPermission("roles", "View")]
-        public async Task<IActionResult> GetRoleWithPermissions(Guid id)
-        {
-            var result = await _mediator.Send(new GetRoleWithPermissionsQuery(id));
-
-            if (result.IsSuccess)
-                return Ok(result.Value);
-
-            return NotFound(new { message = result.Error });
-        }
-
         [HttpPost]
-        [HasPermission("roles", "Add")]
+        [HasPermission("Roles", "Add")]
         public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
         {
             if (command == null)
             {
-                // Add logging here
                 return BadRequest(new { message = "Request body cannot be null" });
             }
+
             var result = await _mediator.Send(command);
 
             if (result.IsSuccess)
@@ -85,7 +72,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("roles", "Edit")]
+        [HasPermission("Roles", "Edit")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleCommand command)
         {
             if (id != command.Id)
@@ -102,7 +89,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HasPermission("roles", "Delete")]
+        [HasPermission("Roles", "Delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _mediator.Send(new DeleteRoleCommand(id));
@@ -113,24 +100,6 @@ namespace ECommercePlatform.API.Controllers
             return result.Error.Contains("not found")
                 ? NotFound(new { message = result.Error })
                 : BadRequest(new { message = result.Error });
-        }
-
-        [HttpPost("{id}/permissions")]
-        [HasPermission("roles", "Edit")]
-        public async Task<IActionResult> AssignPermissions(Guid id, [FromBody] List<AssignPermissionDto> permissions)
-        {
-            var command = new AssignPermissionsToRoleCommand
-            {
-                RoleId = id,
-                Permissions = permissions
-            };
-
-            var result = await _mediator.Send(command);
-
-            if (result.IsSuccess)
-                return Ok(result.Value);
-
-            return BadRequest(new { message = result.Error });
         }
     }
 }

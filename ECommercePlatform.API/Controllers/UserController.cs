@@ -1,31 +1,47 @@
+// API/Controllers/UserController.cs
+using ECommercePlatform.API.Extensions;
 using ECommercePlatform.Application.Common.Authorization.Attributes;
-using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Features.User.Commands.Create;
-using ECommercePlatform.Application.Features.User.Commands.Delete;
-using ECommercePlatform.Application.Features.User.Commands.Update;
-using ECommercePlatform.Application.Features.User.Queries.GetAllUsers;
-using ECommercePlatform.Application.Features.User.Queries.GetPagedUsers;
-using ECommercePlatform.Application.Features.User.Queries.GetUserById;
-using ECommercePlatform.Application.Features.User.Queries.GetUsersByRoleId;
-using ECommercePlatform.Application.Features.User.Queries.GetUserWithRoles;
+using ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser;
+using ECommercePlatform.Application.Features.Users.Commands.ChangePassword;
+using ECommercePlatform.Application.Features.Users.Commands.Create;
+using ECommercePlatform.Application.Features.Users.Commands.Delete;
+using ECommercePlatform.Application.Features.Users.Commands.RemoveAvatar;
+using ECommercePlatform.Application.Features.Users.Commands.Update;
+using ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile;
+using ECommercePlatform.Application.Features.Users.Commands.UploadAvatar;
+using ECommercePlatform.Application.Features.Users.Queries.GetAllUsers;
+using ECommercePlatform.Application.Features.Users.Queries.GetCurrentUserProfile;
+using ECommercePlatform.Application.Features.Users.Queries.GetPagedUsers;
+using ECommercePlatform.Application.Features.Users.Queries.GetUserByEmail;
+using ECommercePlatform.Application.Features.Users.Queries.GetUserById;
+using ECommercePlatform.Application.Features.Users.Queries.GetUsersByRoleId;
+using ECommercePlatform.Application.Features.Users.Queries.GetUserWithRoles;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ECommercePlatform.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class UserController(IMediator mediator, IUnitOfWork unitOfWork) : ControllerBase
+    public class UserController : ControllerBase
     {
-        private readonly IMediator _mediator = mediator;
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMediator _mediator;
+        private readonly IPermissionService _permissionService;
 
+        public UserController(IMediator mediator, IPermissionService permissionService)
+        {
+            _mediator = mediator;
+            _permissionService = permissionService;
+        }
+
+        // Admin endpoints
         [HttpGet]
-        [HasPermission("users", "View")]
+        [HasPermission("Users", "View")]
         public async Task<IActionResult> GetAllUsers([FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetAllUsersQuery(activeOnly));
@@ -37,7 +53,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        [HasPermission("users", "View")]
+        [HasPermission("Users", "View")]
         public async Task<IActionResult> GetPagedUsers([FromQuery] GetPagedUsersQuery query)
         {
             var result = await _mediator.Send(query);
@@ -49,7 +65,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [HasPermission("users", "View")]
+        [HasPermission("Users", "View")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
             var result = await _mediator.Send(new GetUserByIdQuery(id));
@@ -61,7 +77,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}/roles")]
-        [HasPermission("users", "View")]
+        [HasPermission("Users", "View")]
         public async Task<IActionResult> GetUserWithRoles(Guid id)
         {
             var result = await _mediator.Send(new GetUserWithRolesQuery(id));
@@ -72,20 +88,20 @@ namespace ECommercePlatform.API.Controllers
             return NotFound(new { message = result.Error });
         }
 
-        //[HttpGet("by-email")]
-        //[HasPermission("users", "View")]
-        //public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
-        //{
-        //    var result = await _mediator.Send(new GetUserByEmailQuery(email));
+        [HttpGet("by-email")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
+        {
+            var result = await _mediator.Send(new GetUserByEmailQuery(email));
 
-        //    if (result.IsSuccess)
-        //        return Ok(result.Value);
+            if (result.IsSuccess)
+                return Ok(result.Value);
 
-        //    return NotFound(new { message = result.Error });
-        //}
+            return NotFound(new { message = result.Error });
+        }
 
         [HttpGet("by-role/{roleId}")]
-        [HasPermission("users", "View")]
+        [HasPermission("Users", "View")]
         public async Task<IActionResult> GetUsersByRoleId(Guid roleId, [FromQuery] bool activeOnly = true)
         {
             var result = await _mediator.Send(new GetUsersByRoleIdQuery(roleId, activeOnly));
@@ -99,7 +115,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [HasPermission("users", "Add")]
+        [HasPermission("Users", "Add")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
         {
             var result = await _mediator.Send(command);
@@ -111,7 +127,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("users", "Edit")]
+        [HasPermission("Users", "Edit")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserCommand command)
         {
             if (id != command.Id)
@@ -128,7 +144,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HasPermission("users", "Delete")]
+        [HasPermission("Users", "Delete")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var result = await _mediator.Send(new DeleteUserCommand(id));
@@ -141,303 +157,157 @@ namespace ECommercePlatform.API.Controllers
                 : BadRequest(new { message = result.Error });
         }
 
-        [HttpGet("{id}")]
-        [HasPermission("users", "View")]
-        public async Task<IActionResult> GetUserById(string id)
-        {
-            var user = await _unitOfWork.UserManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found" });
-
-            // Map to DTO
-            var userDto = new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Password = user.PasswordHash,
-                PhoneNumber = user.PhoneNumber,
-                IsActive = user.IsActive
-            };
-
-            return Ok(userDto);
-        }
-
-        [HttpGet("{id}/roles")]
-        [HasPermission("users", "View")]
-        public async Task<IActionResult> GetUserWithRoles(string id)
-        {
-            var user = await _unitOfWork.UserManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found" });
-
-            var roles = await _unitOfWork.UserManager.GetRolesAsync(user);
-            var roleDtos = new List<RoleDto>();
-
-            foreach (var roleName in roles)
-            {
-                var role = await _unitOfWork.RoleManager.FindByNameAsync(roleName);
-                if (role != null)
-                {
-                    roleDtos.Add(new RoleDto
-                    {
-                        Id = role.Id,
-                        Name = role.Name,
-                        Description = role.Description,
-                        IsActive = role.IsActive
-                    });
-                }
-            }
-
-            // Map to DTO
-            var userDto = new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Password = user.PasswordHash,
-                PhoneNumber = user.PhoneNumber,
-                IsActive = user.IsActive,
-                Roles = roleDtos
-            };
-
-            return Ok(userDto);
-        }
-
-        [HttpGet("by-email")]
-        [HasPermission("users", "View")]
-        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
-        {
-            var user = await _unitOfWork.UserManager.FindByEmailAsync(email);
-            if (user == null)
-                return NotFound(new { message = "User not found" });
-
-            // Map to DTO
-            var userDto = new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Password = user.PasswordHash,
-                PhoneNumber = user.PhoneNumber,
-                IsActive = user.IsActive
-            };
-
-            return Ok(userDto);
-        }
-
-        [HttpGet("by-role/{roleId}")]
-        [HasPermission("users", "View")]
-        public async Task<IActionResult> GetUsersByRoleId(string roleId, [FromQuery] bool activeOnly = true)
-        {
-            var role = await _unitOfWork.RoleManager.FindByIdAsync(roleId);
-            if (role == null)
-                return NotFound(new { message = "Role not found" });
-
-            var usersInRole = await _unitOfWork.UserManager.GetUsersInRoleAsync(role.Name);
-
-            // Filter by active status if required
-            if (activeOnly)
-                usersInRole = usersInRole.Where(u => u.IsActive && !u.IsDeleted).ToList();
-
-            // Map to DTOs
-            var userDtos = usersInRole.Select(user => new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Password = user.PasswordHash,
-                PhoneNumber = user.PhoneNumber,
-                IsActive = user.IsActive
-            }).ToList();
-
-            return Ok(userDtos);
-        }
-
-        [HttpPost]
-        [HasPermission("users", "Add")]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto model)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var user = new User
-            {
-                UserName = model.Email,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                PhoneNumber = model.PhoneNumber,
-                IsActive = model.IsActive
-            };
-
-            var result = await _unitOfWork.UserManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
-                return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-
-            // Assign roles if provided
-            if (model.RoleIds != null && model.RoleIds.Any())
-            {
-                foreach (var roleId in model.RoleIds)
-                {
-                    var role = await _unitOfWork.RoleManager.FindByIdAsync(roleId);
-                    if (role != null)
-                    {
-                        await _unitOfWork.UserManager.AddToRoleAsync(user, role.Name);
-                    }
-                }
-            }
-
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Password = user.PasswordHash,
-                PhoneNumber = user.PhoneNumber,
-                IsActive = user.IsActive
-            });
-        }
-
-        [HttpPut("{id}")]
-        [HasPermission("users", "Edit")]
-        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto model)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var user = await _unitOfWork.UserManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found" });
-
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.PhoneNumber = model.PhoneNumber;
-            user.IsActive = model.IsActive;
-
-            // Only update email if it changed
-            if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))
-            {
-                var emailOwner = await _unitOfWork.UserManager.FindByEmailAsync(model.Email);
-                if (emailOwner != null && !string.Equals(emailOwner.Id, id))
-                    return BadRequest(new { message = "Email already in use" });
-
-                user.UserName = model.Email;
-                user.Email = model.Email;
-            }
-
-            var result = await _unitOfWork.UserManager.UpdateAsync(user);
-            if (!result.Succeeded)
-                return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-
-            // Update password if provided
-            if (!string.IsNullOrEmpty(model.Password))
-            {
-                await _unitOfWork.UserManager.RemovePasswordAsync(user);
-                result = await _unitOfWork.UserManager.AddPasswordAsync(user, model.Password);
-
-                if (!result.Succeeded)
-                    return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-            }
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        [HasPermission("users", "Delete")]
-        public async Task<IActionResult> DeleteUser(string id)
-        {
-            var user = await _unitOfWork.UserManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found" });
-
-            // Soft delete
-            user.IsDeleted = true;
-            user.IsActive = false;
-
-            var result = await _unitOfWork.UserManager.UpdateAsync(user);
-            if (!result.Succeeded)
-                return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
-
-            return NoContent();
-        }
-
         [HttpPost("{id}/roles")]
-        [HasPermission("users", "Edit")]
-        public async Task<IActionResult> AssignRoles(string id, [FromBody] UserRoleAssignmentDto model)
+        [HasPermission("Users", "Edit")]
+        public async Task<IActionResult> AssignRoles(Guid id, [FromBody] List<Guid> roleIds)
         {
-            var user = await _unitOfWork.UserManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found" });
-
-            // Remove existing roles
-            var userRoles = await _unitOfWork.UserManager.GetRolesAsync(user);
-            await _unitOfWork.UserManager.RemoveFromRolesAsync(user, userRoles);
-
-            // Add new roles
-            foreach (var roleId in model.RoleIds)
+            var command = new AssignRolesToUserCommand
             {
-                var role = await _unitOfWork.RoleManager.FindByIdAsync(roleId);
-                if (role != null)
-                {
-                    await _unitOfWork.UserManager.AddToRoleAsync(user, role.Name);
-                }
-            }
+                UserId = id,
+                RoleIds = roleIds
+            };
 
-            return NoContent();
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return BadRequest(new { message = result.Error });
         }
 
-        [HttpPost("{id}/reset-password")]
-        [HasPermission("users", "Edit")]
-        public async Task<IActionResult> ResetPassword(string id, [FromBody] PasswordResetDto model)
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserProfile()
         {
-            var user = await _unitOfWork.UserManager.FindByIdAsync(id);
-            if (user == null)
-                return NotFound(new { message = "User not found" });
+            var userId = this.GetCurrentUserId();
 
-            await _unitOfWork.UserManager.RemovePasswordAsync(user);
-            var result = await _unitOfWork.UserManager.AddPasswordAsync(user, model.NewPassword);
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
 
-            if (!result.Succeeded)
-                return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+            var result = await _mediator.Send(new GetCurrentUserProfileQuery(userId.Value.ToString()));
 
-            return NoContent();
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
         }
-    }
 
-    public class CreateUserDto
-    {
-        public required string FirstName { get; set; }
-        public required string LastName { get; set; }
-        public required string Email { get; set; }
-        public required string Password { get; set; }
-        public string? PhoneNumber { get; set; }
-        public bool IsActive { get; set; } = true;
-        public List<string>? RoleIds { get; set; }
-    }
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateCurrentUserProfile([FromBody] UpdateUserProfileCommand command)
+        {
+            var userId = this.GetCurrentUserId();
 
-    public class UpdateUserDto
-    {
-        public required string FirstName { get; set; }
-        public required string LastName { get; set; }
-        public required string Email { get; set; }
-        public string? Password { get; set; }
-        public string? PhoneNumber { get; set; }
-        public bool IsActive { get; set; } = true;
-    }
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
 
-    public class UserRoleAssignmentDto
-    {
-        public required List<string> RoleIds { get; set; } = new();
-    }
+            command.Id = userId.Value;
 
-    public class PasswordResetDto
-    {
-        public required string NewPassword { get; set; }
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost("profile/change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            if (!Guid.TryParse(userId, out var userGuid))
+                return BadRequest(new { message = "Invalid user ID format" });
+
+            command.UserId = userGuid;
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Password changed successfully" });
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("profile/permissions")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserPermissions()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            if (!Guid.TryParse(userId, out var userGuid))
+                return BadRequest(new { message = "Invalid user ID format" });
+
+            var permissions = await _permissionService.GetUserPermissionsAsync(userGuid);
+
+            return Ok(new { permissions });
+        }
+
+        //[HttpPost("profile/upload-avatar")]
+        //[Authorize]
+        //public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file)
+        //{
+        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized(new { message = "User not authenticated" });
+
+        //    if (!Guid.TryParse(userId, out var userGuid))
+        //        return BadRequest(new { message = "Invalid user ID format" });
+
+        //    if (file == null || file.Length == 0)
+        //        return BadRequest(new { message = "No file uploaded" });
+
+        //    // Validate file type
+        //    var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+        //    if (!allowedTypes.Contains(file.ContentType))
+        //        return BadRequest(new { message = "Invalid file type. Only JPEG, PNG, and GIF are allowed." });
+
+        //    // Validate file size (5MB max)
+        //    if (file.Length > 5 * 1024 * 1024)
+        //        return BadRequest(new { message = "File size must not exceed 5MB" });
+
+        //    var command = new UploadAvatarCommand
+        //    {
+        //        UserId = userGuid,
+        //        File = file
+        //    };
+
+        //    var result = await _mediator.Send(command);
+
+        //    if (result.IsSuccess)
+        //        return Ok(new { message = "Avatar uploaded successfully", avatarUrl = result.Value });
+
+        //    return BadRequest(new { message = result.Error });
+        //}
+
+        //[HttpDelete("profile/avatar")]
+        //[Authorize]
+        //public async Task<IActionResult> RemoveAvatar()
+        //{
+        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized(new { message = "User not authenticated" });
+
+        //    if (!Guid.TryParse(userId, out var userGuid))
+        //        return BadRequest(new { message = "Invalid user ID format" });
+
+        //    var command = new RemoveAvatarCommand { UserId = userGuid };
+
+        //    var result = await _mediator.Send(command);
+
+        //    if (result.IsSuccess)
+        //        return Ok(new { message = "Avatar removed successfully" });
+
+        //    return BadRequest(new { message = result.Error });
+        //}
     }
 }

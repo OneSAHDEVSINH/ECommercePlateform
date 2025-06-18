@@ -13,8 +13,8 @@ namespace ECommercePlatform.Domain.Entities
         public bool IsDeleted { get; set; }
 
         //Navigation properties
-        public virtual ICollection<UserRole>? UserRoles { get; private set; }
-        public virtual ICollection<RolePermission>? RolePermissions { get; private set; }
+        public virtual ICollection<UserRole>? UserRoles { get; set; }
+        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
 
         public Role() : base() { }
         public Role(string roleName) : base(roleName)

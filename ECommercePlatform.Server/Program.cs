@@ -1,5 +1,6 @@
-using ECommercePlatform.API.Middleware;
+﻿using ECommercePlatform.API.Middleware;
 using ECommercePlatform.API.Middleware.Authorization;
+using ECommercePlatform.API.Swagger;
 using ECommercePlatform.Application.Common;
 using ECommercePlatform.Application.Common.Authorization.Policies;
 using ECommercePlatform.Application.Interfaces;
@@ -9,6 +10,7 @@ using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Infrastructure;
 using ECommercePlatform.Infrastructure.Repositories;
+using ECommercePlatform.Server;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -66,16 +68,18 @@ builder.Services.AddIdentity<User, Role>(options =>
 // Register MediatR, FluentValidation, and other application services
 builder.Services.AddApplicationServices();
 
-// Register repositories
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<ICountryRepository, CountryRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IStateRepository, StateRepository>();
-builder.Services.AddScoped<ICityRepository, CityRepository>();
-builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
-builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
+//Register repositories
+//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+//builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+//builder.Services.AddScoped<IUserRepository, UserRepository>();
+//builder.Services.AddScoped<IStateRepository, StateRepository>();
+//builder.Services.AddScoped<ICityRepository, CityRepository>();
+//builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+//builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+//builder.Services.AddScoped<IRolePermissionRepository, RolePermissionRepository>();
+//builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
+
+builder.Services.RegisterRepositories(); // Register all repositories using the extension method
 
 // Register Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -97,12 +101,15 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(o =>
 {
+    var jwtKey = builder.Configuration["Jwt:Key"] ??
+    throw new InvalidOperationException("JWT key is not configured");
     o.RequireHttpsMetadata = true;
     o.SaveToken = true;
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345")),
+        //IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345")),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtKey)),
         ValidateIssuer = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "YourApp",
         ValidateAudience = true,
@@ -119,31 +126,26 @@ builder.Services.AddSingleton<IAuthorizationHandler, AdminBypassHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
 // Configure Authorization
-builder.Services.AddAuthorization(options =>
-{
-    // Define the "Permission" policy
-    options.AddPolicy("Permission", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.AddRequirements(new PermissionRequirement("", ""));
-    });
-
-    // Set default policy
-    options.DefaultPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
-
 builder.Services.AddAuthorizationBuilder()
-    // Define the "Permission" policy
-    .AddPolicy("Permission", policy =>
-    {
-        policy.Requirements.Add(new PermissionRequirement("", ""));
+    .AddPolicy("Permission", policy => {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new PermissionRequirement("module", "action"));
     })
-    // Set default policy that requires authentication
     .SetDefaultPolicy(new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build());
+
+
+//builder.Services.AddAuthorizationBuilder()
+//    // Define the "Permission" policy
+//    .AddPolicy("Permission", policy =>
+//    {
+//        policy.Requirements.Add(new PermissionRequirement("", ""));
+//    })
+//    // Set default policy that requires authentication
+//    .SetDefaultPolicy(new AuthorizationPolicyBuilder()
+//        .RequireAuthenticatedUser()
+//        .Build());
 
 builder.Services.AddCors();
 
@@ -196,6 +198,9 @@ builder.Services.AddSwaggerGen(c =>
     c.ResolveConflictingActions(
         apiDescriptions => apiDescriptions.First()
         );
+    // Add schema filters to handle circular references
+    c.CustomSchemaIds(type => type.FullName);
+    c.OperationFilter<FileUploadOperationFilter>();
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -218,7 +223,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
+builder.Services.AddProblemDetails();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 //builder.Services.AddSpaStaticFiles(configuration =>
@@ -323,7 +328,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommercePlatform API V1");
+        c.SwaggerEndpoint("../swagger/v1/swagger.json", "ECommercePlatform API V1");
+        //c.RoutePrefix = "swagger";
     });
 }
 else

@@ -2,12 +2,12 @@ namespace ECommercePlatform.Domain.Entities
 {
     public class Country : BaseEntity
     {
-        public string? Name { get; private set; }
-        public string? Code { get; private set; }
+        public string? Name { get; set; }
+        public string? Code { get; set; }
 
         // Navigation properties
-        public virtual ICollection<State>? States { get; private set; }
-        public virtual ICollection<Address>? Addresses { get; private set; }
+        public virtual ICollection<State>? States { get; set; }
+        public virtual ICollection<Address>? Addresses { get; set; }
 
         private Country() { }
 

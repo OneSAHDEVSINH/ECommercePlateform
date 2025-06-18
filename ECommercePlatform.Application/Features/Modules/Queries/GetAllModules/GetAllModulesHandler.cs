@@ -17,30 +17,8 @@ namespace ECommercePlatform.Application.Features.Modules.Queries.GetAllModules
                     ? await _unitOfWork.Modules.GetActiveModulesAsync()
                     : await _unitOfWork.Modules.GetAllAsync();
 
-                // Map to DTOs
-                var moduleDtos = modules.Select(m => new ModuleDto
-                {
-                    Id = m.Id,
-                    Name = m.Name,
-                    Description = m.Description,
-                    Route = m.Route,
-                    Icon = m.Icon,
-                    DisplayOrder = m.DisplayOrder,
-                    IsActive = m.IsActive,
-                    CreatedOn = m.CreatedOn,
-                    Permissions = m.Permissions?.Select(p => new PermissionDto
-                    {
-                        Id = p.Id,
-                        //Name = p.Name,
-                        //Description = p.Description,
-                        Type = p.Type,
-                        ModuleId = p.ModuleId,
-                        ModuleName = m.Name,
-                        ModuleRoute = m.Route,
-                        IsActive = p.IsActive,
-                        CreatedOn = p.CreatedOn
-                    }).ToList()
-                }).ToList();
+                // Map to DTOs using the explicit operator
+                var moduleDtos = modules.Select(m => (ModuleDto)m).ToList();
 
                 return AppResult<List<ModuleDto>>.Success(moduleDtos);
             }

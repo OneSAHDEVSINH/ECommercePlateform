@@ -16,12 +16,18 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Delete
                 if (module == null)
                     return AppResult.Failure($"Module with ID {request.Id} not found.");
 
-                // Check if module has permissions
-                if (module.Permissions != null && module.Permissions.Any())
+                // Check if module has role permissions
+                var hasRolePermissions = await _unitOfWork.RolePermissions
+                    .AnyAsync(rp => rp.ModuleId == request.Id);
+
+                if (hasRolePermissions)
                 {
-                    return AppResult.Failure("Cannot delete module with associated permissions. Please delete the permissions first.");
+                    return AppResult.Failure("Cannot delete module with associated role permissions. Please remove all role permissions for this module first.");
                 }
 
+                // Soft delete the module
+                //module.MarkAsDeleted(request.DeletedBy ?? "system"); // Need to add DeletedBy to command
+                //await _unitOfWork.Modules.UpdateAsync(module);
                 // Delete the module
                 await _unitOfWork.Modules.DeleteAsync(module);
                 await _unitOfWork.SaveChangesAsync();

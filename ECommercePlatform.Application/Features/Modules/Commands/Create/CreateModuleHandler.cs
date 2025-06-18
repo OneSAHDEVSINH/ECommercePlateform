@@ -32,43 +32,21 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Create
                     request.DisplayOrder
                 );
 
-                module.IsActive = request.IsActive;
-                module.CreatedBy = request.CreatedBy;
-                module.CreatedOn = request.CreatedOn;
+                // Use the SetActive method from BaseEntity
+                if (!request.IsActive)
+                {
+                    module.SetActive(false, request.CreatedBy ?? "system");
+                }
+
+                // Set audit fields
+                module.SetCreatedBy(request.CreatedBy ?? "system");
 
                 // Add module to database
                 await _unitOfWork.Modules.AddAsync(module);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Load the newly created module (with permissions, if any)
-                var createdModule = await _unitOfWork.Modules.GetByIdAsync(module.Id);
-                if (createdModule == null)
-                    return AppResult<ModuleDto>.Failure("Module was created but could not be retrieved.");
-
                 // Map to DTO and return
-                var moduleDto = new ModuleDto
-                {
-                    Id = createdModule.Id,
-                    Name = createdModule.Name,
-                    Description = createdModule.Description,
-                    Route = createdModule.Route,
-                    Icon = createdModule.Icon,
-                    DisplayOrder = createdModule.DisplayOrder,
-                    IsActive = createdModule.IsActive,
-                    CreatedOn = createdModule.CreatedOn,
-                    Permissions = createdModule.Permissions?.Select(p => new PermissionDto
-                    {
-                        Id = p.Id,
-                        //Name = p.Name,
-                        //Description = p.Description,
-                        Type = p.Type,
-                        ModuleId = p.ModuleId,
-                        ModuleName = createdModule.Name,
-                        ModuleRoute = createdModule.Route,
-                        IsActive = p.IsActive,
-                        CreatedOn = p.CreatedOn
-                    }).ToList() ?? new List<PermissionDto>()
-                };
+                var moduleDto = (ModuleDto)module;
 
                 return AppResult<ModuleDto>.Success(moduleDto);
             }

@@ -23,9 +23,8 @@ namespace ECommercePlatform.Application.Services
                 throw new ArgumentException("Email and password are required");
 
             // Find user by email
-            var user = await _unitOfWork.UserManager.FindByEmailAsync(loginDto.Email);
-            if (user == null)
-                throw new KeyNotFoundException("Invalid email or password");
+            var user = await _unitOfWork.UserManager.FindByEmailAsync(loginDto.Email)
+                ?? throw new KeyNotFoundException("Invalid email or password");
 
             // Check if user account is active
             if (!user.IsActive || user.IsDeleted)
