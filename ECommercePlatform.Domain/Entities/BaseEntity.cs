@@ -25,7 +25,15 @@ namespace ECommercePlatform.Domain.Entities
         public virtual void MarkAsDeleted(string deletedBy)
         {
             IsDeleted = true;
+            IsActive = false;
             SetModifiedBy(deletedBy);
+        }
+
+        public virtual void Restore(string restoredBy)
+        {
+            IsDeleted = false;
+            IsActive = true;
+            SetModifiedBy(restoredBy);
         }
 
         public virtual void SetActive(bool isActive, string modifiedBy)

@@ -3,6 +3,7 @@ using ECommercePlatform.API.Middleware.Authorization;
 using ECommercePlatform.API.Swagger;
 using ECommercePlatform.Application.Common;
 using ECommercePlatform.Application.Common.Authorization.Policies;
+using ECommercePlatform.Application.Common.Authorization.Requirements;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Mappings;

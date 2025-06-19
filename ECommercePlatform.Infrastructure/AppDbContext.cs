@@ -131,6 +131,13 @@ namespace ECommercePlatform.Infrastructure
             modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
             modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
             modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
+            modelBuilder.Entity<RolePermission>()
+                .HasIndex(rp => new { rp.RoleId, rp.ModuleId, rp.IsDeleted })
+                .HasFilter("[IsDeleted] = 0");
+
+            modelBuilder.Entity<UserRole>()
+                .HasIndex(ur => new { ur.UserId, ur.IsDeleted })
+                .HasFilter("[IsDeleted] = 0");
 
             // Configure many-to-many relationships
             modelBuilder.Entity<UserRole>(userRole =>

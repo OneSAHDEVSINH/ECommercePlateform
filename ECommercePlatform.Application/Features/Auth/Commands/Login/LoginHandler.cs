@@ -26,12 +26,18 @@ namespace ECommercePlatform.Application.Features.Auth.Commands.Login
 
                 return AppResult<AuthResultDto>.Success(result);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                // This is for the "no roles" scenario
+                return AppResult<AuthResultDto>.Failure(ex.Message);
+            }
             catch (KeyNotFoundException ex)
             {
                 return AppResult<AuthResultDto>.Failure(ex.Message);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Login error: {ex}");
                 return AppResult<AuthResultDto>.Failure($"An error occurred during login: {ex.Message}");
             }
         }

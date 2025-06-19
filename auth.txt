@@ -1,0 +1,4009 @@
+<--Backend-->
+//AuthController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController(IMediator mediator) : ControllerBase
+    {
+        private readonly IMediator _mediator = mediator;
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (!result.IsSuccess)
+                return BadRequest(new { message = result.Error });
+
+            return Ok(result.Value);
+        }
+
+        //[HttpPost("register")]
+        //public async Task<IActionResult> Register([FromBody] RegisterCommand command)
+        //{
+        //    var result = await _mediator.Send(command);
+
+        //    if (!result.IsSuccess)
+        //        return BadRequest(new { message = result.Error });
+
+        //    return Ok(result.Value);
+        //}
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var result = await _mediator.Send(new GetCurrentUserQuery());
+
+            if (!result.IsSuccess)
+                return BadRequest(new { message = result.Error });
+
+            return Ok(result.Value);
+        }
+
+        //private readonly IAuthService _authService;
+
+        //public AuthController(IAuthService authService)
+        //{
+        //    _authService = authService;
+        //}
+
+        //[HttpPost("login")]
+        //public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        //{
+        //    try
+        //    {
+        //        if (loginDto == null || string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+        //            return BadRequest(new { message = "Email and password are required" });
+
+        //        var result = await _authService.LoginAsync(loginDto);
+        //        return Ok(result);
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return Unauthorized(new { message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
+    }
+}
+
+//AuthorizationController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class AuthorizationController : ControllerBase
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPermissionService _permissionService;
+
+        public AuthorizationController(IUnitOfWork unitOfWork, IPermissionService permissionService)
+        {
+            _unitOfWork = unitOfWork;
+            _permissionService = permissionService;
+        }
+
+        [HttpGet("check")]
+        public async Task<IActionResult> CheckPermission([FromQuery] string moduleRoute, [FromQuery] string permissionType)
+        {
+            // Get user ID from claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            // Check for super admin
+            if (User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
+            {
+                return Ok(new { hasPermission = true, reason = "SuperAdmin" });
+            }
+
+            // Check direct permission claim
+            var requiredPermission = $"{moduleRoute}:{permissionType}";
+            if (User.HasClaim(c => c.Type == "Permission" && c.Value == requiredPermission))
+            {
+                return Ok(new { hasPermission = true, reason = "JWT Claim" });
+            }
+
+            // Find module by route
+            var module = await _unitOfWork.Modules.GetByRouteAsync(moduleRoute);
+            if (module == null)
+            {
+                return NotFound(new { message = $"Module with route '{moduleRoute}' not found" });
+            }
+
+            // Check permission through database
+            var hasPermission = await _permissionService.UserHasPermissionAsync(
+                userId,
+                module.Name ?? moduleRoute,
+                permissionType);
+
+            return Ok(new
+            {
+                hasPermission,
+                reason = hasPermission ? "Database Check" : "No Permission"
+            });
+        }
+
+        [HttpGet("user-permissions")]
+        public async Task<IActionResult> GetUserPermissions()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                // If no user ID, just return JWT claims
+                var claimPermissions = User.Claims
+                    .Where(c => c.Type == "Permission")
+                    .Select(c => c.Value)
+                    .ToList();
+
+                return Ok(new
+                {
+                    permissions = claimPermissions,
+                    isAdmin = User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"),
+                    source = "JWT Claims Only"
+                });
+            }
+
+            // Get permissions from database
+            var dbPermissions = await _permissionService.GetUserPermissionsAsync(userId);
+
+            // Also get JWT claim permissions for comparison
+            var jwtPermissions = User.Claims
+                .Where(c => c.Type == "Permission")
+                .Select(c => c.Value)
+                .ToList();
+
+            var isAdmin = User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true");
+
+            return Ok(new
+            {
+                permissions = dbPermissions,
+                jwtPermissions,
+                isAdmin,
+                source = "Database"
+            });
+        }
+
+        [HttpGet("modules")]
+        public async Task<IActionResult> GetUserAccessibleModules()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            // Get all modules
+            var allModules = await _unitOfWork.Modules.GetActiveModulesAsync();
+
+            // If super admin, return all modules
+            if (User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
+            {
+                return Ok(allModules.Select(m => new
+                {
+                    m.Id,
+                    m.Name,
+                    m.Route,
+                    m.Icon,
+                    m.DisplayOrder,
+                    permissions = new
+                    {
+                        canView = true,
+                        canAdd = true,
+                        canEdit = true,
+                        canDelete = true
+                    }
+                }));
+            }
+
+            // Get user permissions
+            var userPermissions = await _permissionService.GetUserPermissionsAsync(userId);
+
+            // Filter modules user has access to
+            var accessibleModules = allModules
+                .Where(m => userPermissions.Any(p => p.ModuleName == m.Name && p.CanView))
+                .Select(m =>
+                {
+                    var permission = userPermissions.First(p => p.ModuleName == m.Name);
+                    return new
+                    {
+                        m.Id,
+                        m.Name,
+                        m.Route,
+                        m.Icon,
+                        m.DisplayOrder,
+                        permissions = new
+                        {
+                            canView = permission.CanView,
+                            canAdd = permission.CanAdd,
+                            canEdit = permission.CanEdit,
+                            canDelete = permission.CanDelete
+                        }
+                    };
+                })
+                .OrderBy(m => m.DisplayOrder);
+
+            return Ok(accessibleModules);
+        }
+    }
+}
+
+//RoleController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class RoleController(IMediator mediator) : ControllerBase
+    {
+        private readonly IMediator _mediator = mediator;
+
+        [HttpGet]
+        [HasPermission("Roles", "View")]
+        public async Task<IActionResult> GetAllRoles([FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetAllRolesQuery(activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        [HasPermission("Roles", "View")]
+        public async Task<IActionResult> GetPagedRoles([FromQuery] GetPagedRolesQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("{id}")]
+        [HasPermission("Roles", "View")]
+        public async Task<IActionResult> GetRoleById(Guid id)
+        {
+            var result = await _mediator.Send(new GetRoleByIdQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpPost]
+        [HasPermission("Roles", "Add")]
+        public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
+        {
+            if (command == null)
+            {
+                return BadRequest(new { message = "Request body cannot be null" });
+            }
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetRoleById), new { id = result.Value.Id }, result.Value);
+
+            return Conflict(new { message = result.Error });
+        }
+
+        [HttpPut("{id}")]
+        [HasPermission("Roles", "Edit")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : Conflict(new { message = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [HasPermission("Roles", "Delete")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteRoleCommand(id));
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+    }
+}
+
+//ModuleController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class ModuleController(IMediator mediator) : ControllerBase
+    {
+        private readonly IMediator _mediator = mediator;
+
+        [HttpGet]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetAllModules([FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetAllModulesQuery(activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetPagedModules([FromQuery] GetPagedModulesQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("{id}")]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetModuleById(Guid id)
+        {
+            var result = await _mediator.Send(new GetModuleByIdQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("by-route/{route}")]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetModuleByRoute(string route)
+        {
+            var result = await _mediator.Send(new GetModuleByRouteQuery(route));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        // REMOVED: GetModuleWithPermissions and GetAllModulesWithPermissions endpoints
+
+        [HttpPost]
+        [HasPermission("Modules", "Add")]
+        public async Task<IActionResult> CreateModule([FromBody] CreateModuleCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetModuleById), new { id = result.Value.Id }, result.Value);
+
+            return Conflict(new { message = result.Error });
+        }
+
+        [HttpPut("{id}")]
+        [HasPermission("Modules", "Edit")]
+        public async Task<IActionResult> UpdateModule(Guid id, [FromBody] UpdateModuleCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : Conflict(new { message = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [HasPermission("Modules", "Delete")]
+        public async Task<IActionResult> DeleteModule(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteModuleCommand(id));
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+    }
+}
+
+//UserController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class UserController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+        private readonly IPermissionService _permissionService;
+
+        public UserController(IMediator mediator, IPermissionService permissionService)
+        {
+            _mediator = mediator;
+            _permissionService = permissionService;
+        }
+
+        // Admin endpoints
+        [HttpGet]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetAllUsers([FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetAllUsersQuery(activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetPagedUsers([FromQuery] GetPagedUsersQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("{id}")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUserById(Guid id)
+        {
+            var result = await _mediator.Send(new GetUserByIdQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("{id}/roles")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUserWithRoles(Guid id)
+        {
+            var result = await _mediator.Send(new GetUserWithRolesQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("by-email")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
+        {
+            var result = await _mediator.Send(new GetUserByEmailQuery(email));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("by-role/{roleId}")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUsersByRoleId(Guid roleId, [FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetUsersByRoleIdQuery(roleId, activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost]
+        [HasPermission("Users", "Add")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetUserById), new { id = result.Value.Id }, result.Value);
+
+            return Conflict(new { message = result.Error });
+        }
+
+        [HttpPut("{id}")]
+        [HasPermission("Users", "Edit")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : Conflict(new { message = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [HasPermission("Users", "Delete")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteUserCommand(id));
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost("{id}/roles")]
+        [HasPermission("Users", "Edit")]
+        public async Task<IActionResult> AssignRoles(Guid id, [FromBody] List<Guid> roleIds)
+        {
+            var command = new AssignRolesToUserCommand
+            {
+                UserId = id,
+                RoleIds = roleIds
+            };
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserProfile()
+        {
+            var userId = this.GetCurrentUserId();
+
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
+
+            var result = await _mediator.Send(new GetCurrentUserProfileQuery(userId.Value.ToString()));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateCurrentUserProfile([FromBody] UpdateUserProfileCommand command)
+        {
+            var userId = this.GetCurrentUserId();
+
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
+
+            command.Id = userId.Value;
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost("profile/change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            if (!Guid.TryParse(userId, out var userGuid))
+                return BadRequest(new { message = "Invalid user ID format" });
+
+            command.UserId = userGuid;
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Password changed successfully" });
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("profile/permissions")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserPermissions()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            if (!Guid.TryParse(userId, out var userGuid))
+                return BadRequest(new { message = "Invalid user ID format" });
+
+            var permissions = await _permissionService.GetUserPermissionsAsync(userGuid);
+
+            return Ok(new { permissions });
+        }
+
+        //[HttpPost("profile/upload-avatar")]
+        //[Authorize]
+        //public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file)
+        //{
+        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized(new { message = "User not authenticated" });
+
+        //    if (!Guid.TryParse(userId, out var userGuid))
+        //        return BadRequest(new { message = "Invalid user ID format" });
+
+        //    if (file == null || file.Length == 0)
+        //        return BadRequest(new { message = "No file uploaded" });
+
+        //    // Validate file type
+        //    var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+        //    if (!allowedTypes.Contains(file.ContentType))
+        //        return BadRequest(new { message = "Invalid file type. Only JPEG, PNG, and GIF are allowed." });
+
+        //    // Validate file size (5MB max)
+        //    if (file.Length > 5 * 1024 * 1024)
+        //        return BadRequest(new { message = "File size must not exceed 5MB" });
+
+        //    var command = new UploadAvatarCommand
+        //    {
+        //        UserId = userGuid,
+        //        File = file
+        //    };
+
+        //    var result = await _mediator.Send(command);
+
+        //    if (result.IsSuccess)
+        //        return Ok(new { message = "Avatar uploaded successfully", avatarUrl = result.Value });
+
+        //    return BadRequest(new { message = result.Error });
+        //}
+
+        //[HttpDelete("profile/avatar")]
+        //[Authorize]
+        //public async Task<IActionResult> RemoveAvatar()
+        //{
+        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized(new { message = "User not authenticated" });
+
+        //    if (!Guid.TryParse(userId, out var userGuid))
+        //        return BadRequest(new { message = "Invalid user ID format" });
+
+        //    var command = new RemoveAvatarCommand { UserId = userGuid };
+
+        //    var result = await _mediator.Send(command);
+
+        //    if (result.IsSuccess)
+        //        return Ok(new { message = "Avatar removed successfully" });
+
+        //    return BadRequest(new { message = result.Error });
+        //}
+    }
+}
+
+//AdminBypassHandler.cs
+
+namespace ECommercePlatform.API.Middleware.Authorization
+{
+    public class AdminBypassHandler : IAuthorizationHandler
+    {
+        public Task HandleAsync(AuthorizationHandlerContext context)
+        {
+            // Check if this is a permission requirement
+            foreach (var requirement in context.PendingRequirements.ToList())
+            {
+                if (requirement is PermissionRequirement)
+                {
+                    // Check if user is SuperAdmin
+                    if (IsSuperAdmin(context.User))
+                    {
+                        context.Succeed(requirement);
+                    }
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private bool IsSuperAdmin(ClaimsPrincipal user)
+        {
+            // Check for SuperAdmin role or claim
+            return user.IsInRole("SuperAdmin") ||
+                   user.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true");
+        }
+    }
+}
+
+//IdentityPermissionAuthorizationHandler.cs
+
+
+namespace ECommercePlatform.API.Middleware.Authorization
+{
+    public class IdentityPermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
+    {
+        protected override Task HandleRequirementAsync(
+            AuthorizationHandlerContext context,
+            PermissionRequirement requirement)
+        {
+            // Check if user is authenticated
+            if (!context.User.Identity?.IsAuthenticated ?? true)
+            {
+                context.Fail();
+                return Task.CompletedTask;
+            }
+
+            // Super admin bypass - always has all permissions
+            if (context.User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true"))
+            {
+                context.Succeed(requirement);
+                return Task.CompletedTask;
+            }
+
+            // Check for specific permission in claims
+            var requiredPermission = $"{requirement.Module}:{requirement.Permission}";
+
+            if (context.User.HasClaim(c => c.Type == "Permission" && c.Value == requiredPermission))
+            {
+                context.Succeed(requirement);
+                return Task.CompletedTask;
+            }
+
+            // If no matching claim was found, let other handlers try
+            // Don't call context.Fail() here to allow PermissionAuthorizationHandler to check database
+            return Task.CompletedTask;
+        }
+    }
+}
+
+//PermissionAuthorizationHandler.cs
+
+namespace ECommercePlatform.API.Middleware.Authorization
+{
+    public class PermissionRequirement(string module, string permission) : IAuthorizationRequirement
+    {
+        public string Module { get; } = module;
+        public string Permission { get; } = permission;
+    }
+
+    public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
+    {
+        private readonly IPermissionService _permissionService;
+
+        public PermissionAuthorizationHandler(IPermissionService permissionService)
+        {
+            _permissionService = permissionService;
+        }
+
+        protected override async Task HandleRequirementAsync(
+            AuthorizationHandlerContext context,
+            PermissionRequirement requirement)
+        {
+            var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var emailClaim = context.User.FindFirst(ClaimTypes.Email)?.Value;
+            var isSuperAdmin = context.User.HasClaim(c => c.Type == "SuperAdmin" && c.Value == "true");
+
+            Console.WriteLine($"AUTH DEBUG: User ID: {userIdClaim}, Email: {emailClaim}, IsSuperAdmin: {isSuperAdmin}");
+            Console.WriteLine($"AUTH DEBUG: Module: {requirement.Module}, Permission: {requirement.Permission}");
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                Console.WriteLine("AUTH DEBUG: No valid user ID found");
+                context.Fail();
+                return;
+            }
+
+            // Super admin bypass
+            if (isSuperAdmin || emailClaim != null && emailClaim.Equals("admin@admin.com", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("AUTH DEBUG: Admin bypass activated");
+                context.Succeed(requirement);
+                return;
+            }
+
+            // Use the existing PermissionService
+            var hasPermission = await _permissionService.UserHasPermissionAsync(
+                userId,
+                requirement.Module,
+                requirement.Permission);
+
+            Console.WriteLine($"AUTH DEBUG: Permission check result: {hasPermission}");
+
+            if (hasPermission)
+                context.Succeed(requirement);
+            else
+                context.Fail();
+        }
+    }
+}
+
+//PermissionMiddleware.cs
+
+namespace ECommercePlatform.API.Middleware
+{
+    public class PermissionMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public PermissionMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext context, IAuthorizationService authorizationService)
+        {
+            var endpoint = context.GetEndpoint();
+            if (endpoint == null)
+            {
+                await _next(context);
+                return;
+            }
+
+            // Check if the endpoint has HasPermission attributes
+            var permissions = endpoint.Metadata
+                .OfType<HasPermissionAttribute>()
+                .ToList();
+
+            if (!permissions.Any())
+            {
+                await _next(context);
+                return;
+            }
+
+            // For each permission required, check authorization
+            foreach (var permission in permissions)
+            {
+                var requirement = new PermissionRequirement(permission.Module, permission.Permission);
+                var authResult = await authorizationService.AuthorizeAsync(
+                    context.User,
+                    null,
+                    requirement);
+
+                if (!authResult.Succeeded)
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        message = "Access denied",
+                        module = permission.Module,
+                        permission = permission.Permission
+                    });
+                    return;
+                }
+            }
+
+            await _next(context);
+        }
+    }
+
+    public static class PermissionMiddlewareExtensions
+    {
+        public static IApplicationBuilder UsePermissionMiddleware(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<PermissionMiddleware>();
+        }
+    }
+}
+
+//HasPermissionAttribute.cs
+
+namespace ECommercePlatform.Application.Common.Authorization.Attributes
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
+    public class HasPermissionAttribute : AuthorizeAttribute
+    {
+        public HasPermissionAttribute(string module, string permission)
+        {
+            Module = module;
+            Permission = permission;
+            Policy = $"Permission:{module}:{permission}";
+        }
+
+        public string Module { get; }
+        public string Permission { get; }
+    }
+}
+
+//PermissionAuthorizationPolicyProvider.cs
+
+namespace ECommercePlatform.Application.Common.Authorization.Policies
+{
+    public class PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options) : DefaultAuthorizationPolicyProvider(options)
+    {
+        public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
+        {
+            // Check if policy exists in options first
+            var policy = await base.GetPolicyAsync(policyName);
+            if (policy != null)
+                return policy;
+
+            // Check if this is a permission policy
+            if (policyName.StartsWith("Permission:", StringComparison.OrdinalIgnoreCase))
+            {
+                var parts = policyName.Split(':');
+                if (parts.Length == 3)
+                {
+                    var module = parts[1];
+                    var permission = parts[2];
+
+                    var policyBuilder = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .AddRequirements(new PermissionRequirement(module, permission));
+
+                    return policyBuilder.Build();
+                }
+            }
+            return null;
+        }
+    }
+}
+
+//PermissionRequirement.cs
+
+namespace ECommercePlatform.Application.Common.Authorization.Requirements
+{
+    public class PermissionRequirement(string module, string permission) : IAuthorizationRequirement
+    {
+        public string Module { get; } = module;
+        public string Permission { get; } = permission;
+    }
+}
+
+//AuthDto.cs
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class LoginDto
+    {
+        public string? Email { get; init; }
+        public string? Password { get; init; }
+    }
+
+    public class AuthResultDto
+    {
+        public string? Token { get; init; }
+        public UserDto? User { get; init; }
+        public List<UserPermissionDto>? Permissions { get; init; }
+    }
+
+    public class UserPermissionDto
+    {
+        public required string ModuleName { get; init; }
+        public bool CanView { get; init; }
+        public bool CanAdd { get; init; }
+        public bool CanEdit { get; init; }
+        public bool CanDelete { get; init; }
+    }
+}
+
+//LoginCommand.cs
+
+namespace ECommercePlatform.Application.Features.Auth.Commands.Login
+{
+    public record LoginCommand : IRequest<AppResult<AuthResultDto>>
+    {
+        public required string Email { get; init; }
+        public required string Password { get; init; }
+    }
+}
+
+
+//LoginHandler.cs
+
+namespace ECommercePlatform.Application.Features.Auth.Commands.Login
+{
+    public class LoginHandler(IAuthService authService) : IRequestHandler<LoginCommand, AppResult<AuthResultDto>>
+    {
+        private readonly IAuthService _authService = authService;
+
+        public async Task<AppResult<AuthResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+                    return AppResult<AuthResultDto>.Failure("Email and password are required");
+
+                var loginDto = new LoginDto
+                {
+                    Email = request.Email,
+                    Password = request.Password
+                };
+
+                var result = await _authService.LoginAsync(loginDto);
+
+                return AppResult<AuthResultDto>.Success(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return AppResult<AuthResultDto>.Failure(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<AuthResultDto>.Failure($"An error occurred during login: {ex.Message}");
+            }
+        }
+    }
+}
+
+
+//LoginValidator.cs
+
+namespace ECommercePlatform.Application.Features.Auth.Commands.Login
+{
+    public class LoginValidator : AbstractValidator<LoginCommand>
+    {
+        public LoginValidator()
+        {
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .EmailAddress().WithMessage("Invalid email format.")
+                .Matches(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                .WithMessage("Email must be in a valid format (example@domain.com).");
+
+            RuleFor(x => x.Password)
+                .NotEmpty().WithMessage("Password is required.")
+                .MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
+        }
+    }
+}
+
+//GetCurrentUserHandler.cs
+
+namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
+{
+    public class GetCurrentUserHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService) : IRequestHandler<GetCurrentUserQuery, AppResult<UserDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+
+        public async Task<AppResult<UserDto>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))
+                    return AppResult<UserDto>.Failure("User is not authenticated");
+
+                var userId = Guid.Parse(_currentUserService.UserId); // Convert string UserId to Guid
+                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+
+                if (user == null)
+                    return AppResult<UserDto>.Failure("User not found");
+
+                // Get user roles
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+                var allRoles = await _unitOfWork.Roles.GetAllAsync();
+                var rolesDto = userRoles.Select(ur =>
+                {
+                    var role = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
+                    return new RoleDto
+                    {
+                        Id = role.Id,
+                        Name = role.Name,
+                        Description = role.Description,
+                        IsActive = role.IsActive
+                    };
+                }).ToList();
+
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Password = user.PasswordHash,
+                    IsActive = user.IsActive,
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Bio = user.Bio,
+                    CreatedOn = user.CreatedOn,
+                    Roles = rolesDto
+                };
+
+                return AppResult<UserDto>.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserDto>.Failure($"An error occurred while getting the current user: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetCurrentUserQuery.cs
+
+namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
+{
+    public record GetCurrentUserQuery : IRequest<AppResult<UserDto>>;
+}
+
+
+//IAuthService.cs
+
+using ECommercePlatform.Application.DTOs;
+
+namespace ECommercePlatform.Application.Interfaces.IUserAuth
+{
+    public interface IAuthService
+    {
+        Task<AuthResultDto> LoginAsync(LoginDto loginDto);
+        Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId); // ADD THIS
+    }
+}
+
+//ICurrentUserService.cs
+
+namespace ECommercePlatform.Application.Interfaces.IUserAuth
+{
+    public interface ICurrentUserService
+    {
+        string? UserId { get; }
+        string? Email { get; }
+        bool IsAuthenticated { get; }
+    }
+}
+
+
+//IPermissionService.cs
+
+using ECommercePlatform.Application.DTOs;
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IPermissionService
+    {
+        Task<bool> UserHasPermissionAsync(Guid userId, string moduleName, string permission);
+        Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId);
+        Task<bool> UserCanAccessModuleAsync(Guid userId, string moduleName);
+        Task<List<string>> GetUserPermissionClaimsAsync(Guid userId);
+    }
+}
+
+
+//IUnitOfWork.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IUnitOfWork : IDisposable
+    {
+        ICountryRepository Countries { get; }
+        IUserRepository Users { get; }
+        IStateRepository States { get; }
+        ICityRepository Cities { get; }
+        IModuleRepository Modules { get; }
+        IRolePermissionRepository RolePermissions { get; }
+        IRoleRepository Roles { get; }
+        IUserRoleRepository UserRoles { get; }
+        UserManager<User> UserManager { get; }
+        RoleManager<Role> RoleManager { get; }
+        SignInManager<User> SignInManager { get; }
+        // Shall be added more repositories as properties
+
+        Task<int> CompleteAsync();
+        Task<int> SaveChangesAsync();
+        new void Dispose();
+    }
+}
+
+//AuthService.cs
+
+namespace ECommercePlatform.Application.Services
+{
+    public class AuthService(IConfiguration configuration, IUserRepository userRepository, IUnitOfWork unitOfWork) : IAuthService
+    {
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IUserRepository _userRepository = userRepository;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AuthResultDto> LoginAsync(LoginDto loginDto)
+        {
+            if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+                throw new ArgumentException("Email and password are required");
+
+            var user = await _userRepository.FindUserByEmailAndPasswordAsync(loginDto.Email, loginDto.Password)
+                ?? throw new KeyNotFoundException("Invalid email or password");
+
+            // Fetch user with roles
+            var userWithRoles = await _userRepository.FindUserWithRolesByEmailAsync(loginDto.Email);
+            var token = GenerateJwtToken(userWithRoles);
+
+            // Map roles to RoleDto objects
+            var roleDtos = userWithRoles.UserRoles?
+                .Where(ur => ur.Role != null)
+                .Select(ur => new RoleDto
+                {
+                    Id = ur.Role.Id,
+                    Name = ur.Role.Name,
+                    Description = ur.Role.Description,
+                    IsActive = ur.Role.IsActive
+                })
+                .ToList() ?? new List<RoleDto>();
+
+            // Get user permissions
+            var permissions = await GetUserPermissionsAsync(userWithRoles.Id);
+
+            return new AuthResultDto
+            {
+                Token = token,
+                User = new UserDto
+                {
+                    Id = userWithRoles.Id,
+                    FirstName = userWithRoles.FirstName,
+                    LastName = userWithRoles.LastName,
+                    Email = userWithRoles.Email,
+                    Password = userWithRoles.PasswordHash, // Use PasswordHash
+                    Roles = roleDtos,
+                    IsActive = userWithRoles.IsActive,
+                    PhoneNumber = userWithRoles.PhoneNumber,
+                    Gender = userWithRoles.Gender,
+                    DateOfBirth = userWithRoles.DateOfBirth,
+                    Bio = userWithRoles.Bio,
+                    CreatedOn = userWithRoles.CreatedOn
+                },
+                Permissions = permissions // ADD THIS
+            };
+        }
+
+        public async Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            if (!roleIds.Any())
+                return new List<UserPermissionDto>();
+
+            // Get all role permissions for these roles
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Group by module and aggregate permissions
+            var permissions = rolePermissions
+                .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                .Select(g => new UserPermissionDto
+                {
+                    ModuleName = g.Key.Name,
+                    CanView = g.Any(rp => rp.CanView),
+                    CanAdd = g.Any(rp => rp.CanAdd),
+                    CanEdit = g.Any(rp => rp.CanEdit),
+                    CanDelete = g.Any(rp => rp.CanDelete)
+                })
+                .ToList();
+
+            return permissions;
+        }
+
+
+        private string GenerateJwtToken(User user)
+        {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "User cannot be null");
+            if (user.Email == null)
+                throw new ArgumentNullException(nameof(user), "User email cannot be null");
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345");
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
+
+            // Add all roles as claims
+            if (user.UserRoles != null)
+            {
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role != null)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                    }
+                }
+            }
+
+            // Optionally: Add SuperAdmin claim if this is the seeded admin
+            if (user.Email?.ToLower() == "admin@admin.com")
+            {
+                claims.Add(new Claim("SuperAdmin", "true"));
+            }
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddHours(24),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+    }
+}
+
+//CurrentUserService.cs
+
+namespace ECommercePlatform.Application.Services
+{
+    public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService
+    {
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
+        public string? UserId => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        public string? Email => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
+        public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+    }
+}
+
+
+//IdentityAuthService.cs
+
+namespace ECommercePlatform.Application.Services
+{
+    public class IdentityAuthService(IConfiguration configuration, IUnitOfWork unitOfWork, IPermissionService permissionService) : IAuthService
+    {
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IPermissionService _permissionService = permissionService;
+
+        public async Task<AuthResultDto> LoginAsync(LoginDto loginDto)
+        {
+            if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+                throw new ArgumentException("Email and password are required");
+
+            // Find user by email
+            var user = await _unitOfWork.UserManager.FindByEmailAsync(loginDto.Email)
+                ?? throw new KeyNotFoundException("Invalid email or password");
+
+            // Check if user account is active
+            if (!user.IsActive || user.IsDeleted)
+                throw new KeyNotFoundException("User account is inactive or deleted");
+
+            // Check password
+            var result = await _unitOfWork.SignInManager.CheckPasswordSignInAsync(user, loginDto.Password, lockoutOnFailure: false);
+            if (!result.Succeeded)
+                throw new KeyNotFoundException("Invalid email or password");
+
+            // Get user roles
+            var userRoles = await _unitOfWork.UserManager.GetRolesAsync(user);
+            var roles = new List<RoleDto>();
+
+            foreach (var roleName in userRoles)
+            {
+                var role = await _unitOfWork.RoleManager.FindByNameAsync(roleName);
+                if (role != null)
+                {
+                    roles.Add(new RoleDto
+                    {
+                        Id = role.Id,
+                        Name = role.Name,
+                        Description = role.Description,
+                        IsActive = role.IsActive
+                    });
+                }
+            }
+
+            // Get user permissions
+            var permissions = await _permissionService.GetUserPermissionsAsync(user.Id);
+
+            // Generate JWT token with permissions
+            var token = await GenerateJwtTokenAsync(user, userRoles, permissions);
+
+            return new AuthResultDto
+            {
+                Token = token,
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Password = user.PasswordHash,
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Bio = user.Bio,
+                    Roles = roles,
+                    IsActive = user.IsActive,
+                    CreatedOn = user.CreatedOn
+                },
+                Permissions = permissions
+            };
+        }
+
+        public async Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            if (!roleIds.Any())
+                return new List<UserPermissionDto>();
+
+            // Get all role permissions for these roles
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Group by module and aggregate permissions
+            var permissions = rolePermissions
+                .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                .Select(g => new UserPermissionDto
+                {
+                    ModuleName = g.Key.Name,
+                    CanView = g.Any(rp => rp.CanView),
+                    CanAdd = g.Any(rp => rp.CanAdd),
+                    CanEdit = g.Any(rp => rp.CanEdit),
+                    CanDelete = g.Any(rp => rp.CanDelete)
+                })
+                .ToList();
+
+            return permissions;
+        }
+
+        private async Task<string> GenerateJwtTokenAsync(User user, IList<string> roles, List<UserPermissionDto> permissions)
+        {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user), "User cannot be null");
+            if (user.Email == null)
+                throw new ArgumentNullException(nameof(user), "User email cannot be null");
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345");
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}")
+            };
+
+            // Add all roles as claims
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+                // Check if this is the SuperAdmin role
+                if (role == "SuperAdmin")
+                {
+                    claims.Add(new Claim("SuperAdmin", "true"));
+                }
+            }
+
+            // Add module permissions as claims
+            foreach (var permission in permissions)
+            {
+                if (permission.CanView)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:View"));
+                if (permission.CanAdd)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:Add"));
+                if (permission.CanEdit)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:Edit"));
+                if (permission.CanDelete)
+                    claims.Add(new Claim("Permission", $"{permission.ModuleName}:Delete"));
+            }
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(24),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+    }
+}
+
+//PermissionService.cs
+
+namespace ECommercePlatform.Application.Services
+{
+    public class PermissionService(IUnitOfWork unitOfWork) : IPermissionService
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<bool> UserHasPermissionAsync(Guid userId, string moduleName, string permission)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            // Get role permissions for these roles and the specified module
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.Name == moduleName &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Check if any role has the requested permission
+            return permission.ToLower() switch
+            {
+                "view" => rolePermissions.Any(rp => rp.CanView),
+                "add" => rolePermissions.Any(rp => rp.CanAdd),
+                "edit" => rolePermissions.Any(rp => rp.CanEdit),
+                "delete" => rolePermissions.Any(rp => rp.CanDelete),
+                _ => false
+            };
+        }
+
+        public async Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId)
+        {
+            // Get user roles
+            var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+            var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+
+            // Get all role permissions for these roles
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => roleIds.Contains(rp.RoleId) &&
+                            rp.Module.IsActive &&
+                            !rp.Module.IsDeleted &&
+                            rp.IsActive &&
+                            !rp.IsDeleted)
+                .ToListAsync();
+
+            // Group by module and aggregate permissions
+            var permissions = rolePermissions
+                .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                .Select(g => new UserPermissionDto
+                {
+                    ModuleName = g.Key.Name,
+                    CanView = g.Any(rp => rp.CanView),
+                    CanAdd = g.Any(rp => rp.CanAdd),
+                    CanEdit = g.Any(rp => rp.CanEdit),
+                    CanDelete = g.Any(rp => rp.CanDelete)
+                })
+                .ToList();
+
+            return permissions;
+        }
+
+        public async Task<bool> UserCanAccessModuleAsync(Guid userId, string moduleName)
+        {
+            return await UserHasPermissionAsync(userId, moduleName, "view");
+        }
+
+        public async Task<List<string>> GetUserPermissionClaimsAsync(Guid userId)
+        {
+            var permissions = await GetUserPermissionsAsync(userId);
+            var claims = new List<string>();
+
+            foreach (var permission in permissions)
+            {
+                if (permission.CanView)
+                    claims.Add($"{permission.ModuleName}:View");
+                if (permission.CanAdd)
+                    claims.Add($"{permission.ModuleName}:Add");
+                if (permission.CanEdit)
+                    claims.Add($"{permission.ModuleName}:Edit");
+                if (permission.CanDelete)
+                    claims.Add($"{permission.ModuleName}:Delete");
+            }
+
+            return claims;
+        }
+    }
+}
+
+
+//UnitOfWork.cs
+
+namespace ECommercePlatform.Infrastructure
+{
+    public class UnitOfWork(AppDbContext context, UserManager<User> UserManager, RoleManager<Role> RoleManager, SignInManager<User> SignInManager) : IUnitOfWork, IDisposable
+    {
+        private readonly AppDbContext _context = context;
+        private ICountryRepository? _countryRepository;
+        private IUserRepository? _userRepository;
+        private IStateRepository? _stateRepository;
+        private ICityRepository? _cityRepository;
+        private IRolePermissionRepository? _rolePermissionRepository;
+        private IModuleRepository? _moduleRepository;
+        private IRoleRepository? _roleRepository;
+        private IUserRoleRepository? _userRoleRepository;
+
+        private readonly UserManager<User> _userManager = UserManager;
+        private readonly RoleManager<Role> _roleManager = RoleManager;
+        private readonly SignInManager<User> _signInManager = SignInManager;
+
+        public ICountryRepository Countries => _countryRepository ??= new CountryRepository(_context);
+
+        public IUserRepository Users => _userRepository ??= new UserRepository(_context);
+
+        public IStateRepository States => _stateRepository ??= new StateRepository(_context);
+
+        public ICityRepository Cities => _cityRepository ??= new CityRepository(_context);
+
+        public IRolePermissionRepository RolePermissions => _rolePermissionRepository ??= new RolePermissionRepository(_context);
+
+        public IModuleRepository Modules => _moduleRepository ??= new ModuleRepository(_context);
+
+        public IRoleRepository Roles => _roleRepository ??= new RoleRepository(_context);
+
+        public IUserRoleRepository UserRoles => _userRoleRepository ??= new UserRoleRepository(_context);
+
+
+        public UserManager<User> UserManager => _userManager;
+        public RoleManager<Role> RoleManager => _roleManager;
+        public SignInManager<User> SignInManager => _signInManager;
+
+        public async Task<int> CompleteAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
+        }
+    }
+}
+
+<--Backend Entities -->
+//BaseEntity.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public abstract class BaseEntity
+    {
+        public Guid Id { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+
+        public virtual void SetCreatedBy(string createdBy)
+        {
+            CreatedBy = createdBy;
+            CreatedOn = DateTime.Now;
+        }
+
+        public virtual void SetModifiedBy(string modifiedBy)
+        {
+            ModifiedBy = modifiedBy;
+            ModifiedOn = DateTime.Now;
+        }
+
+        public virtual void MarkAsDeleted(string deletedBy)
+        {
+            IsDeleted = true;
+            SetModifiedBy(deletedBy);
+        }
+
+        public virtual void SetActive(bool isActive, string modifiedBy)
+        {
+            IsActive = isActive;
+            SetModifiedBy(modifiedBy);
+        }
+    }
+}
+
+//Module.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class Module : BaseEntity
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? Route { get; set; }
+        public string? Icon { get; set; }
+        public int DisplayOrder { get; set; }
+
+        // Updated navigation property
+        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
+
+        private Module() { }
+
+        public static Module Create(
+            string name,
+            string description,
+            string route,
+            string icon,
+            int displayOrder)
+        {
+            return new Module
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Description = description,
+                Route = route,
+                Icon = icon,
+                DisplayOrder = displayOrder
+            };
+        }
+
+        public void Update(string name,
+            string description,
+            string route,
+            string icon,
+            int displayOrder)
+        {
+            Name = name;
+            Description = description;
+            Route = route;
+            Icon = icon;
+            DisplayOrder = displayOrder;
+            ModifiedOn = DateTime.Now;
+        }
+    }
+}
+
+//Role.cs
+
+using Microsoft.AspNetCore.Identity;
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class Role : IdentityRole<Guid>
+    {
+        public string? Description { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+
+        //Navigation properties
+        public virtual ICollection<UserRole>? UserRoles { get; set; }
+        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
+
+        public Role() : base() { }
+        public Role(string roleName) : base(roleName)
+        {
+        }
+
+        public static Role Create(
+            Guid id,
+            string name,
+            string description,
+            string createdBy)
+        {
+            return new Role
+            {
+                Id = id,
+                Name = name,
+                NormalizedName = name.ToUpper(),
+                Description = description,
+                CreatedBy = createdBy,
+                CreatedOn = DateTime.Now
+            };
+        }
+
+        public void Update(string name,
+            string description)
+        {
+            Name = name;
+            Description = description;
+        }
+
+        public void UpdateProperties(string? name = null, string? description = null)
+        {
+            if (name != null)
+                Name = name;
+
+            if (description != null)
+                Description = description;
+        }
+    }
+}
+
+//RolePermission.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class RolePermission : BaseEntity
+    {
+        public Guid RoleId { get; set; }
+        public Guid ModuleId { get; set; }
+        public bool CanView { get; set; }
+        public bool CanAdd { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
+
+        //Navigation Properties
+        public virtual Role? Role { get; set; }
+        public virtual Module? Module { get; set; }
+
+        private RolePermission() { }
+
+        public static RolePermission Create(
+            Guid roleId,
+            Guid moduleId,
+            bool canView = false,
+            bool canAdd = false,
+            bool canEdit = false,
+            bool canDelete = false)
+        {
+            return new RolePermission
+            {
+                Id = Guid.NewGuid(),
+                RoleId = roleId,
+                ModuleId = moduleId,
+                CanView = canView,
+                CanAdd = canAdd,
+                CanEdit = canEdit,
+                CanDelete = canDelete
+            };
+        }
+
+        public void UpdatePermissions(
+            bool canView,
+            bool canAdd,
+            bool canEdit,
+            bool canDelete)
+        {
+            CanView = canView;
+            CanAdd = canAdd;
+            CanEdit = canEdit;
+            CanDelete = canDelete;
+            ModifiedOn = DateTime.Now;
+        }
+
+        public void SetAllPermissions(bool value)
+        {
+            CanView = value;
+            CanAdd = value;
+            CanEdit = value;
+            CanDelete = value;
+            ModifiedOn = DateTime.Now;
+        }
+    }
+}
+
+//User.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class User : IdentityUser<Guid>
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public byte[]? Avatar { get; set; }
+        public Gender Gender { get; set; }
+        public DateOnly DateOfBirth { get; set; }
+        //public string? PhoneNumber { get; set; }
+        //public string? Email { get; set; }
+        //public string? Password { get; set; }
+        public string? Bio { get; set; }
+        //public UserRole? Role { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+
+        //Navigation properties
+        public virtual ICollection<Address>? Addresses { get; set; }
+        public virtual ICollection<Order>? Orders { get; set; }
+        public virtual ICollection<Review>? Reviews { get; set; }
+        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        // Default parameterless constructor required by EF Core
+        public User() { }
+
+        // With method for creating modified copies
+        public User With(
+            string? firstName = null,
+            string? lastName = null,
+            Gender? gender = null,
+            DateOnly? dateOfBirth = null,
+            string? phoneNumber = null,
+            string? email = null,
+            string? password = null,
+            string? bio = null,
+            UserRole? role = null
+        )
+        {
+            var user = new User
+            {
+                Id = this.Id,
+                UserName = this.UserName,
+                CreatedOn = this.CreatedOn,
+                CreatedBy = this.CreatedBy,
+                ModifiedOn = DateTime.Now,
+                ModifiedBy = this.ModifiedBy,
+                IsActive = this.IsActive,
+                IsDeleted = this.IsDeleted,
+                FirstName = firstName ?? this.FirstName,
+                LastName = lastName ?? this.LastName,
+                Gender = gender ?? this.Gender,
+                DateOfBirth = dateOfBirth ?? this.DateOfBirth,
+                PhoneNumber = phoneNumber ?? this.PhoneNumber,
+                Email = email ?? this.Email,
+                Bio = bio ?? this.Bio,
+                Addresses = this.Addresses,
+                Orders = this.Orders,
+                Reviews = this.Reviews,
+                UserRoles = this.UserRoles
+            };
+
+            if (role != null && !user.UserRoles.Any(r => r.RoleId == role.RoleId))
+            {
+                user.UserRoles.Add(role);
+            }
+
+            return user;
+        }
+
+        // Factory method for creating admin users
+        public static User AdminCreate(
+            Guid id,
+            string firstName,
+            string lastName,
+            Gender gender,
+            DateOnly dateOfBirth,
+            string phoneNumber,
+            string email,
+            string password,
+            string bio,
+            UserRole userRole,
+            string createdBy,
+            DateTime createdOn,
+            bool isActive = true,
+            bool isDeleted = false,
+            string? modifiedBy = null,
+            DateTime? modifiedOn = null
+        )
+        {
+            var user = new User
+            {
+                Id = id,
+                UserName = email, // Using email as username
+                NormalizedUserName = email.ToUpper(),
+                Email = email,
+                NormalizedEmail = email.ToUpper(),
+                FirstName = firstName,
+                LastName = lastName,
+                Gender = gender,
+                DateOfBirth = dateOfBirth,
+                PhoneNumber = phoneNumber,
+                Bio = bio,
+                IsActive = isActive,
+                IsDeleted = isDeleted,
+                CreatedBy = createdBy,
+                CreatedOn = createdOn,
+                ModifiedBy = modifiedBy ?? createdBy,
+                ModifiedOn = modifiedOn ?? createdOn,
+                EmailConfirmed = true,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+
+            if (userRole != null)
+            {
+                user.UserRoles.Add(userRole);
+            }
+
+            return user;
+        }
+    }
+}
+
+//UserRole.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class UserRole : IdentityUserRole<Guid>
+    {
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+
+        //Navigation properties
+        public virtual User? User { get; set; }
+        public virtual Role? Role { get; set; }
+
+        // Private constructor for EF Core
+        public UserRole() { }
+
+        public static UserRole Create(
+            Guid userId,
+            Guid roleId)
+        {
+            return new UserRole
+            {
+                UserId = userId,
+                RoleId = roleId
+            };
+        }
+
+        public void Update(Guid userId,
+            Guid roleId)
+        {
+            UserId = userId;
+            RoleId = roleId;
+        }
+    }
+}
+
+//AppDbContext.cs
+
+namespace ECommercePlatform.Infrastructure
+{
+    public class AppDbContext : IdentityDbContext<User, Role, Guid, IdentityUserClaim<Guid>, UserRole, IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>
+    {
+        private readonly ICurrentUserService? _currentUserService;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+            : base(options)
+        {
+        }
+
+        public AppDbContext(
+            DbContextOptions<AppDbContext> options,
+            ICurrentUserService currentUserService)
+            : base(options)
+        {
+            _currentUserService = currentUserService;
+        }
+
+        //public DbSet<User> Users { get; set; }
+        public DbSet<Address> Addresses { get; set; }
+        public DbSet<City> Cities { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<ShippingAddress> ShippingAddresses { get; set; }
+        public DbSet<State> States { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        //public DbSet<Role> Roles { get; set; }
+        //public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<Module> Modules { get; set; }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            UpdateAuditFields();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override int SaveChanges()
+        {
+            UpdateAuditFields();
+            return base.SaveChanges();
+        }
+
+        private void UpdateAuditFields()
+        {
+            var now = DateTime.Now;
+            var userId = _currentUserService?.IsAuthenticated ?? false
+                ? _currentUserService.UserId ?? _currentUserService.Email ?? "system"
+                : "system";
+
+            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.SetCreatedBy(userId);
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.SetModifiedBy(userId);
+                }
+            }
+
+            // Handle Role entity separately as it doesn't inherit from BaseEntity
+            foreach (var entry in ChangeTracker.Entries<Role>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedOn = now;
+                }
+            }
+
+            // Handle User entity separately
+            foreach (var entry in ChangeTracker.Entries<User>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedOn = now;
+                }
+            }
+
+            // Handle UserRole entity separately
+            foreach (var entry in ChangeTracker.Entries<UserRole>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedBy = userId;
+                    entry.Entity.CreatedOn = now;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.ModifiedBy = userId;
+                    entry.Entity.ModifiedOn = now;
+                }
+            }
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Change default ASP.NET Core Identity table names
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Role>().ToTable("Roles");
+            modelBuilder.Entity<UserRole>().ToTable("UserRoles");
+            modelBuilder.Entity<IdentityUserClaim<Guid>>().ToTable("UserClaims");
+            modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
+            modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
+            modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
+
+            // Configure many-to-many relationships
+            modelBuilder.Entity<UserRole>(userRole =>
+            {
+                userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+                userRole.HasOne(ur => ur.Role)
+                    .WithMany(r => r.UserRoles)
+                    .HasForeignKey(ur => ur.RoleId)
+                    .IsRequired();
+
+                userRole.HasOne(ur => ur.User)
+                    .WithMany(u => u.UserRoles)
+                    .HasForeignKey(ur => ur.UserId)
+                    .IsRequired();
+            });
+
+            // Configure RolePermission
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(rp => rp.Role)
+                    .WithMany(r => r.RolePermissions)
+                    .HasForeignKey(rp => rp.RoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(rp => rp.Module)
+                    .WithMany(m => m.RolePermissions)
+                    .HasForeignKey(rp => rp.ModuleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Ensure unique combination of Role and Module
+                entity.HasIndex(rp => new { rp.RoleId, rp.ModuleId })
+                    .IsUnique();
+            });
+
+            // Apply entity configurations
+            ApplyEntityConfigurations(modelBuilder);
+
+            // Seed data
+            SeedData(modelBuilder);
+        }
+
+        private static void ApplyEntityConfigurations(ModelBuilder modelBuilder)
+        {
+            // Configure entity relationships
+            //ConfigureUserEntity(modelBuilder);
+            ConfigureAddressEntity(modelBuilder);
+            ConfigureCityEntity(modelBuilder);
+            ConfigureCountryEntity(modelBuilder);
+            ConfigureStateEntity(modelBuilder);
+            ConfigureOrderEntity(modelBuilder);
+            ConfigureProductEntity(modelBuilder);
+            ConfigureCategoryEntity(modelBuilder);
+            //ConfigureUserRoleRelationships(modelBuilder);
+            ConfigureCouponEntity(modelBuilder);
+            ConfigureOrderItemEntity(modelBuilder);
+            ConfigureProductVariantEntity(modelBuilder);
+            ConfigureModuleEntity(modelBuilder);
+            // Add more configuration methods as needed
+        }
+
+        //private static void ConfigureUserEntity(ModelBuilder modelBuilder)
+        //{
+        //    modelBuilder.Entity<User>(entity =>
+        //    {
+        //        entity.HasKey(e => e.Id);
+        //        entity.Property(e => e.FirstName).IsRequired().HasMaxLength(50);
+        //        entity.Property(e => e.LastName).IsRequired().HasMaxLength(50);
+        //        entity.Property(e => e.Email).IsRequired().HasMaxLength(254);
+        //        entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(100);
+        //        entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(15);
+
+        //        entity.HasMany(u => u.Addresses)
+        //            .WithOne(a => a.User)
+        //            .HasForeignKey(a => a.UserId)
+        //            .OnDelete(DeleteBehavior.Restrict);
+
+        //        entity.HasMany(u => u.Orders)
+        //            .WithOne(o => o.User)
+        //            .HasForeignKey(o => o.UserId)
+        //            .OnDelete(DeleteBehavior.Restrict);
+
+        //        entity.HasMany(u => u.Reviews)
+        //            .WithOne(r => r.User)
+        //            .HasForeignKey(r => r.UserId)
+        //            .OnDelete(DeleteBehavior.Restrict);
+        //    });
+        //}
+
+        private static void ConfigureModuleEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Module>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Route).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.Icon).HasMaxLength(50);
+
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.Route).IsUnique();
+            });
+        }
+
+        private static void ConfigureAddressEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Address>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Line1).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Line2).HasMaxLength(100);
+                entity.Property(e => e.Line3).HasMaxLength(100);
+                entity.Property(e => e.ZipCode).IsRequired().HasMaxLength(18);
+
+                entity.HasOne(a => a.City)
+                    .WithMany(c => c.Addresses)
+                    .HasForeignKey(a => a.CityId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.State)
+                    .WithMany(s => s.Addresses)
+                    .HasForeignKey(a => a.StateId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(a => a.Country)
+                    .WithMany(c => c.Addresses)
+                    .HasForeignKey(a => a.CountryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private static void ConfigureCityEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<City>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+
+                entity.HasOne(c => c.State)
+                    .WithMany(s => s.Cities)
+                    .HasForeignKey(c => c.StateId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private static void ConfigureCountryEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Country>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Code).IsRequired().HasMaxLength(10);
+            });
+        }
+
+        private static void ConfigureStateEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<State>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Code).IsRequired().HasMaxLength(10);
+
+                entity.HasOne(s => s.Country)
+                    .WithMany(c => c.States)
+                    .HasForeignKey(s => s.CountryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private static void ConfigureOrderEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.SubTotal).HasPrecision(18, 2);
+                entity.Property(e => e.DiscountAmount).HasPrecision(18, 2);
+                entity.Property(e => e.TaxAmount).HasPrecision(18, 2);
+                entity.Property(e => e.ShippingAmount).HasPrecision(18, 2);
+                entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
+
+                entity.HasOne(o => o.ShippingAddress)
+                    .WithMany(sa => sa.Orders)
+                    .HasForeignKey(o => o.ShippingAddressId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(o => o.Coupon)
+                    .WithMany(c => c.Orders)
+                    .HasForeignKey(o => o.CouponId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private static void ConfigureProductEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).IsRequired();
+                entity.Property(e => e.Price).HasPrecision(18, 2);
+                entity.Property(e => e.SKU).IsRequired().HasMaxLength(50);
+
+                entity.HasOne(p => p.Category)
+                    .WithMany(c => c.Products)
+                    .HasForeignKey(p => p.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private static void ConfigureCategoryEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+
+                entity.HasOne(c => c.ParentCategory)
+                    .WithMany(c => c.Subcategories)
+                    .HasForeignKey(c => c.ParentCategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        //private static void ConfigureUserRoleRelationships(ModelBuilder modelBuilder)
+        //{
+        //    //// Explicitly ignore the problematic property
+        //    //modelBuilder.Entity<User>()
+        //    //    .Ignore(u => u.Role);
+
+        //    // Configure the many-to-many relationship through UserRole entity
+        //    modelBuilder.Entity<UserRole>(entity =>
+        //    {
+        //        entity.HasKey(ur => ur.Id);
+
+        //        entity.HasOne(ur => ur.User)
+        //              .WithMany(u => u.UserRoles)
+        //              .HasForeignKey(ur => ur.UserId)
+        //              .OnDelete(DeleteBehavior.Cascade);
+
+        //        entity.HasOne(ur => ur.Role)
+        //              .WithMany(r => r.UserRoles)
+        //              .HasForeignKey(ur => ur.RoleId)
+        //              .OnDelete(DeleteBehavior.Cascade);
+        //    });
+        //}
+
+        private static void ConfigureCouponEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Coupon>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired();
+                entity.Property(e => e.Code).IsRequired();
+
+                // Add precision/scale to decimal properties
+                entity.Property(e => e.DiscountValue).HasPrecision(18, 2);
+                entity.Property(e => e.MinimumValue).HasPrecision(18, 2);
+                entity.Property(e => e.MaximumValue).HasPrecision(18, 2);
+            });
+        }
+
+        private static void ConfigureOrderItemEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Add precision/scale to decimal properties
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.Property(e => e.Discount).HasPrecision(18, 2);
+                entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
+            });
+        }
+
+        private static void ConfigureProductVariantEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ProductVariant>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Add precision/scale to decimal properties
+                entity.Property(e => e.Price).HasPrecision(18, 2);
+            });
+        }
+
+        private static void SeedData(ModelBuilder modelBuilder)
+        {
+            // Fixed IDs and date
+            var adminUserId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F");
+            var adminRoleId = Guid.Parse("D4DE1B4D-B43B-4A55-B47A-1E92E71C3143");
+            var fixedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            // Seed SuperAdmin role
+            modelBuilder.Entity<Role>().HasData(
+                new
+                {
+                    Id = adminRoleId,
+                    Name = "SuperAdmin",
+                    NormalizedName = "SUPERADMIN",
+                    Description = "Super Administrator with all permissions",
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false,
+                    ConcurrencyStamp = "1c078e6d-2fb7-4a5d-b170-4a4eced5c4d5" // Fixed value
+                }
+            );
+
+            // Seed SuperAdmin user with pre-computed password hash
+            var superAdmin = new User
+            {
+                Id = adminUserId,
+                UserName = "admin@admin.com",
+                NormalizedUserName = "ADMIN@ADMIN.COM",
+                Email = "admin@admin.com",
+                NormalizedEmail = "ADMIN@ADMIN.COM",
+                EmailConfirmed = true,
+                FirstName = "Super",
+                LastName = "Admin",
+                Gender = Gender.Other,
+                DateOfBirth = new DateOnly(1990, 1, 1),
+                PhoneNumber = "1234567890",
+                PhoneNumberConfirmed = true,
+                Bio = "System Administrator",
+                IsActive = true,
+                CreatedBy = "System",
+                CreatedOn = fixedDate,
+                ModifiedBy = "System",
+                ModifiedOn = fixedDate,
+                IsDeleted = false,
+                SecurityStamp = "f7426c48-c7c4-4c44-a30c-adcb4d1c8636",
+                ConcurrencyStamp = "6e8b9d2c-79f8-4c0d-8c5b-b7e3d2e0fcc8",
+                // Pre-computed password hash for "Admin@123" - fixed for seeding purposes only
+                PasswordHash = "AQAAAAIAAYagAAAAELST0qdl0q97wkBBDJGfpJbVjWOLG22r8WQZlTKUeeoQQbPsQj0rr9bvBUEJnk9Blw=="
+            };
+
+            modelBuilder.Entity<User>().HasData(superAdmin);
+
+            // Seed UserRole
+            modelBuilder.Entity<UserRole>().HasData(
+                new
+                {
+                    UserId = adminUserId,
+                    RoleId = adminRoleId,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                }
+            );
+
+            // Use fixed GUIDs for modules
+            var moduleIds = new[]
+            {
+        Guid.Parse("9A3D7141-4E96-4A5A-B1C5-B6B757ABC0E7"), // Dashboard
+        Guid.Parse("D5C05957-17E5-46F7-B32D-BE1D81E317AE"), // Users
+        Guid.Parse("52136BB4-EE50-4175-9B40-836CAC5D587C"), // Roles
+        Guid.Parse("4EA6364A-7F9E-4B3B-A138-BB9CAA2653A7"), // Modules
+        Guid.Parse("F86A8772-D8E8-4256-9A17-453A9A65015F"), // Cities
+        Guid.Parse("24203E63-035E-4119-9E6A-27B2CCBF5C79"), // States
+        Guid.Parse("A095A01D-9E88-4570-BDFD-9E0BC05F14F4")  // Countries
+    };
+
+            var modules = new[]
+            {
+        new { Id = moduleIds[0], Name = "Dashboard", Route = "dashboard", Description = "Main dashboard", DisplayOrder = 1, Icon = "fas fa-tachometer-alt" },
+        new { Id = moduleIds[1], Name = "Users", Route = "users", Description = "User management", DisplayOrder = 2, Icon = "fas fa-users" },
+        new { Id = moduleIds[2], Name = "Roles", Route = "roles", Description = "Role management", DisplayOrder = 3, Icon = "fas fa-user-shield" },
+        new { Id = moduleIds[3], Name = "Modules", Route = "modules", Description = "Module management", DisplayOrder = 4, Icon = "fas fa-cubes" },
+        new { Id = moduleIds[4], Name = "Cities", Route = "cities", Description = "City management", DisplayOrder = 5, Icon = "fas fa-city" },
+        new { Id = moduleIds[5], Name = "States", Route = "states", Description = "State management", DisplayOrder = 6, Icon = "fas fa-map" },
+        new { Id = moduleIds[6], Name = "Countries", Route = "countries", Description = "Country management", DisplayOrder = 7, Icon = "fas fa-globe" }
+    };
+
+            // Fixed role permission GUIDs
+            var permissionIds = new[]
+            {
+        Guid.Parse("E536A58D-09A3-4A69-8436-5725BF7FFBAD"), // Dashboard permission
+        Guid.Parse("12D57212-45AC-4420-A202-7FF04DE2709E"), // Users permission
+        Guid.Parse("4CF71F31-FB3F-4960-A352-4D29299B5D6F"), // Roles permission
+        Guid.Parse("33EB3761-CE64-4720-9E0F-434887D40261"), // Modules permission
+        Guid.Parse("D28F26B6-55D1-45A4-A69B-7D26A293D945"), // Cities permission
+        Guid.Parse("86ACD9E0-16F1-474F-A85D-A4BDBBF27E8C"), // States permission
+        Guid.Parse("B2CDAFC8-599B-45B5-AC32-FB84B0C896A5")  // Countries permission
+    };
+
+            for (int i = 0; i < modules.Length; i++)
+            {
+                var module = modules[i];
+
+                modelBuilder.Entity<Module>().HasData(new
+                {
+                    module.Id,
+                    module.Name,
+                    module.Route,
+                    module.Description,
+                    module.DisplayOrder,
+                    module.Icon,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                });
+
+                // Seed RolePermissions with fixed GUIDs
+                modelBuilder.Entity<RolePermission>().HasData(new
+                {
+                    Id = permissionIds[i],
+                    RoleId = adminRoleId,
+                    ModuleId = module.Id,
+                    CanView = true,
+                    CanAdd = true,
+                    CanEdit = true,
+                    CanDelete = true,
+                    IsActive = true,
+                    CreatedBy = "System",
+                    CreatedOn = fixedDate,
+                    ModifiedBy = "System",
+                    ModifiedOn = fixedDate,
+                    IsDeleted = false
+                });
+            }
+        }
+    }
+}
+
+<--Frontend-->
+//auth.interceptor.ts
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  constructor(
+    private authService: AuthService,
+    private messageService: MessageService
+  ) { }
+
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    // Get the token
+    const token = this.authService.getToken();
+
+    // Clone the request and add the token if it exists
+    if (token) {
+      request = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    }
+
+    // Pass the modified request to the next handler
+    return next.handle(request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Handle the error based on status code
+        if (error.status === 401) {
+          this.messageService.showMessage({
+            type: 'error',
+            text: 'Session expired. Please login again.'
+          });
+          this.authService.logout();
+        } else if (error.status === 403) {
+          this.messageService.showMessage({
+            type: 'error',
+            text: 'You don\'t have permission to access this resource.'
+          });
+        } else if (error.status === 0) {
+          this.messageService.showMessage({
+            type: 'error',
+            text: 'Server is unreachable. Please check your connection.'
+          });
+        } else if (error.status === 409) {
+          // This is specifically for DuplicateResourceException (HTTP 409 Conflict)
+          const errorMessage = error.error?.message || 'A duplicate item was found.';
+          this.messageService.showMessage({
+            type: 'error',
+            text: errorMessage
+          });
+        } else {
+          // Extract error message from response if available
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'An unexpected error occurred';
+
+          this.messageService.showMessage({
+            type: 'error',
+            text: errorMessage
+          });
+        }
+
+        return throwError(() => error);
+      })
+    );
+  }
+}
+
+
+//auth.service.ts
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
+
+  // Authentication state change subject
+  private authStateChangeSubject = new BehaviorSubject<boolean>(false);
+  public authStateChange$ = this.authStateChangeSubject.asObservable();
+
+  private apiUrl = environment.apiUrl;
+  //private apiUrl = '/Auth';
+  //private apiUrl = 'https://localhost:44362/Auth';
+
+
+  // Development mode flag - REMOVE IN PRODUCTION
+  private devMode = false;
+
+  constructor(private http: HttpClient) {
+    // Check if user is already logged in on initialization
+    this.loadCurrentUser();
+
+    // Auto-login for development - REMOVE IN PRODUCTION
+    if (this.devMode && !this.currentUserSubject.value) {
+      this.simulateLogin();
+    }
+  }
+
+  // Development only - REMOVE IN PRODUCTION
+  private simulateLogin(): void {
+    const mockUser: User = {
+      id: '1',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@admin.com',
+      //role: UserRole.Admin,
+      roles: [{ name: 'Admin' } as Role],
+      isActive: true
+    };
+
+    localStorage.setItem('token', 'fake-jwt-token');
+    localStorage.setItem('currentUser', JSON.stringify(mockUser));
+    this.currentUserSubject.next(mockUser);
+    this.authStateChangeSubject.next(true);
+    console.warn('DEV MODE: Auto-login enabled. Remove before production!');
+  }
+
+  login(credentials: LoginRequest): Observable<LoginResponse> {
+    // For development - REMOVE IN PRODUCTION
+    if (this.devMode) {
+      const mockUser: User = {
+        id: '1',
+        firstName: 'Admin',
+        lastName: 'User',
+        email: credentials.email,
+        //role: UserRole.Admin,
+        roles: [{ name: 'Admin' } as Role],
+        isActive: true
+      };
+
+      const response: LoginResponse = {
+        token: 'fake-jwt-token',
+        user: mockUser
+      };
+
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('currentUser', JSON.stringify(response.user));
+      this.currentUserSubject.next(response.user);
+      this.authStateChangeSubject.next(true);
+      return of(response);
+    }
+
+
+    // Real implementation for production
+    return this.http.post<LoginResponse>(`${this.apiUrl}/Auth/login`, credentials)
+      .pipe(
+        tap(response => {
+          console.log('Raw API response:', response);
+
+          // Store token in local storage
+          localStorage.setItem('token', response.token);
+
+          // Check if user data exists in the response
+          if (response.user) {
+            // Create a properly formatted user object
+            const user: User = {
+              id: response.user.id,
+              firstName: response.user.firstName || '',
+              lastName: response.user.lastName || '',
+              email: response.user.email || '',
+              roles: response.user.roles || [],
+              isActive: response.user.isActive || true
+            };
+
+            // Store user data
+            localStorage.setItem('currentUser', JSON.stringify(response.user));
+
+            // Update current user subject
+            this.currentUserSubject.next(user);
+            this.authStateChangeSubject.next(true);
+          } else {
+            // Extract user info from the JWT token
+            try {
+              const decodedToken: any = jwtDecode(response.token);
+
+              // Create a minimal user object from token claims
+              const userFromToken: User = {
+                id: decodedToken.nameid || '',
+                email: decodedToken.email || '',
+                firstName: '',
+                lastName: '',
+                roles: [{ name: decodedToken.role }],
+                isActive: true
+              };
+
+              // Store and use this user data
+              localStorage.setItem('currentUser', JSON.stringify(userFromToken));
+              this.currentUserSubject.next(userFromToken);
+              this.authStateChangeSubject.next(true);
+            } catch (error) {
+              console.error('Error decoding JWT token:', error);
+              // Re-throw to trigger error handler
+              throw new Error('Unable to retrieve user information');
+            }
+          }
+        })
+      );
+  }
+
+  logout(): void {
+    // Remove token and user data from local storage
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+
+    // Update current user subject
+    this.currentUserSubject.next(null);
+    this.authStateChangeSubject.next(false);
+  }
+
+  private loadCurrentUser(): void {
+    const userJson = localStorage.getItem('currentUser');
+    if (userJson) {
+      const user = JSON.parse(userJson) as User;
+      this.currentUserSubject.next(user);
+      this.authStateChangeSubject.next(true);
+    } else {
+      this.authStateChangeSubject.next(false);
+    }
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getToken();
+  }
+
+  isAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    if (!user || !user.roles) return false;
+
+    // Check if user has the Admin role
+    return user.roles.some((role: Role) => role.name === 'Admin');
+  }
+
+  isSuperAdmin(): boolean {
+    // First check if user is admin at all
+    if (!this.isAdmin()) return false;
+
+    // Then check for SuperAdmin claim in the token
+    const token = this.getToken();
+    if (!token) return false;
+
+    try {
+      const decodedToken: any = jwtDecode(token);
+      return decodedToken.SuperAdmin === 'true';
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return false;
+    }
+  }
+
+  // Check if user has permission
+  hasPermission(moduleRoute: string, permissionType: PermissionType): boolean {
+    // This is a placeholder. Implement your actual permission check logic
+    // For now, returning true to make development easier
+    return true;
+  }
+
+  // Get users with paging (or use a separate UserService)
+  getUsers(pageRequest: PagedRequest): Observable<PagedResponse<User>> {
+    return this.http.get<PagedResponse<User>>(`${this.apiUrl}/users`, {
+      params: { ...pageRequest as any }
+    });
+  }
+
+  // Create user
+  createUser(userData: User): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/users`, userData);
+  }
+
+  // Update user
+  updateUser(userId: string, userData: User): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/users/${userId}`, userData);
+  }
+
+  // Delete user
+  deleteUser(userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/${userId}`);
+  }
+
+  // Development mode methods
+  enableDevMode(enable: boolean): void {
+    this.devMode = enable;
+    console.log(`Dev mode ${enable ? 'enabled' : 'disabled'}`);
+  }
+
+  isDevMode(): boolean {
+    return this.devMode;
+  }
+}
+
+
+//authorization.service.ts
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthorizationService {
+  private apiUrl = `${environment.apiUrl}/authorization`;
+  private cachedPermissions: Record<string, boolean> = {};
+  private permissionsCache$ = new BehaviorSubject<string[]>([]);
+  private isAdmin$ = new BehaviorSubject<boolean>(false);
+  private permissionsLoaded = false;
+
+  constructor(
+    private authService: AuthService,
+    private http: HttpClient
+  ) {
+    // Clear permissions cache when user logs out
+    this.authService.authStateChange$.subscribe(isLoggedIn => {
+      if (!isLoggedIn) {
+        this.cachedPermissions = {};
+        this.permissionsCache$.next([]);
+        this.isAdmin$.next(false);
+        this.permissionsLoaded = false;
+      } else if (!this.permissionsLoaded) {
+        // Load permissions when user logs in
+        this.loadUserPermissions();
+      }
+    });
+  }
+
+  private loadUserPermissions() {
+    if (!this.authService.isAuthenticated()) return;
+
+    this.http.get<{ permissions: string[], isAdmin: boolean }>(`${this.apiUrl}/user-permissions`)
+      .pipe(
+        tap(result => {
+          this.permissionsCache$.next(result.permissions);
+          this.isAdmin$.next(result.isAdmin);
+          this.permissionsLoaded = true;
+
+          // Pre-populate the cache with known permissions
+          result.permissions.forEach(perm => {
+            const [moduleRoute, permType] = perm.split(':');
+            const cacheKey = `${moduleRoute}-${permType}`;
+            this.cachedPermissions[cacheKey] = true;
+          });
+        }),
+        catchError(error => {
+          console.error('Failed to load user permissions', error);
+          return of({ permissions: [], isAdmin: false });
+        })
+      )
+      .subscribe();
+  }
+
+  checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
+    const cacheKey = `${moduleRoute}-${permissionType}`;
+
+    // Return cached result if available
+    if (this.cachedPermissions[cacheKey] !== undefined) {
+      return of(this.cachedPermissions[cacheKey]);
+    }
+
+    // For super admin, always allow access
+    if (this.isAdmin$.getValue()) {
+      this.cachedPermissions[cacheKey] = true;
+      return of(true);
+    }
+
+    // Check against stored permissions
+    const permissionKey = `${moduleRoute}:${permissionType}`;
+    const hasPermission = this.permissionsCache$.getValue().includes(permissionKey);
+
+    if (hasPermission) {
+      this.cachedPermissions[cacheKey] = true;
+      return of(true);
+    }
+
+    // If we don't have this permission in our cache and user isn't admin, check server
+    return this.http.get<boolean>(`${this.apiUrl}/check`, {
+      params: {
+        moduleRoute,
+        permissionType
+      }
+    }).pipe(
+      map(hasPermission => {
+        this.cachedPermissions[cacheKey] = hasPermission;
+        return hasPermission;
+      }),
+      shareReplay(1),
+      catchError(error => {
+        console.warn(`Permission check error for ${moduleRoute}-${permissionType}:`, error);
+        this.cachedPermissions[cacheKey] = false;
+        return of(false);
+      })
+    );
+  }
+
+  hasViewPermission(moduleRoute: string): Observable<boolean> {
+    return this.checkPermission(moduleRoute, PermissionType.View);
+  }
+
+  hasCreatePermission(moduleRoute: string): Observable<boolean> {
+    return this.checkPermission(moduleRoute, PermissionType.Add);
+  }
+
+  hasEditPermission(moduleRoute: string): Observable<boolean> {
+    return this.checkPermission(moduleRoute, PermissionType.Edit);
+  }
+
+  hasDeletePermission(moduleRoute: string): Observable<boolean> {
+    return this.checkPermission(moduleRoute, PermissionType.Delete);
+  }
+
+  clearCache(): void {
+    this.cachedPermissions = {};
+    this.permissionsLoaded = false;
+    this.loadUserPermissions();
+  }
+
+  get isAdmin(): boolean {
+    return this.isAdmin$.getValue();
+  }
+}
+
+//permission.service.ts
+
+@Injectable({ providedIn: 'root' })
+export class PermissionService {
+  private currentUser: User | null = null;
+  private permissionsLoaded = new BehaviorSubject<boolean>(false);
+
+  constructor(private authService: AuthService) {
+    // Subscribe to the user Observable to keep a local copy of the current user
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.permissionsLoaded.next(!!user);
+    });
+  }
+
+  // Wait until permissions are loaded
+  get permissionsReady(): Observable<boolean> {
+    return this.permissionsLoaded.asObservable();
+  }
+
+  // Checks if the current user has a specific permission for a module
+  hasPermission(moduleName: string, permissionType: string | PermissionType): boolean {
+    if (!this.currentUser || !this.currentUser.roles) return false;
+
+    // Super admin check
+    if (this.isSuperAdmin()) {
+      return true;
+    }
+
+    // Standard permission check
+    const normalized = {
+      module: moduleName.toLowerCase(),
+      permission: permissionType.toString().toLowerCase()
+    };
+
+    // Flatten all permissions from all roles
+    const allPermissions = this.currentUser.roles.flatMap((role: any) => role.permissions || []);
+    return allPermissions.some((perm: any) =>
+      perm.moduleName?.toLowerCase() === normalized.module &&
+      perm.permissionType?.toLowerCase() === normalized.permission
+    );
+  }
+
+  hasViewPermission(moduleName: string): boolean {
+    return this.hasPermission(moduleName, PermissionType.View);
+  }
+
+  hasCreatePermission(moduleName: string): boolean {
+    return this.hasPermission(moduleName, PermissionType.Add);
+  }
+
+  hasEditPermission(moduleName: string): boolean {
+    return this.hasPermission(moduleName, PermissionType.Edit);
+  }
+
+  hasDeletePermission(moduleName: string): boolean {
+    return this.hasPermission(moduleName, PermissionType.Delete);
+  }
+
+  isSuperAdmin(): boolean {
+    return this.authService.isSuperAdmin();
+  }
+}
+
+//role.service.ts
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class RoleService {
+  private apiUrl = `${environment.apiUrl}/role`;
+  private moduleApiUrl = `${environment.apiUrl}/module`;
+  private userApiUrl = `${environment.apiUrl}/user`;
+
+  constructor(private http: HttpClient) { }
+
+  // Role methods
+  getRoles(): Observable<Role[]> {
+    return this.http.get<Role[]>(this.apiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPagedRoles(request: PagedRequest): Observable<PagedResponse<Role>> {
+    return this.http.get<PagedResponse<Role>>(`${this.apiUrl}/paged`, {
+      params: { ...request as any }
+    }).pipe(catchError(this.handleError));
+  }
+
+  getRole(id: string): Observable<Role> {
+    return this.http.get<Role>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  createRole(role: any): Observable<Role> {
+    return this.http.post<Role>(this.apiUrl, role)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateRole(id: string, role: any): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, { ...role, id })
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteRole(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  // Module methods
+  getModules(): Observable<Module[]> {
+    return this.http.get<Module[]>(this.moduleApiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  // Permission methods
+  assignPermissionsToRole(request: RolePermissionRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/permissions`, request)
+      .pipe(catchError(this.handleError));
+  }
+
+  getRolePermissions(roleId: string): Observable<ModulePermission[]> {
+    return this.http.get<ModulePermission[]>(`${this.apiUrl}/${roleId}/permissions`)
+      .pipe(catchError(this.handleError));
+  }
+
+  // User-Role assignment
+  assignRolesToUser(assignment: UserRoleAssignment): Observable<void> {
+    return this.http.post<void>(`${this.userApiUrl}/roles`, assignment)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUserRoles(userId: string): Observable<Role[]> {
+    return this.http.get<Role[]>(`${this.userApiUrl}/${userId}/roles`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUsersByRole(roleId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.userApiUrl}/by-role/${roleId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  private handleError(error: any) {
+    console.error('An error occurred', error);
+    return throwError(() => error);
+  }
+}
+
+
+//module.service.ts
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ModuleService {
+  private apiUrl = `${environment.apiUrl}/module`;
+
+  constructor(private http: HttpClient) { }
+
+  getModules(): Observable<Module[]> {
+    return this.http.get<Module[]>(this.apiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPagedModules(request: PagedRequest): Observable<PagedResponse<Module>> {
+    return this.http.get<PagedResponse<Module>>(`${this.apiUrl}/paged`, {
+      params: { ...request as any }
+    }).pipe(catchError(this.handleError));
+  }
+
+  getModule(id: string): Observable<Module> {
+    return this.http.get<Module>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getModuleWithPermissions(id: string): Observable<Module> {
+    return this.http.get<Module>(`${this.apiUrl}/${id}/permissions`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getAllModulesWithPermissions(): Observable<Module[]> {
+    return this.http.get<Module[]>(`${this.apiUrl}/with-permissions`)
+      .pipe(catchError(this.handleError));
+  }
+
+  createModule(module: Module): Observable<Module> {
+    return this.http.post<Module>(this.apiUrl, module)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateModule(id: string, module: Module): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, module)
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteModule(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  // The following methods would be implemented if you have permission endpoints
+  // These are placeholders for now
+  createPermission(permission: Permission): Observable<Permission> {
+    return this.http.post<Permission>(`${environment.apiUrl}/permission`, permission)
+      .pipe(catchError(this.handleError));
+  }
+
+  updatePermission(id: string, permission: Permission): Observable<void> {
+    return this.http.put<void>(`${environment.apiUrl}/permission/${id}`, permission)
+      .pipe(catchError(this.handleError));
+  }
+
+  deletePermission(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/permission/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  private handleError(error: any) {
+    console.error('Module service error:', error);
+    return throwError(() => error);
+  }
+}
+
+
+//permission.directive.ts
+
+
+@Directive({
+  selector: '[appPermission]',
+  standalone: true
+})
+export class PermissionDirective implements OnInit, OnDestroy {
+  @Input() appPermission!: { moduleRoute: string, type: PermissionType };
+
+  private hasView = false;
+  private subscriptions: Subscription = new Subscription();
+  private routerSubscription: Subscription = new Subscription();
+
+  constructor(
+    private templateRef: TemplateRef<any>,
+    private viewContainer: ViewContainerRef,
+    private authorizationService: AuthorizationService,
+    private authService: AuthService,
+    private router: Router
+  ) { }
+
+  ngOnInit() {
+
+    // Subscribe to both auth state changes and route changes
+    this.subscriptions.add(
+      combineLatest([
+        this.authService.authStateChange$,
+        this.router.events.pipe(filter(event => event instanceof NavigationEnd))
+      ]).subscribe(([isLoggedIn]) => {
+        if (isLoggedIn) {
+          this.checkPermission();
+        } else {
+          // If not logged in, clear view
+          this.viewContainer.clear();
+          this.hasView = false;
+        }
+      })
+    );
+
+    this.checkPermission();
+
+    //// Listen for route changes to re-evaluate permissions
+    //this.routerSubscription = this.router.events
+    //  .pipe(filter(event => event instanceof NavigationEnd))
+    //  .subscribe(() => this.checkPermission());
+  }
+
+  private checkPermission() {
+    if (!this.appPermission || !this.authService.isAuthenticated()) {
+      this.viewContainer.clear();
+      this.hasView = false;
+      return;
+    }
+
+    // Check permission through the authorization service
+    this.subscriptions.add(
+      this.authorizationService
+        .checkPermission(this.appPermission.moduleRoute, this.appPermission.type)
+        .subscribe(hasPermission => {
+          if (hasPermission && !this.hasView) {
+            this.viewContainer.createEmbeddedView(this.templateRef);
+            this.hasView = true;
+          } else if (!hasPermission && this.hasView) {
+            this.viewContainer.clear();
+            this.hasView = false;
+          }
+        })
+    );
+  }
+
+  ngOnDestroy() {
+    if (this.subscriptions) {
+      this.subscriptions.unsubscribe();
+    }
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
+  }
+}
+
+
+//auth.guard.ts
+
+
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const safeNav = inject(SafeNavigationService);
+
+  if (authService.isAuthenticated() && authService.isAdmin()) {
+    return true;
+  }
+
+  //// Store the attempted URL for redirecting
+  //router.navigate(['/admin/login'], {
+  //  queryParams: { returnUrl: state.url }
+  //});
+
+  // Ensure URL is properly encoded
+  const safeUrl = state.url.split('?')[0]; // Remove query params
+  const queryPart = state.url.split('?')[1]; // Get query params if any
+
+  // Store the attempted URL for redirecting
+  //router.navigate(['/admin/login'], {
+  //  queryParams: {
+  //    returnUrl: safeUrl // Pass only the path without encoding issues
+  //  }
+  //});
+
+  safeNav.navigateWithReturnUrl('/admin/login', state.url);
+
+  return false;
+}; 
+
+
+//permission.guard.ts
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PermissionGuard implements CanActivate {
+  constructor(
+    private authService: AuthService,
+    private authorizationService: AuthorizationService,
+    private router: Router
+  ) { }
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
+    // First check if the user is authenticated
+    if (!this.authService.isAuthenticated()) {
+      // Redirect to login with return URL
+      return this.router.createUrlTree(['/admin/login'], {
+        queryParams: { returnUrl: state.url }
+      });
+    }
+
+    //// Check if the user is an admin
+    //if (!this.authService.isAdmin()) {
+    //  // Not an admin, redirect back to login with access denied message
+    //  this.router.navigate(['/admin/login']);
+    //  return false;
+    //}
+
+    // Check if route is exempt from permission checks (like dashboard)
+    if (route.data['exempt'] === true) {
+      return true;
+    }
+
+    // If user is admin and route has adminOnly flag, allow without checking permissions
+    if (this.authorizationService.isAdmin && route.data['adminOnly'] === true) {
+      return true;
+    }
+
+    // Get module route and required permission from route data
+    const moduleRoute = route.data['moduleRoute'] || this.getModuleRouteFromUrl(state.url);
+    const requiredPermission = route.data['permission'] as PermissionType || PermissionType.View;
+
+    // Check permission with the authorization service
+    return this.authorizationService.checkPermission(moduleRoute, requiredPermission).pipe(
+      map(hasPermission => {
+        if (hasPermission) {
+          return true;
+        }
+
+        // No permission, redirect to dashboard with notification
+        console.warn(`Access denied to ${moduleRoute}: Missing ${requiredPermission} permission`);
+        return this.router.createUrlTree(['/admin/dashboard'], {
+          queryParams: { accessDenied: 'true', module: moduleRoute }
+        });
+      }),
+      catchError(error => {
+        console.error('Permission check failed:', error);
+        // On error, redirect to dashboard
+        return of(this.router.createUrlTree(['/admin/dashboard']));
+      })
+    );
+  }
+
+  private getModuleRouteFromUrl(url: string): string {
+    // Extract the module name from the URL
+    // Format: /admin/moduleName or /admin/moduleName/subpath
+    const segments = url.split('/').filter(segment => segment.length > 0);
+
+    // Handle the case of /admin or /admin/
+    if (segments.length < 2) {
+      return '';
+    }
+
+    // For /admin/moduleName, return moduleName
+    return segments[1];
+  }
+}
+
+
+//role.model.ts
+
+export interface Module {
+  id?: string;
+  name?: string;
+  description?: string;
+  route?: string;
+  icon?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+  permissions?: Permission[];
+}
+
+export interface Permission {
+  id?: string;
+  name?: string;
+  description?: string;
+  type?: PermissionType;
+  moduleId?: string;
+  moduleName?: string;
+  isActive?: boolean;
+}
+
+export enum PermissionType {
+  View = 'View',
+  Add = 'Add',
+  Edit = 'Edit',
+  Delete = 'Delete'
+}
+
+export interface Role {
+  id?: string;
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+  permissions?: RolePermission[];
+  createdOn?: Date;
+  createdBy?: string;
+  modifiedOn?: Date;
+  modifiedBy?: string;
+}
+
+export interface ModulePermission {
+  moduleId: string;
+  moduleName: string;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+export interface RolePermission {
+  id?: string;
+  roleId?: string;
+  permissionId?: string;
+  permissionType?: string;
+  moduleId?: string;
+  moduleName?: string;
+  moduleRoute?: string;
+  isActive?: boolean;
+}
+
+export interface RolePermissionRequest {
+  roleId: string;
+  permissions: {
+    moduleId: string;
+    permissionTypes: string[];
+  }[];
+}
+
+export interface UserRoleAssignment {
+  userId: string;
+  roleIds: string[];
+}
+
+export interface PermissionItem {
+  moduleId: string;
+  permissionType: string;
+}
+
+
+//user.model.ts
+
+import { Role } from './role.model';
+
+export interface User {
+  id?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password?: string;
+  roles: Role[]; // Now using Role[] instead of string[]
+  isActive: boolean;
+  phoneNumber?: string;
+  bio?: string;
+  createdOn?: Date;
+  modifiedOn?: Date;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
+
+
+//login.component.html
+
+<body class="hold-transition login-page">
+  <div class="login-box">
+    <!-- Logo -->
+    <div class="login-logo">
+      <a href="#"><b>Admin</b> Portal</a>
+    </div>
+
+    <!-- Login Card -->
+    <div class="card">
+      <div class="card-body login-card-body">
+        <p class="login-box-msg">Sign in to start your session</p>
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <!-- Email -->
+          <div class="input-group mb-3">
+            <input type="email"
+                   formControlName="email"
+                   class="form-control"
+                   placeholder="Email"
+                   [class.is-invalid]="f['email'].touched && f['email'].errors">
+            <div class="input-group-append">
+              <div class="input-group-text">
+                <span class="fas fa-envelope"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="input-group mb-3">
+            <input [type]="showPassword ? 'text' : 'password'"
+                   formControlName="password"
+                   class="form-control"
+                   placeholder="Password"
+                   [class.is-invalid]="f['password'].touched && f['password'].errors">
+            <div class="input-group-append">
+              <div class="input-group-text"
+                   style="cursor: pointer;"
+                   (click)="togglePasswordVisibility()">
+                <span class="fas"
+                      [class.fa-eye]="!showPassword"
+                      [class.fa-eye-slash]="showPassword"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Alert -->
+          <div *ngIf="errorMessage" class="alert alert-danger">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Submit Button -->
+          <div class="row">
+            <div class="col-12">
+              <button type="submit"
+                      class="btn btn-primary btn-block"
+                      [disabled]="loginForm.invalid || loading">
+                <span *ngIf="!loading">Sign In</span>
+                <span *ngIf="loading">
+                  <i class="fas fa-spinner fa-spin"></i> Loading...
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+
+//login.component.ts
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss'],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule]
+})
+export class LoginComponent implements OnInit, OnDestroy {
+  loginForm!: FormGroup;
+  errorMessage: string = '';
+  loading: boolean = false;
+  showPassword: boolean = false; // Add this
+  returnUrl: string = '/admin/dashboard';
+
+  constructor(
+    private formBuilder: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) { }
+
+  ngOnInit(): void {
+    // Add AdminLTE classes
+    document.body.classList.add('hold-transition', 'login-page');
+
+    // Initialize form
+    this.loginForm = this.formBuilder.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+
+    // Get return URL
+    //this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
+
+    // Get return URL with validation
+    this.returnUrl = this.getValidReturnUrl();
+
+    // Check if already logged in
+    if (this.authService.isAuthenticated() && this.authService.isAdmin()) {
+      this.router.navigate([this.returnUrl]);
+    }
+  }
+
+  // Add this new method
+  private getValidReturnUrl(): string {
+    const defaultUrl = '/admin/dashboard';
+    const queryReturnUrl = this.route.snapshot.queryParams['returnUrl'];
+
+    if (!queryReturnUrl) {
+      return defaultUrl;
+    }
+
+    try {
+      // Try to decode the URL to check if it's valid
+      const decodedUrl = decodeURIComponent(queryReturnUrl);
+
+      // Additional validation - ensure it starts with /
+      if (!decodedUrl.startsWith('/')) {
+        console.warn('Invalid return URL - must start with /:', decodedUrl);
+        return defaultUrl;
+      }
+
+      // Prevent open redirect vulnerabilities
+      if (decodedUrl.includes('//') || decodedUrl.includes('\\')) {
+        console.warn('Invalid return URL - possible redirect attack:', decodedUrl);
+        return defaultUrl;
+      }
+
+      return decodedUrl;
+    } catch (e) {
+      console.error('Malformed return URL:', queryReturnUrl);
+      // If URL is malformed, return to default
+      return defaultUrl;
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Remove AdminLTE classes
+    document.body.classList.remove('hold-transition', 'login-page');
+  }
+
+  get f() { return this.loginForm.controls; }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  onSubmit(): void {
+    if (this.loginForm.invalid) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.authService.login({
+      email: this.f['email'].value,
+      password: this.f['password'].value
+    }).subscribe({
+      next: (response) => {
+        console.log('Auth response:', response);
+
+        // Check if the user has Admin role - handle cases with or without user object
+        let isAdmin = false;
+
+        if (response.token) {
+          // If we have a token but no user, we can still check for admin role
+          if (!response.user) {
+            try {
+              // Use the JWT token directly to check for admin role
+              const token = response.token;
+              const decodedToken: any = jwtDecode(token);
+              // Check if the role claim indicates admin
+              isAdmin = decodedToken.role === 'Admin';
+            } catch (error) {
+              console.error('Error decoding token to check admin role:', error);
+            }
+          } else if (response.user.roles) {
+            // Normal case with user object
+            // If roles is an array of objects
+            if (Array.isArray(response.user.roles) && typeof response.user.roles[0] === 'object') {
+              isAdmin = response.user.roles.some((role: any) => role.name === 'Admin');
+            }
+            // If roles is an array of strings
+            else if (Array.isArray(response.user.roles)) {
+              isAdmin = response.user.roles.some(role => role.name === 'Admin');
+            }
+          }
+          // Legacy check for role property (not roles)
+          else if (response.user.roles === 'Admin') {
+            isAdmin = true;
+          }
+        }
+
+        if (isAdmin) {
+          try {
+            const url = new URL(this.returnUrl, window.location.origin);
+            this.router.navigate([this.returnUrl]);
+          } catch (e) {
+            console.error('Invalid return URL:', this.returnUrl);
+            this.router.navigate(['/admin/dashboard']);
+          }
+        } else {
+          this.loading = false;
+          this.errorMessage = 'Access denied. Administrators only.';
+          setTimeout(() => {
+            this.errorMessage = '';
+          }, 5000);
+          this.authService.logout();
+        }
+      },
+      error: (error) => {
+        this.loading = false;
+        this.errorMessage = error.error?.message || 'Invalid credentials';
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 2500);
+      }
+    });
+  }
+}
+
+
+//app.routes.ts
+
+// Custom matcher to catch malformed URLs
+function malformedUrlMatcher(url: UrlSegment[]) {
+  const fullUrl = url.map(segment => segment.path).join('/');
+
+  // Check if URL contains malformed encoding
+  if (fullUrl.includes('%F') ||
+    fullUrl.includes('%f') ||
+    fullUrl.match(/%[0-9A-F]([^0-9A-F]|$)/i)) {
+    return {
+      consumed: url,
+      posParams: {
+        malformedUrl: new UrlSegment(fullUrl, {})
+      }
+    };
+  }
+
+  return null;
+}
+
+export const routes: Routes = [
+  {
+    matcher: malformedUrlMatcher,
+    component: PageNotFoundComponent
+  },
+  {
+    path: '',
+    redirectTo: 'admin/login',
+    pathMatch: 'full'
+  },
+  {
+    path: 'admin',
+    children: [
+      {
+        path: 'login',
+        component: LoginComponent,
+        title: 'Admin Login'
+      },
+      {
+        path: '',
+        component: AdminLayoutComponent,
+        canActivate: [PermissionGuard],
+        children: [
+          {
+            path: 'dashboard',
+            component: DashboardComponent,
+            title: 'Admin Dashboard',
+            // Dashboard is exempt from specific permission checks
+            data: { exempt: true }
+          },
+          {
+            path: 'countries',
+            component: CountryComponent,
+            title: 'Country Management',
+            data: {
+              moduleRoute: 'countries',
+              permission: PermissionType.View
+            }
+          },
+          {
+            path: 'states',
+            component: StateComponent,
+            title: 'State Management',
+            data: {
+              moduleRoute: 'states',
+              permission: PermissionType.View
+            }
+          },
+          {
+            path: 'cities',
+            component: CityComponent,
+            title: 'City Management',
+            data: {
+              moduleRoute: 'cities',
+              permission: PermissionType.View
+            }
+          },
+          {
+            path: 'roles',
+            component: RoleManagementComponent,
+            title: 'Role Management',
+            data: {
+              moduleRoute: 'roles',
+              permission: PermissionType.View,
+              adminOnly: true // Special flag for admin-only sections
+            }
+          },
+          {
+            path: 'users',
+            component: UserComponent,
+            title: 'User Management',
+            data: {
+              moduleRoute: 'users',
+              permission: PermissionType.View,
+              adminOnly: true
+            }
+          },
+          {
+            path: 'modules',
+            component: ModuleManagementComponent,
+            title: 'Module Management',
+            data: {
+              moduleRoute: 'modules',
+              permission: PermissionType.View,
+              adminOnly: true
+            }
+          },
+          {
+            path: 'modules/:id/permissions',
+            component: ModulePermissionsComponent,
+            title: 'Module Permissions',
+            data: {
+              moduleRoute: 'modules',
+              permission: PermissionType.View,
+              adminOnly: true
+            }
+          },
+          {
+            path: 'module-permissions',
+            component: ModulePermissionsComponent,
+            title: 'Module Permissions',
+            data: {
+              moduleRoute: 'modules',
+              permission: PermissionType.View,
+              adminOnly: true
+            }
+          },
+          {
+            path: '',
+            redirectTo: 'dashboard',
+            pathMatch: 'full'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    path: '**',
+    component: PageNotFoundComponent,
+    title: '404 - Page not found'
+  }
+];
+
+
+these are my code files related to login, authentication and authorization. Also note that there is a super admin in database who has full access of the application. its creation method is available in AppDbContext.cs. There is no register related thing right now cause its admin panel. But Users can be created from user management with or without roles. In frontend, i have to use AdminLTE theme. Please check for all of it.

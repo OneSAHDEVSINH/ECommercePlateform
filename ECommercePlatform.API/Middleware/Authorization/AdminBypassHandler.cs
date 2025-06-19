@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ECommercePlatform.Application.Common.Authorization.Requirements;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace ECommercePlatform.API.Middleware.Authorization

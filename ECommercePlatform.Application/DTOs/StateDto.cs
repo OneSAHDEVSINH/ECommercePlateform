@@ -14,7 +14,7 @@ namespace ECommercePlatform.Application.DTOs
         public DateTime CreatedOn { get; init; }
         public List<CityDto>? Cities { get; init; }
 
-        // Explicit conversion operator from Country to CountryDto
+        // Explicit conversion operator from State to StateDto
         public static explicit operator StateDto(State state)
         {
             return new StateDto

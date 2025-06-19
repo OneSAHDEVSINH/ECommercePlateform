@@ -1,0 +1,2422 @@
+//RoleController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class RoleController(IMediator mediator) : ControllerBase
+    {
+        private readonly IMediator _mediator = mediator;
+
+        [HttpGet]
+        [HasPermission("Roles", "View")]
+        public async Task<IActionResult> GetAllRoles([FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetAllRolesQuery(activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        [HasPermission("Roles", "View")]
+        public async Task<IActionResult> GetPagedRoles([FromQuery] GetPagedRolesQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("{id}")]
+        [HasPermission("Roles", "View")]
+        public async Task<IActionResult> GetRoleById(Guid id)
+        {
+            var result = await _mediator.Send(new GetRoleByIdQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpPost]
+        [HasPermission("Roles", "Add")]
+        public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
+        {
+            if (command == null)
+            {
+                return BadRequest(new { message = "Request body cannot be null" });
+            }
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetRoleById), new { id = result.Value.Id }, result.Value);
+
+            return Conflict(new { message = result.Error });
+        }
+
+        [HttpPut("{id}")]
+        [HasPermission("Roles", "Edit")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : Conflict(new { message = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [HasPermission("Roles", "Delete")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteRoleCommand(id));
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+    }
+}
+
+//RoleDto.cs
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class RoleDto
+    {
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
+
+        public static explicit operator RoleDto(Role role)
+        {
+            return new RoleDto
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Description = role.Description,
+                IsActive = role.IsActive,
+                CreatedOn = role.CreatedOn,
+                Permissions = role.RolePermissions?
+                    .Where(rp => !rp.IsDeleted && rp.Module != null)
+                    .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                    .Select(g => new RoleModulePermissionDto
+                    {
+                        ModuleId = g.Key.ModuleId,
+                        ModuleName = g.Key.Name,
+                        CanView = g.First().CanView,
+                        CanAdd = g.First().CanAdd,
+                        CanEdit = g.First().CanEdit,
+                        CanDelete = g.First().CanDelete
+                    })
+                    .ToList()
+            };
+        }
+    }
+
+    public class CreateRoleDto
+    {
+        public required string Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; } = true;
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
+    }
+
+    public class UpdateRoleDto
+    {
+        public required string Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; } = true;
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
+
+        //public static explicit operator UpdateRoleDto(UpdateRoleCommand command)
+        //{
+        //    return new UpdateRoleDto
+        //    {
+        //        Name = command.Name,
+        //        Description = command.Description,
+        //        IsActive = (bool)command.IsActive,
+        //        Permissions = command.Permissions?.Select(p => new ModulePermissionRequest
+        //        {
+        //            ModuleId = p.ModuleId,
+        //            PermissionTypes = new List<string> { p.PermissionType }
+        //        }).ToList()
+        //    };
+        //}
+    }
+
+    public class RoleModulePermissionDto
+    {
+        public Guid ModuleId { get; init; }
+        public string? ModuleName { get; init; }
+        public bool CanView { get; init; }
+        public bool CanAdd { get; init; }
+        public bool CanEdit { get; init; }
+        public bool CanDelete { get; init; }
+    }
+
+    public class RoleListDto
+    {
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; }
+        public int PermissionCount { get; init; }
+        public DateTime CreatedOn { get; init; }
+
+        public static explicit operator RoleListDto(Role role)
+        {
+            return new RoleListDto
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Description = role.Description,
+                IsActive = role.IsActive,
+                PermissionCount = role.RolePermissions?
+                    .Where(rp => rp.CanView || rp.CanAdd || rp.CanEdit || rp.CanDelete)
+                    .Count() ?? 0,
+                CreatedOn = role.CreatedOn
+            };
+        }
+    }
+}
+
+//RolePermissionDto.cs
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class RoleDto
+    {
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
+
+        public static explicit operator RoleDto(Role role)
+        {
+            return new RoleDto
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Description = role.Description,
+                IsActive = role.IsActive,
+                CreatedOn = role.CreatedOn,
+                Permissions = role.RolePermissions?
+                    .Where(rp => !rp.IsDeleted && rp.Module != null)
+                    .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                    .Select(g => new RoleModulePermissionDto
+                    {
+                        ModuleId = g.Key.ModuleId,
+                        ModuleName = g.Key.Name,
+                        CanView = g.First().CanView,
+                        CanAdd = g.First().CanAdd,
+                        CanEdit = g.First().CanEdit,
+                        CanDelete = g.First().CanDelete
+                    })
+                    .ToList()
+            };
+        }
+    }
+
+    public class CreateRoleDto
+    {
+        public required string Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; } = true;
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
+    }
+
+    public class UpdateRoleDto
+    {
+        public required string Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; } = true;
+        public List<RoleModulePermissionDto>? Permissions { get; init; }
+
+        //public static explicit operator UpdateRoleDto(UpdateRoleCommand command)
+        //{
+        //    return new UpdateRoleDto
+        //    {
+        //        Name = command.Name,
+        //        Description = command.Description,
+        //        IsActive = (bool)command.IsActive,
+        //        Permissions = command.Permissions?.Select(p => new ModulePermissionRequest
+        //        {
+        //            ModuleId = p.ModuleId,
+        //            PermissionTypes = new List<string> { p.PermissionType }
+        //        }).ToList()
+        //    };
+        //}
+    }
+
+    public class RoleModulePermissionDto
+    {
+        public Guid ModuleId { get; init; }
+        public string? ModuleName { get; init; }
+        public bool CanView { get; init; }
+        public bool CanAdd { get; init; }
+        public bool CanEdit { get; init; }
+        public bool CanDelete { get; init; }
+    }
+
+    public class RoleListDto
+    {
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; }
+        public int PermissionCount { get; init; }
+        public DateTime CreatedOn { get; init; }
+
+        public static explicit operator RoleListDto(Role role)
+        {
+            return new RoleListDto
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Description = role.Description,
+                IsActive = role.IsActive,
+                PermissionCount = role.RolePermissions?
+                    .Where(rp => rp.CanView || rp.CanAdd || rp.CanEdit || rp.CanDelete)
+                    .Count() ?? 0,
+                CreatedOn = role.CreatedOn
+            };
+        }
+    }
+}
+
+//CreateRoleCommand.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Create
+{
+    public class CreateRoleCommand : IRequest<AppResult<RoleDto>>, ITransactionalBehavior, IAuditableCreateRequest
+    {
+        public required string Name { get; init; }
+        public string? Description { get; init; }
+        public bool IsActive { get; init; } = true;
+        public List<ModulePermissionDto>? Permissions { get; init; }
+
+        [JsonIgnore]
+        public string? CreatedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+    }
+
+    public class ModulePermissionDto
+    {
+        public required Guid ModuleId { get; init; }
+        public bool CanView { get; init; }
+        public bool CanAdd { get; init; }
+        public bool CanEdit { get; init; }
+        public bool CanDelete { get; init; }
+    }
+}
+
+//CreateRoleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Create
+{
+    public class CreateRoleHandler(IUnitOfWork unitOfWork) : IRequestHandler<CreateRoleCommand, AppResult<RoleDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<RoleDto>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Validate role name uniqueness
+                var nameResult = await _unitOfWork.Roles.EnsureNameIsUniqueAsync(request.Name);
+                if (nameResult.IsFailure)
+                    return AppResult<RoleDto>.Failure(nameResult.Error);
+
+                // Create the role entity
+                var role = Role.Create(
+                    Guid.NewGuid(),
+                    request.Name,
+                    request.Description ?? string.Empty,
+                    request.CreatedBy ?? "system");
+
+                role.IsActive = request.IsActive;
+
+                await _unitOfWork.Roles.AddAsync(role);
+
+                // Process permissions if provided
+                if (request.Permissions != null && request.Permissions.Any())
+                {
+                    foreach (var perm in request.Permissions)
+                    {
+                        // Verify module exists
+                        var module = await _unitOfWork.Modules.GetByIdAsync(perm.ModuleId);
+                        if (module == null) continue;
+
+                        var rolePermission = RolePermission.Create(
+                            role.Id,
+                            perm.ModuleId,
+                            perm.CanView,
+                            perm.CanAdd,
+                            perm.CanEdit,
+                            perm.CanDelete
+                        );
+
+                        rolePermission.SetCreatedBy(request.CreatedBy ?? "system");
+                        await _unitOfWork.RolePermissions.AddAsync(rolePermission);
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                // Reload the role with permissions for return
+                var createdRole = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);
+                if (createdRole == null)
+                    return AppResult<RoleDto>.Failure("Role was created but could not be retrieved.");
+
+                // Map to DTO using explicit operator
+                var roleDto = (RoleDto)createdRole;
+
+                return AppResult<RoleDto>.Success(roleDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<RoleDto>.Failure($"An error occurred while creating the role: {ex.Message}");
+            }
+        }
+    }
+}
+
+//CreateRoleValidator.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Create
+{
+    public class CreateRoleValidator : AbstractValidator<CreateRoleCommand>
+    {
+        private static readonly Regex NameRegex = GeneratedRegex.AlphanumericWithSpaces();
+
+        public CreateRoleValidator()
+        {
+            RuleFor(x => x.Name.Trim())
+                .NotEmpty().WithMessage("Role name is required.")
+                .MaximumLength(100).WithMessage("Role name must not exceed 100 characters.")
+                .Must(name => NameRegex.IsMatch(name))
+                    .WithMessage("Role name must contain only letters, numbers, and spaces.");
+
+            RuleFor(x => x.Description)
+                .MaximumLength(500).WithMessage("Description must not exceed 500 characters.")
+                .When(x => !string.IsNullOrEmpty(x.Description));
+
+            When(x => x.Permissions != null && x.Permissions.Any(), () =>
+            {
+                RuleForEach(x => x.Permissions!)
+                    .ChildRules(permission =>
+                    {
+                        permission.RuleFor(p => p.ModuleId)
+                            .NotEmpty().WithMessage("Module ID is required for permission.");
+                    });
+            });
+        }
+    }
+}
+
+//UpdateRoleCommand.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Update
+{
+    public class UpdateRoleCommand : IRequest<AppResult<RoleDto>>, ITransactionalBehavior, IAuditableUpdateRequest
+    {
+        public required Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public bool? IsActive { get; init; }
+        public List<ModulePermissionDto>? Permissions { get; init; } // Use ModulePermissionDto, not UpdateRolePermissionDto
+
+        [JsonIgnore]
+        public string? ModifiedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime ModifiedOn { get; set; } = DateTime.UtcNow;
+    }
+}
+
+//UpdateRoleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Update
+{
+    public class UpdateRoleHandler(IUnitOfWork unitOfWork) : IRequestHandler<UpdateRoleCommand, AppResult<RoleDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<RoleDto>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
+                if (role == null)
+                    return AppResult<RoleDto>.Failure($"Role with ID {request.Id} not found.");
+
+                // Validate role name uniqueness if name is being updated
+                if (!string.IsNullOrEmpty(request.Name) && request.Name != role.Name)
+                {
+                    var nameResult = await _unitOfWork.Roles.EnsureNameIsUniqueAsync(request.Name, request.Id);
+                    if (nameResult.IsFailure)
+                        return AppResult<RoleDto>.Failure(nameResult.Error);
+
+                    role.UpdateProperties(name: request.Name);
+                }
+
+                // Update other fields only if provided
+                if (request.Description != null)
+                    role.UpdateProperties(description: request.Description);
+
+                if (request.IsActive.HasValue)
+                    role.IsActive = request.IsActive.Value;
+
+                role.ModifiedBy = request.ModifiedBy;
+                role.ModifiedOn = request.ModifiedOn;
+
+                await _unitOfWork.Roles.UpdateAsync(role);
+
+                // Update permissions if provided
+                if (request.Permissions != null)
+                {
+                    // Remove old permissions
+                    await _unitOfWork.RolePermissions.DeleteByRoleIdAsync(role.Id);
+
+                    // Add new permissions
+                    foreach (var perm in request.Permissions)
+                    {
+                        // Verify module exists
+                        var module = await _unitOfWork.Modules.GetByIdAsync(perm.ModuleId);
+                        if (module == null) continue;
+
+                        var rolePermission = RolePermission.Create(
+                            role.Id,
+                            perm.ModuleId,
+                            perm.CanView,
+                            perm.CanAdd,
+                            perm.CanEdit,
+                            perm.CanDelete
+                        );
+
+                        rolePermission.SetCreatedBy(request.ModifiedBy ?? "system");
+                        await _unitOfWork.RolePermissions.AddAsync(rolePermission);
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                // Reload the role with updated permissions for return
+                var updatedRole = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);
+                if (updatedRole == null)
+                    return AppResult<RoleDto>.Failure("Role was updated but could not be retrieved.");
+
+                // Map to DTO using explicit operator
+                var roleDto = (RoleDto)updatedRole;
+
+                return AppResult<RoleDto>.Success(roleDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<RoleDto>.Failure($"An error occurred while updating the role: {ex.Message}");
+            }
+        }
+    }
+}
+
+//UpdateRoleValidator.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Update
+{
+    public class UpdateRoleValidator : AbstractValidator<UpdateRoleCommand>
+    {
+        private static readonly Regex NameRegex = GeneratedRegex.AlphanumericWithSpaces();
+
+        public UpdateRoleValidator()
+        {
+            RuleFor(x => x.Id)
+                .NotEmpty().WithMessage("Role ID is required.");
+
+            When(x => !string.IsNullOrEmpty(x.Name), () =>
+            {
+                RuleFor(x => x.Name!.Trim())
+                    .MaximumLength(100).WithMessage("Role name must not exceed 100 characters.")
+                    .Must(name => NameRegex.IsMatch(name))
+                        .WithMessage("Role name must contain only letters, numbers, and spaces.");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Description), () =>
+            {
+                RuleFor(x => x.Description)
+                    .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
+            });
+
+            When(x => x.Permissions != null && x.Permissions.Any(), () =>
+            {
+                RuleForEach(x => x.Permissions!)
+                    .ChildRules(permission =>
+                    {
+                        permission.RuleFor(p => p.ModuleId)
+                            .NotEmpty().WithMessage("Module ID is required for permission.");
+                    });
+            });
+        }
+    }
+}
+
+//DeleteRoleCommand.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Delete
+{
+    public record DeleteRoleCommand(Guid Id) : IRequest<AppResult>, ITransactionalBehavior;
+}
+
+//DeleteRoleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Delete
+{
+    public class DeleteRoleHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteRoleCommand, AppResult>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult> Handle(DeleteRoleCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
+                if (role == null)
+                    return AppResult.Failure($"Role with ID {request.Id} not found.");
+
+                // Check if role is used by users
+                var userRoles = await _unitOfWork.UserRoles.GetByRoleIdAsync(role.Id);
+                if (userRoles.Any())
+                    return AppResult.Failure("Cannot delete role. It is currently assigned to one or more users.");
+
+                // First delete all role permissions
+                await _unitOfWork.RolePermissions.DeleteByRoleIdAsync(role.Id);
+
+                // Then delete the role itself
+                await _unitOfWork.Roles.DeleteAsync(role);
+                await _unitOfWork.SaveChangesAsync();
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while deleting the role: {ex.Message}");
+            }
+        }
+    }
+}
+
+//DeleteRoleValidator.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Commands.Delete
+{
+    public class DeleteRoleValidator : AbstractValidator<DeleteRoleCommand>
+    {
+        public DeleteRoleValidator()
+        {
+            RuleFor(x => x.Id).NotEmpty();
+        }
+    }
+}
+
+//GetAllRolesHandler.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetAllRoles
+{
+    public class GetAllRolesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllRolesQuery, AppResult<List<RoleDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<List<RoleDto>>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var roles = request.ActiveOnly
+                    ? await _unitOfWork.Roles.GetActiveRolesAsync()
+                    : await _unitOfWork.Roles.GetAllAsync();
+
+                var result = new List<RoleDto>();
+
+                foreach (var role in roles)
+                {
+                    // Get role permissions with module info
+                    var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                        .Include(rp => rp.Module)
+                        .Where(rp => rp.RoleId == role.Id && !rp.IsDeleted)
+                        .ToListAsync(cancellationToken);
+
+                    var permissionsDto = rolePermissions
+                        .GroupBy(rp => new { rp.ModuleId, rp.Module?.Name })
+                        .Select(g => new RoleModulePermissionDto
+                        {
+                            ModuleId = g.Key.ModuleId,
+                            ModuleName = g.Key.Name,
+                            CanView = g.First().CanView,
+                            CanAdd = g.First().CanAdd,
+                            CanEdit = g.First().CanEdit,
+                            CanDelete = g.First().CanDelete
+                        })
+                        .ToList();
+
+                    result.Add(new RoleDto
+                    {
+                        Id = role.Id,
+                        Name = role.Name,
+                        Description = role.Description,
+                        IsActive = role.IsActive,
+                        CreatedOn = role.CreatedOn,
+                        Permissions = permissionsDto
+                    });
+                }
+
+                return AppResult<List<RoleDto>>.Success(result);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<RoleDto>>.Failure($"An error occurred while retrieving roles: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetAllRolesQuery.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetAllRoles
+{
+    public record GetAllRolesQuery(bool ActiveOnly = true) : IRequest<AppResult<List<RoleDto>>>;
+}
+
+//GetPagedRoleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetPagedRoles
+{
+    public class GetPagedRolesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetPagedRolesQuery, AppResult<PagedResponse<RoleDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<PagedResponse<RoleDto>>> Handle(GetPagedRolesQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var pagedResponse = await _unitOfWork.Roles.GetPagedRoleDtosAsync(
+                    request,
+                    request.ActiveOnly,
+                    cancellationToken);
+
+                return AppResult<PagedResponse<RoleDto>>.Success(pagedResponse);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<PagedResponse<RoleDto>>.Failure($"An error occurred while retrieving paged roles: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetPagedRoleQuery.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetPagedRoles
+{
+    public class GetPagedRolesQuery : PagedRequest, IRequest<AppResult<PagedResponse<RoleDto>>>
+    {
+        public bool ActiveOnly { get; set; } = true;
+    }
+}
+
+//GetRoleByIdHandler.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetRoleById
+{
+    public class GetRoleByIdHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetRoleByIdQuery, AppResult<RoleDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<RoleDto>> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
+                if (role == null)
+                    return AppResult<RoleDto>.Failure($"Role with ID {request.Id} not found.");
+
+                // Get role permissions with module info
+                var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                    .Include(rp => rp.Module)
+                    .Where(rp => rp.RoleId == role.Id && !rp.IsDeleted)
+                    .ToListAsync(cancellationToken);
+
+                var permissionsDto = rolePermissions
+                    .GroupBy(rp => new { rp.ModuleId, rp.Module?.Name })
+                    .Select(g => new RoleModulePermissionDto
+                    {
+                        ModuleId = g.Key.ModuleId,
+                        ModuleName = g.Key.Name,
+                        CanView = g.First().CanView,
+                        CanAdd = g.First().CanAdd,
+                        CanEdit = g.First().CanEdit,
+                        CanDelete = g.First().CanDelete
+                    })
+                    .ToList();
+
+                var roleDto = new RoleDto
+                {
+                    Id = role.Id,
+                    Name = role.Name,
+                    Description = role.Description,
+                    IsActive = role.IsActive,
+                    CreatedOn = role.CreatedOn,
+                    Permissions = permissionsDto
+                };
+
+                return AppResult<RoleDto>.Success(roleDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<RoleDto>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetRoleByIdQuery.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetRoleById
+{
+    public record GetRoleByIdQuery(Guid Id) : IRequest<AppResult<RoleDto>>;
+}
+
+//GetRolesByModuleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetRolesByModule
+{
+    public class GetRolesByModuleHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetRolesByModuleQuery, AppResult<List<RoleDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<List<RoleDto>>> Handle(GetRolesByModuleQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Verify module exists
+                var module = await _unitOfWork.Modules.GetByIdAsync(request.ModuleId);
+                if (module == null)
+                    return AppResult<List<RoleDto>>.Failure($"Module with ID {request.ModuleId} not found.");
+
+                // Get role permissions for this module
+                var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                    .Include(rp => rp.Role)
+                    .Include(rp => rp.Module)
+                    .Where(rp => rp.ModuleId == request.ModuleId && !rp.IsDeleted)
+                    .ToListAsync(cancellationToken);
+
+                // Get unique roles
+                var roleIds = rolePermissions.Select(rp => rp.RoleId).Distinct().ToList();
+                var roles = await _unitOfWork.Roles.AsQueryable()
+                    .Where(r => roleIds.Contains(r.Id))
+                    .ToListAsync(cancellationToken);
+
+                // Filter by active if requested
+                if (request.ActiveOnly)
+                    roles = roles.Where(r => r.IsActive && !r.IsDeleted).ToList();
+
+                // Map to DTOs
+                var roleDtos = new List<RoleDto>();
+                foreach (var role in roles)
+                {
+                    var dto = await BuildRoleDtoWithPermissions(role.Id, cancellationToken);
+                    if (dto != null)
+                        roleDtos.Add(dto);
+                }
+
+                return AppResult<List<RoleDto>>.Success(roleDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<RoleDto>>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+
+        private async Task<RoleDto?> BuildRoleDtoWithPermissions(Guid roleId, CancellationToken cancellationToken)
+        {
+            var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+            if (role == null) return null;
+
+            var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
+                .Include(rp => rp.Module)
+                .Where(rp => rp.RoleId == role.Id && !rp.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            var permissionsDto = rolePermissions
+                .GroupBy(rp => new { rp.ModuleId, rp.Module?.Name })
+                .Select(g => new RoleModulePermissionDto
+                {
+                    ModuleId = g.Key.ModuleId,
+                    ModuleName = g.Key.Name,
+                    CanView = g.First().CanView,
+                    CanAdd = g.First().CanAdd,
+                    CanEdit = g.First().CanEdit,
+                    CanDelete = g.First().CanDelete
+                })
+                .ToList();
+
+            return new RoleDto
+            {
+                Id = role.Id,
+                Name = role.Name,
+                Description = role.Description,
+                IsActive = role.IsActive,
+                CreatedOn = role.CreatedOn,
+                Permissions = permissionsDto
+            };
+        }
+
+        private async Task<RoleDto> BuildRoleDtoWithPermissions(Domain.Entities.Role role, CancellationToken cancellationToken)
+        {
+            // Fully qualify the Role type
+            return (RoleDto)role;
+        }
+    }
+}
+
+//GetRolesByModuleQuery.cs
+
+namespace ECommercePlatform.Application.Features.Roles.Queries.GetRolesByModule
+{
+    public record GetRolesByModuleQuery(Guid ModuleId, bool ActiveOnly = true) : IRequest<AppResult<List<RoleDto>>>;
+}
+
+//IRoleRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IRoleRepository : IGenericRepository<Role>
+    {
+        Task<bool> IsNameUniqueAsync(string name);
+        Task<bool> IsNameUniqueAsync(string name, Guid excludeId);
+        new Task<Role?> GetByIdAsync(Guid id);
+        new Task<List<Role>> GetAllAsync();
+        Task<List<Role>> GetActiveRolesAsync();
+        Task<bool> AnyAsync(Expression<Func<Role, bool>> predicate);
+        IQueryable<Role> AsQueryable();
+        Task<Role?> GetRoleWithPermissionsAsync(Guid id);
+        Task<Role?> GetRoleWithUsersAsync(Guid id);
+        Task<Role?> GetRoleWithModulePermissionsAsync(Guid id);
+        Task<Result<string>> EnsureNameIsUniqueAsync(string name, Guid? excludeId = null);
+
+        // Pagination methods
+        Task<PagedResponse<Role>> GetPagedRolesAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<RoleDto>> GetPagedRoleDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<RoleListDto>> GetPagedRoleListDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+    }
+}
+
+//IRolePermissionRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IRolePermissionRepository : IGenericRepository<RolePermission>
+    {
+        Task<List<RolePermission>> GetByRoleIdAsync(Guid roleId);
+        Task<List<RolePermission>> GetByModuleIdAsync(Guid moduleId);
+        Task<RolePermission?> GetByRoleAndModuleAsync(Guid roleId, Guid moduleId);
+        Task DeleteByRoleIdAsync(Guid roleId);
+        Task<bool> ExistsAsync(Guid roleId, Guid moduleId);
+        Task<bool> AnyAsync(Expression<Func<RolePermission, bool>> predicate);
+        IQueryable<RolePermission> AsQueryable();
+        Task<List<RolePermission>> GetActiveRolePermissionsAsync();
+
+        // Add bulk operations for role permission management
+        Task AddRangeAsync(IEnumerable<RolePermission> rolePermissions);
+        Task UpdateRolePermissionsAsync(Guid roleId, List<RoleModulePermissionDto> permissions);
+
+        // Pagination methods
+        Task<PagedResponse<RolePermission>> GetPagedRolePermissionsAsync(
+            PagedRequest request,
+            Guid? roleId = null,
+            Guid? moduleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<RolePermissionDto>> GetPagedRolePermissionDtosAsync(
+            PagedRequest request,
+            Guid? roleId = null,
+            Guid? moduleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+    }
+}
+
+//IGenericRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IGenericRepository<T> where T : class
+    {
+        Task<T> GetByIdAsync(Guid id);
+        Task<IReadOnlyList<T>> GetAllAsync();
+        Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate);
+        Task<T> AddAsync(T entity);
+        Task UpdateAsync(T entity);
+        Task DeleteAsync(T entity);
+        Task<bool> ExistsAsync(Guid id);
+
+        // Add pagination method
+        IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null);
+
+        // Unified paging method with support for search
+        Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default);
+
+    }
+}
+
+//IUnitOfWork.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IUnitOfWork : IDisposable
+    {
+        ICountryRepository Countries { get; }
+        IUserRepository Users { get; }
+        IStateRepository States { get; }
+        ICityRepository Cities { get; }
+        IModuleRepository Modules { get; }
+        IRolePermissionRepository RolePermissions { get; }
+        IRoleRepository Roles { get; }
+        IUserRoleRepository UserRoles { get; }
+        UserManager<User> UserManager { get; }
+        RoleManager<Role> RoleManager { get; }
+        SignInManager<User> SignInManager { get; }
+        // Shall be added more repositories as properties
+
+        Task<int> CompleteAsync();
+        Task<int> SaveChangesAsync();
+        new void Dispose();
+    }
+}
+
+//RoleRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class RoleRepository(AppDbContext context) : GenericRepository<Role>(context), IRoleRepository
+    {
+        public async Task<bool> IsNameUniqueAsync(string name)
+        {
+            return !await _context.Roles
+                .AnyAsync(r => r.Name != null &&
+                               r.Name.ToLower().Trim() == name.ToLower().Trim() &&
+                               !r.IsDeleted);
+        }
+
+        public async Task<bool> IsNameUniqueAsync(string name, Guid excludeId)
+        {
+            return !await _context.Roles
+                .AnyAsync(r => r.Name != null &&
+                               r.Name.ToLower().Trim() == name.ToLower().Trim() &&
+                               r.Id != excludeId &&
+                               !r.IsDeleted);
+        }
+
+        public new async Task<Role?> GetByIdAsync(Guid id)
+        {
+            return await _context.Roles
+                .Include(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Module)
+                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
+        }
+
+        public new async Task<List<Role>> GetAllAsync()
+        {
+            return await _context.Roles
+                .Include(r => r.RolePermissions)
+                .Where(r => !r.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<Role>> GetActiveRolesAsync()
+        {
+            return await _context.Roles
+                .Where(r => r.IsActive && !r.IsDeleted)
+                .OrderBy(r => r.Name)
+                .ToListAsync();
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<Role, bool>> predicate)
+        {
+            return await _context.Roles.AnyAsync(predicate);
+        }
+
+        public IQueryable<Role> AsQueryable()
+        {
+            return _context.Roles.AsQueryable();
+        }
+
+        public async Task<Role?> GetRoleWithPermissionsAsync(Guid id)
+        {
+            return await _context.Roles
+                .Include(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Module)
+                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
+        }
+
+        public async Task<Role?> GetRoleWithUsersAsync(Guid id)
+        {
+            return await _context.Roles
+                .Include(r => r.UserRoles)
+                    .ThenInclude(ur => ur.User)
+                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
+        }
+
+        // Combined validation method that returns a Result object
+        public Task<Result<string>> EnsureNameIsUniqueAsync(string name, Guid? excludeId = null)
+        {
+            return Result.Success(name)
+                // Validate name is not empty
+                .Ensure(n => !string.IsNullOrEmpty(n?.Trim()), "Role name cannot be null or empty.")
+                // Normalize the input
+                .Map(n => n.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedName =>
+                {
+                    var query = _context.Roles.Where(r =>
+                        r.Name != null &&
+                        r.Name.ToLower().Trim() == normalizedName &&
+                        !r.IsDeleted);
+
+                    // Apply ID exclusion if provided
+                    if (excludeId.HasValue)
+                        query = query.Where(r => r.Id != excludeId.Value);
+
+                    var exists = await query.AnyAsync();
+
+                    return exists
+                        ? Result.Failure<string>($"Role with name \"{name}\" already exists.")
+                        : Result.Success(normalizedName);
+                });
+        }
+
+        // Search function for roles
+        private static IQueryable<Role> ApplyRoleSearch(IQueryable<Role> query, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(r =>
+                (r.Name != null && EF.Functions.Like(r.Name.ToLower(), $"%{searchTerm}%")) ||
+                (r.Description != null && EF.Functions.Like(r.Description.ToLower(), $"%{searchTerm}%")));
+        }
+
+        public async Task<Role?> GetRoleWithModulePermissionsAsync(Guid id)
+        {
+            return await _context.Roles
+                .Include(r => r.RolePermissions)
+                    .ThenInclude(rp => rp.Module)
+                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
+        }
+
+        // Get paginated roles
+        public async Task<PagedResponse<Role>> GetPagedRolesAsync(
+    PagedRequest request,
+    bool activeOnly = true,
+    CancellationToken cancellationToken = default)
+        {
+            // Create base filter
+            Expression<Func<Role, bool>> baseFilter = activeOnly
+                ? r => r.IsActive && !r.IsDeleted
+                : r => !r.IsDeleted;
+
+            // Define a search function that also includes permissions
+            static IQueryable<Role> searchWithInclude(IQueryable<Role> query, string? searchText)
+            {
+                // First include related entities
+                var queryWithInclude = query
+                    .Include(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Module); // Changed from rp.Permission
+
+                // Then apply search if text is provided
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    return ApplyRoleSearch(queryWithInclude, searchText);
+
+                return queryWithInclude;
+            }
+
+            // Use the GetPagedAsync method
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                searchWithInclude,
+                cancellationToken);
+        }
+
+        // Get paginated role DTOs
+        public async Task<PagedResponse<RoleDto>> GetPagedRoleDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedRolesAsync(
+                request,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to DTOs
+            var dtos = pagedEntities.Items.Select(r => (RoleDto)r).ToList();
+
+            return new PagedResponse<RoleDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+
+        // Get paginated role list DTOs (simplified version for lists)
+        public async Task<PagedResponse<RoleListDto>> GetPagedRoleListDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedRolesAsync(
+                request,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to list DTOs
+            var dtos = pagedEntities.Items.Select(r => (RoleListDto)r).ToList();
+
+            return new PagedResponse<RoleListDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+    }
+}
+
+//RolePermissionRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class RolePermissionRepository(AppDbContext context) : GenericRepository<RolePermission>(context), IRolePermissionRepository
+    {
+        public async Task<List<RolePermission>> GetByRoleIdAsync(Guid roleId)
+        {
+            return await _context.RolePermissions
+                .Include(rp => rp.Module)
+                .Include(rp => rp.Role)
+                .Where(rp => rp.RoleId == roleId && !rp.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<RolePermission>> GetByModuleIdAsync(Guid moduleId)
+        {
+            return await _context.RolePermissions
+                .Include(rp => rp.Role)
+                .Include(rp => rp.Module)
+                .Where(rp => rp.ModuleId == moduleId && !rp.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<RolePermission?> GetByRoleAndModuleAsync(Guid roleId, Guid moduleId)
+        {
+            return await _context.RolePermissions
+                .Include(rp => rp.Module)
+                .Include(rp => rp.Role)
+                .FirstOrDefaultAsync(rp => rp.RoleId == roleId &&
+                                          rp.ModuleId == moduleId &&
+                                          !rp.IsDeleted);
+        }
+
+        public async Task DeleteByRoleIdAsync(Guid roleId)
+        {
+            var rolePermissions = await _context.RolePermissions
+                .Where(rp => rp.RoleId == roleId)
+                .ToListAsync();
+
+            _context.RolePermissions.RemoveRange(rolePermissions);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsAsync(Guid roleId, Guid moduleId)
+        {
+            return await _context.RolePermissions
+                .AnyAsync(rp => rp.RoleId == roleId &&
+                               rp.ModuleId == moduleId &&
+                               !rp.IsDeleted);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<RolePermission, bool>> predicate)
+        {
+            return await _context.RolePermissions.AnyAsync(predicate);
+        }
+
+        public IQueryable<RolePermission> AsQueryable()
+        {
+            return _context.RolePermissions.AsQueryable();
+        }
+
+        public async Task<List<RolePermission>> GetActiveRolePermissionsAsync()
+        {
+            return await _context.RolePermissions
+                .Include(rp => rp.Role)
+                .Include(rp => rp.Module)
+                .Where(rp => rp.IsActive && !rp.IsDeleted)
+                .OrderBy(rp => rp.Role.Name)
+                .ThenBy(rp => rp.Module.DisplayOrder)
+                .ToListAsync();
+        }
+
+        public async Task AddRangeAsync(IEnumerable<RolePermission> rolePermissions)
+        {
+            await _context.RolePermissions.AddRangeAsync(rolePermissions);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateRolePermissionsAsync(Guid roleId, List<RoleModulePermissionDto> permissions)
+        {
+            // Remove existing permissions for the role
+            var existingPermissions = await _context.RolePermissions
+                .Where(rp => rp.RoleId == roleId)
+                .ToListAsync();
+
+            _context.RolePermissions.RemoveRange(existingPermissions);
+
+            // Add new permissions
+            var newPermissions = permissions.Select(p => RolePermission.Create(
+                roleId,
+                p.ModuleId,
+                p.CanView,
+                p.CanAdd,
+                p.CanEdit,
+                p.CanDelete
+            ));
+
+            await _context.RolePermissions.AddRangeAsync(newPermissions);
+            await _context.SaveChangesAsync();
+        }
+
+        // Updated search function
+        private static IQueryable<RolePermission> ApplyRolePermissionSearch(
+            IQueryable<RolePermission> query, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(rp =>
+                (rp.Role != null && rp.Role.Name != null &&
+                    EF.Functions.Like(rp.Role.Name.ToLower(), $"%{searchTerm}%")) ||
+                (rp.Module != null && rp.Module.Name != null &&
+                    EF.Functions.Like(rp.Module.Name.ToLower(), $"%{searchTerm}%")));
+        }
+
+        // Existing pagination methods remain mostly the same but remove Permission references
+        public async Task<PagedResponse<RolePermission>> GetPagedRolePermissionsAsync(
+            PagedRequest request,
+            Guid? roleId = null,
+            Guid? moduleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            Expression<Func<RolePermission, bool>> baseFilter;
+
+            if (roleId.HasValue && moduleId.HasValue)
+            {
+                baseFilter = activeOnly
+                    ? rp => rp.IsActive && !rp.IsDeleted &&
+                           rp.RoleId == roleId.Value &&
+                           rp.ModuleId == moduleId.Value
+                    : rp => !rp.IsDeleted &&
+                           rp.RoleId == roleId.Value &&
+                           rp.ModuleId == moduleId.Value;
+            }
+            else if (roleId.HasValue)
+            {
+                baseFilter = activeOnly
+                    ? rp => rp.IsActive && !rp.IsDeleted && rp.RoleId == roleId.Value
+                    : rp => !rp.IsDeleted && rp.RoleId == roleId.Value;
+            }
+            else if (moduleId.HasValue)
+            {
+                baseFilter = activeOnly
+                    ? rp => rp.IsActive && !rp.IsDeleted && rp.ModuleId == moduleId.Value
+                    : rp => !rp.IsDeleted && rp.ModuleId == moduleId.Value;
+            }
+            else
+            {
+                baseFilter = activeOnly
+                    ? rp => rp.IsActive && !rp.IsDeleted
+                    : rp => !rp.IsDeleted;
+            }
+
+            static IQueryable<RolePermission> searchWithInclude(IQueryable<RolePermission> query, string? searchText)
+            {
+                var queryWithInclude = query
+                    .Include(rp => rp.Role)
+                    .Include(rp => rp.Module);
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    return ApplyRolePermissionSearch(queryWithInclude, searchText);
+
+                return queryWithInclude;
+            }
+
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                searchWithInclude,
+                cancellationToken);
+        }
+
+        public async Task<PagedResponse<RolePermissionDto>> GetPagedRolePermissionDtosAsync(
+            PagedRequest request,
+            Guid? roleId = null,
+            Guid? moduleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedRolePermissionsAsync(
+                request,
+                roleId,
+                moduleId,
+                activeOnly,
+                cancellationToken);
+
+            var dtos = pagedEntities.Items.Select(rp => (RolePermissionDto)rp).ToList();
+
+            return new PagedResponse<RolePermissionDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+    }
+}
+
+//GenericRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> where T : class
+    {
+        protected readonly AppDbContext _context = context;
+
+        public async Task<T> AddAsync(T entity)
+        {
+            await _context.Set<T>().AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+
+        public async Task DeleteAsync(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>()
+                .Where(predicate)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> GetAllAsync()
+        {
+            return await _context.Set<T>()
+                .OrderByDescending(e => EF.Property<object>(e, "CreatedOn"))
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<T> GetByIdAsync(Guid id)
+        {
+            var entity = await _context.Set<T>().FindAsync(id)
+                ?? throw new InvalidOperationException($"Entity of type {typeof(T).Name} with ID {id} was not found.");
+            _context.Entry(entity).State = EntityState.Detached; // Detach the entity to avoid tracking issues
+            return entity;
+        }
+
+        public async Task UpdateAsync(T entity)
+        {
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsAsync(Guid id)
+        {
+            var entity = await _context.Set<T>().FindAsync(id);
+            return entity != null;
+        }
+
+        // Implement the new method
+        public IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null)
+        {
+            return predicate == null
+                ? _context.Set<T>().AsQueryable()
+                : _context.Set<T>().Where(predicate);
+        }
+
+        // Streamlined paging method with support for search
+        public async Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Start with base query
+                var query = _context.Set<T>().AsQueryable();
+
+                // Apply base filter if provided
+                if (baseFilter != null)
+                    query = query.Where(baseFilter);
+
+                // Apply date range filter if entity is BaseEntity type
+                if (typeof(BaseEntity).IsAssignableFrom(typeof(T)))
+                {
+                    // Apply start date filter if provided
+                    if (request.StartDate.HasValue)
+                    {
+                        //var startDate = request.StartDate.Value;
+                        //query = query.Where(e => EF.Property<DateTime>(e, nameof(BaseEntity.CreatedOn)) >= startDate);
+
+                        var startDate = request.StartDate.Value.Date; // Use Date to ignore time component
+                        query = query.Where(e => EF.Property<DateTime>(e, "CreatedOn").Date >= startDate);
+                    }
+
+                    // Apply end date filter if provided
+                    if (request.EndDate.HasValue)
+                    {
+                        //// Add one day to include all records until the end of the day
+                        //var endDate = request.EndDate.Value.AddDays(1);
+                        //query = query.Where(e => EF.Property<DateTime>(e, nameof(BaseEntity.CreatedOn)) < endDate);
+
+                        var endDate = request.EndDate.Value.Date.AddDays(1); // Include all records of the end date
+                        query = query.Where(e => EF.Property<DateTime>(e, "CreatedOn") < endDate);
+                    }
+                }
+
+                // Apply search if provided
+                if (searchFunction != null && !string.IsNullOrWhiteSpace(request.SearchText))
+                    query = searchFunction(query, request.SearchText);
+
+                // Get total count before pagination
+                var totalCount = await query.CountAsync(cancellationToken);
+
+                // Apply sorting or use default
+                if (!string.IsNullOrWhiteSpace(request.SortColumn))
+                    query = query.ApplyDynamicOrderBy(request.SortColumn, request.SortDirection ?? "asc");
+
+                // Apply pagination
+                var items = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                // Return paged response
+                return new PagedResponse<T>
+                {
+                    Items = items,
+                    TotalCount = totalCount,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetPagedAsync: {ex.Message}");
+                throw;
+            }
+        }
+    }
+}
+
+//UnitOfWork.cs
+
+namespace ECommercePlatform.Infrastructure
+{
+    public class UnitOfWork(AppDbContext context, UserManager<User> UserManager, RoleManager<Role> RoleManager, SignInManager<User> SignInManager) : IUnitOfWork, IDisposable
+    {
+        private readonly AppDbContext _context = context;
+        private ICountryRepository? _countryRepository;
+        private IUserRepository? _userRepository;
+        private IStateRepository? _stateRepository;
+        private ICityRepository? _cityRepository;
+        private IRolePermissionRepository? _rolePermissionRepository;
+        private IModuleRepository? _moduleRepository;
+        private IRoleRepository? _roleRepository;
+        private IUserRoleRepository? _userRoleRepository;
+
+        private readonly UserManager<User> _userManager = UserManager;
+        private readonly RoleManager<Role> _roleManager = RoleManager;
+        private readonly SignInManager<User> _signInManager = SignInManager;
+
+        public ICountryRepository Countries => _countryRepository ??= new CountryRepository(_context);
+
+        public IUserRepository Users => _userRepository ??= new UserRepository(_context);
+
+        public IStateRepository States => _stateRepository ??= new StateRepository(_context);
+
+        public ICityRepository Cities => _cityRepository ??= new CityRepository(_context);
+
+        public IRolePermissionRepository RolePermissions => _rolePermissionRepository ??= new RolePermissionRepository(_context);
+
+        public IModuleRepository Modules => _moduleRepository ??= new ModuleRepository(_context);
+
+        public IRoleRepository Roles => _roleRepository ??= new RoleRepository(_context);
+
+        public IUserRoleRepository UserRoles => _userRoleRepository ??= new UserRoleRepository(_context);
+
+
+        public UserManager<User> UserManager => _userManager;
+        public RoleManager<Role> RoleManager => _roleManager;
+        public SignInManager<User> SignInManager => _signInManager;
+
+        public async Task<int> CompleteAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
+        }
+    }
+}
+
+//Role.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class Role : IdentityRole<Guid>
+    {
+        public string? Description { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+
+        //Navigation properties
+        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+
+        public Role() : base() { }
+        public Role(string roleName) : base(roleName)
+        {
+        }
+
+        public static Role Create(
+            Guid id,
+            string name,
+            string description,
+            string createdBy)
+        {
+            return new Role
+            {
+                Id = id,
+                Name = name,
+                NormalizedName = name.ToUpper(),
+                Description = description,
+                CreatedBy = createdBy,
+                CreatedOn = DateTime.Now
+            };
+        }
+
+        public void Update(string name,
+            string description)
+        {
+            Name = name;
+            Description = description;
+        }
+
+        public void UpdateProperties(string? name = null, string? description = null)
+        {
+            if (name != null)
+                Name = name;
+
+            if (description != null)
+                Description = description;
+        }
+    }
+}
+
+//RolePermission.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class RolePermission : BaseEntity
+    {
+        public Guid RoleId { get; set; }
+        public Guid ModuleId { get; set; }
+        public bool CanView { get; set; }
+        public bool CanAdd { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
+
+        //Navigation Properties
+        public virtual Role? Role { get; set; }
+        public virtual Module? Module { get; set; }
+
+        private RolePermission() { }
+
+        public static RolePermission Create(
+            Guid roleId,
+            Guid moduleId,
+            bool canView = false,
+            bool canAdd = false,
+            bool canEdit = false,
+            bool canDelete = false)
+        {
+            return new RolePermission
+            {
+                Id = Guid.NewGuid(),
+                RoleId = roleId,
+                ModuleId = moduleId,
+                CanView = canView,
+                CanAdd = canAdd,
+                CanEdit = canEdit,
+                CanDelete = canDelete
+            };
+        }
+
+        public void UpdatePermissions(
+            bool canView,
+            bool canAdd,
+            bool canEdit,
+            bool canDelete)
+        {
+            CanView = canView;
+            CanAdd = canAdd;
+            CanEdit = canEdit;
+            CanDelete = canDelete;
+            ModifiedOn = DateTime.Now;
+        }
+
+        public void SetAllPermissions(bool value)
+        {
+            CanView = value;
+            CanAdd = value;
+            CanEdit = value;
+            CanDelete = value;
+            ModifiedOn = DateTime.Now;
+        }
+    }
+}
+
+//role.service.ts
+
+@Injectable({
+  providedIn: 'root'
+})
+export class RoleService {
+  private apiUrl = `${environment.apiUrl}/role`;
+  private moduleApiUrl = `${environment.apiUrl}/module`;
+  private userApiUrl = `${environment.apiUrl}/user`;
+
+  constructor(private http: HttpClient) { }
+
+  // Role methods
+  getRoles(): Observable<Role[]> {
+    return this.http.get<Role[]>(this.apiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPagedRoles(request: PagedRequest): Observable<PagedResponse<Role>> {
+    return this.http.get<PagedResponse<Role>>(`${this.apiUrl}/paged`, {
+      params: { ...request as any }
+    }).pipe(catchError(this.handleError));
+  }
+
+  getRole(id: string): Observable<Role> {
+    return this.http.get<Role>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  createRole(role: any): Observable<Role> {
+    return this.http.post<Role>(this.apiUrl, role)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateRole(id: string, role: any): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, { ...role, id })
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteRole(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  // Module methods
+  getModules(): Observable<Module[]> {
+    return this.http.get<Module[]>(this.moduleApiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  // Permission methods
+  assignPermissionsToRole(request: RolePermissionRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/permissions`, request)
+      .pipe(catchError(this.handleError));
+  }
+
+  getRolePermissions(roleId: string): Observable<ModulePermission[]> {
+    return this.http.get<ModulePermission[]>(`${this.apiUrl}/${roleId}/permissions`)
+      .pipe(catchError(this.handleError));
+  }
+
+  // User-Role assignment
+  assignRolesToUser(assignment: UserRoleAssignment): Observable<void> {
+    return this.http.post<void>(`${this.userApiUrl}/roles`, assignment)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUserRoles(userId: string): Observable<Role[]> {
+    return this.http.get<Role[]>(`${this.userApiUrl}/${userId}/roles`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUsersByRole(roleId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.userApiUrl}/by-role/${roleId}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  private handleError(error: any) {
+    console.error('An error occurred', error);
+    return throwError(() => error);
+  }
+}
+
+
+//role.model.ts
+
+export interface Module {
+  id?: string;
+  name?: string;
+  description?: string;
+  route?: string;
+  icon?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+  permissions?: Permission[];
+}
+
+export interface Permission {
+  id?: string;
+  name?: string;
+  description?: string;
+  type?: PermissionType;
+  moduleId?: string;
+  moduleName?: string;
+  isActive?: boolean;
+}
+
+export enum PermissionType {
+  View = 'View',
+  Add = 'Add',
+  Edit = 'Edit',
+  Delete = 'Delete'
+}
+
+export interface Role {
+  id?: string;
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+  permissions?: RolePermission[];
+  createdOn?: Date;
+  createdBy?: string;
+  modifiedOn?: Date;
+  modifiedBy?: string;
+}
+
+export interface ModulePermission {
+  moduleId: string;
+  moduleName: string;
+  canView: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+export interface RolePermission {
+  id?: string;
+  roleId?: string;
+  permissionId?: string;
+  permissionType?: string;
+  moduleId?: string;
+  moduleName?: string;
+  moduleRoute?: string;
+  isActive?: boolean;
+}
+
+export interface RolePermissionRequest {
+  roleId: string;
+  permissions: {
+    moduleId: string;
+    permissionTypes: string[];
+  }[];
+}
+
+export interface UserRoleAssignment {
+  userId: string;
+  roleIds: string[];
+}
+
+export interface PermissionItem {
+  moduleId: string;
+  permissionType: string;
+}
+
+
+//role-management.component.html
+
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">{{ isEditMode ? 'Edit Role' : 'New Role' }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Roles</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Role Name <span class="text-danger">*</span></label>
+                <input type="text"
+                       id="name"
+                       formControlName="name"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': roleForm.get('name')?.touched && roleForm.get('name')?.errors}"
+                       placeholder="Enter role name">
+                <div *ngIf="roleForm.get('name')?.touched && roleForm.get('name')?.errors" class="invalid-feedback">
+                  <span *ngIf="roleForm.get('name')?.errors?.['required']">Role name is required.</span>
+                  <span *ngIf="roleForm.get('name')?.errors?.['maxlength']">Role name cannot exceed 100 characters.</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="isActive">Status</label>
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control"
+                          id="description"
+                          formControlName="description"
+                          rows="2"
+                          placeholder="Enter role description"></textarea>
+                <div *ngIf="roleForm.get('description')?.touched && roleForm.get('description')?.errors" class="invalid-feedback">
+                  <span *ngIf="roleForm.get('description')?.errors?.['maxlength']">Description cannot exceed 500 characters.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <h4 class="mb-3">Module Permissions</h4>
+              <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                  <thead class="thead-light">
+                    <tr>
+                      <th style="width: 5%">Index</th>
+                      <th style="width: 35%">Module</th>
+                      <th style="width: 15%">Select All</th>
+                      <th style="width: 15%">Is View</th>
+                      <th style="width: 15%">Is Add/Edit</th>
+                      <th style="width: 15%">Is Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let module of modules; let i = index">
+                      <td>{{ i + 1 }}</td>
+                      <td>{{ module.name }}</td>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input"
+                                 type="checkbox"
+                                 [checked]="isAllSelected(module.id!)"
+                                 (change)="handleCheckboxChange(module.id!, $event)">
+
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input"
+                                 type="checkbox"
+                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.View)"
+                                 (change)="togglePermission(module.id!, PermissionType.View)">
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input"
+                                 type="checkbox"
+                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Edit)"
+                                 (change)="togglePermission(module.id!, PermissionType.Edit)">
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input"
+                                 type="checkbox"
+                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Delete)"
+                                 (change)="togglePermission(module.id!, PermissionType.Delete)">
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="modules.length === 0">
+                      <td colspan="6" class="text-center">No modules available</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-md-12">
+              <button type="submit"
+                      class="btn btn-primary"
+                      [disabled]="roleForm.invalid || loading">
+                <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
+                {{ isEditMode ? 'Update' : 'Save' }} Role
+              </button>
+              <button type="button"
+                      class="btn btn-secondary ml-2"
+                      (click)="resetForm()">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Roles List Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Roles List</h3>
+      </div>
+      <div class="card-body">
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-refresh fa-spin"></i>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead class="thead-light">
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Created On</th>
+                <th style="width: 15%">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let role of roles">
+                <td>{{ role.name }}</td>
+                <td>{{ role.description }}</td>
+                <td>
+                  <span [ngClass]="['badge', role.isActive ? 'bg-success' : 'bg-danger']">
+                    {{ role.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>{{ role.createdOn | date: 'medium' }}</td>
+                <td>
+                  <button class="btn btn-sm btn-info mr-1" (click)="editRole(role)"
+                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Edit }">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteRole(role.id!)"
+                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Delete }">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="roles.length === 0">
+                <td colspan="5" class="text-center">No roles found</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <app-pagination *ngIf="pagedResponse && pagedResponse.totalPages > 1"
+                        [currentPage]="pagedResponse.pageNumber"
+                        [totalPages]="pagedResponse.totalPages"
+                        (pageChange)="onPageChange($event)">
+        </app-pagination>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+//role-management.component.ts
+
+@Component({
+  selector: 'app-role-management',
+  templateUrl: './role-management.component.html',
+  styleUrls: ['./role-management.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    PaginationComponent,
+    PermissionDirective,
+    RouterModule
+  ]
+})
+export class RoleManagementComponent implements OnInit, OnDestroy {
+  roles: Role[] = [];
+  modules: Module[] = [];
+  roleForm!: FormGroup;
+  isEditMode: boolean = false;
+  currentRoleId: string | null = null;
+  loading: boolean = false;
+  message: Message | null = null;
+  PermissionType = PermissionType;
+  modulePermissions: Map<string, Map<PermissionType, boolean>> = new Map();
+  Math = Math;
+
+  // Pagination properties
+  pagedResponse: PagedResponse<Role> | null = null;
+  pageRequest: PagedRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    searchText: '',
+    sortColumn: 'name',
+    sortDirection: 'asc'
+  };
+
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private roleService: RoleService,
+    private moduleService: ModuleService,
+    private authService: AuthService,
+    private messageService: MessageService,
+    private fb: FormBuilder
+  ) { }
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadRoles();
+    this.loadModules();
+
+    const messageSub = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+
+    this.subscriptions.push(messageSub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private initForm(): void {
+    this.roleForm = this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', [Validators.maxLength(500)]],
+      isActive: [true]
+    });
+  }
+
+  loadRoles(): void {
+    this.loading = true;
+    const sub = this.roleService.getPagedRoles(this.pageRequest).subscribe({
+      next: (response) => {
+        this.pagedResponse = response;
+        this.roles = response.items;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+        this.messageService.showMessage({
+          type: 'error',
+          text: error.error?.message || 'Failed to load roles'
+        });
+        this.loading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  loadModules(): void {
+    this.loading = true;
+    const sub = this.moduleService.getAllModulesWithPermissions().subscribe({
+      next: (modules) => {
+        this.modules = modules;
+        this.initializeModulePermissions();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading modules:', error);
+        this.messageService.showMessage({
+          type: 'error',
+          text: error.error?.message || 'Failed to load modules'
+        });
+        this.loading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  initializeModulePermissions(): void {
+    this.modulePermissions.clear();
+    this.modules.forEach(module => {
+      if (!module.id) return;
+
+      const permissionMap = new Map<PermissionType, boolean>();
+      permissionMap.set(PermissionType.View, false);
+      permissionMap.set(PermissionType.Add, false);
+      permissionMap.set(PermissionType.Edit, false);
+      permissionMap.set(PermissionType.Delete, false);
+
+      this.modulePermissions.set(module.id, permissionMap);
+    });
+  }
+
+  togglePermission(moduleId: string, permType: PermissionType): void {
+    const modulePerms = this.modulePermissions.get(moduleId);
+    if (modulePerms) {
+      const currentValue = modulePerms.get(permType) || false;
+      modulePerms.set(permType, !currentValue);
+    }
+  }
+
+  toggleAllPermissionsForModule(moduleId: string, checked: boolean): void {
+    const modulePerms = this.modulePermissions.get(moduleId);
+    if (modulePerms) {
+      modulePerms.set(PermissionType.View, checked);
+      modulePerms.set(PermissionType.Add, checked);
+      modulePerms.set(PermissionType.Edit, checked);
+      modulePerms.set(PermissionType.Delete, checked);
+    }
+  }
+
+  isAllSelected(moduleId: string): boolean {
+    const modulePerms = this.modulePermissions.get(moduleId);
+    if (!modulePerms) return false;
+    return (
+      (modulePerms.get(PermissionType.View) || false) &&
+      (modulePerms.get(PermissionType.Add) || false) &&
+      (modulePerms.get(PermissionType.Edit) || false) &&
+      (modulePerms.get(PermissionType.Delete) || false)
+    );
+  }
+
+  handleCheckboxChange(moduleId: string, event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    this.toggleAllPermissionsForModule(moduleId, checkbox.checked);
+  }
+
+  onSubmit(): void {
+    if (this.roleForm.invalid) return;
+
+    this.loading = true;
+    const roleData = this.roleForm.value;
+
+    // Convert the module permissions to the format expected by the API
+    const permissions = Array.from(this.modulePermissions.entries())
+      .flatMap(([moduleId, permMap]) => {
+        // Create separate objects for each permission type with UPPERCASE values
+        const result = [];
+        if (permMap.get(PermissionType.View))
+          result.push({ moduleId, permissionType: "View" });
+        if (permMap.get(PermissionType.Add))
+          result.push({ moduleId, permissionType: "Add" });
+        if (permMap.get(PermissionType.Edit))
+          result.push({ moduleId, permissionType: "Edit" });
+        if (permMap.get(PermissionType.Delete))
+          result.push({ moduleId, permissionType: "Delete" });
+
+        return result;
+      });
+
+    roleData.permissions = permissions;
+
+    if (this.isEditMode && this.currentRoleId) {
+      this.roleService.updateRole(this.currentRoleId, roleData).subscribe({
+        next: () => this.handleSuccess('Role updated successfully'),
+        error: (error) => this.handleError('Failed to update role', error)
+      });
+    } else {
+      this.roleService.createRole(roleData).subscribe({
+        next: () => this.handleSuccess('Role created successfully'),
+        error: (error) => this.handleError('Failed to create role', error)
+      });
+    }
+  }
+
+  private handleSuccess(message: string): void {
+    this.messageService.showMessage({ type: 'success', text: message });
+    this.resetForm();
+    this.loadRoles();
+    this.loading = false;
+  }
+
+  private handleError(message: string, error: any): void {
+    console.error(message, error);
+    this.messageService.showMessage({
+      type: 'error',
+      text: error.error?.message || message
+    });
+    this.loading = false;
+  }
+
+  editRole(role: Role): void {
+    this.isEditMode = true;
+    this.currentRoleId = role.id || null;
+
+    this.roleForm.patchValue({
+      name: role.name,
+      description: role.description,
+      isActive: role.isActive
+    });
+
+    // Reset all permissions first
+    this.initializeModulePermissions();
+
+    // Then set the permissions from the role
+    if (role.permissions) {
+      role.permissions.forEach(perm => {
+        if (perm.moduleId && this.modulePermissions.has(perm.moduleId)) {
+          const modulePerms = this.modulePermissions.get(perm.moduleId);
+          if (modulePerms && perm.permissionType) {
+            const permType = this.getPermissionTypeFromString(perm.permissionType);
+            if (permType) modulePerms.set(permType, true);
+          }
+        }
+      });
+    }
+  }
+
+  private getPermissionTypeFromString(permTypeStr: string): PermissionType | null {
+    switch (permTypeStr.toUpperCase()) {
+      case "View": return PermissionType.View;
+      case "Add": return PermissionType.Add;
+      case "Edit": return PermissionType.Edit;
+      case "Delete": return PermissionType.Delete;
+      default: return null;
+    }
+  }
+
+  deleteRole(id: string): void {
+    if (confirm('Are you sure you want to delete this role?')) {
+      this.loading = true;
+      this.roleService.deleteRole(id).subscribe({
+        next: () => this.handleSuccess('Role deleted successfully'),
+        error: (error) => this.handleError('Failed to delete role', error)
+      });
+    }
+  }
+
+  resetForm(): void {
+    this.roleForm.reset({ isActive: true });
+    this.isEditMode = false;
+    this.currentRoleId = null;
+    this.initializeModulePermissions();
+  }
+
+  onPageChange(newPage: number): void {
+    this.pageRequest.pageNumber = newPage;
+    this.loadRoles();
+  }
+}

@@ -4,7 +4,6 @@ import { DashboardComponent } from './admin/dashboard/dashboard.component';
 import { CountryComponent } from './admin/country/country.component';
 import { StateComponent } from './admin/state/state.component';
 import { CityComponent } from './admin/city/city.component';
-import { authGuard } from './guards/auth.guard';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { AdminLayoutComponent } from './shared/admin-layout/admin-layout.component';
 import { RoleManagementComponent } from './admin/role-management/role-management.component';
@@ -67,6 +66,7 @@ export const routes: Routes = [
             path: 'countries',
             component: CountryComponent,
             title: 'Country Management',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'countries',
               permission: PermissionType.View
@@ -76,6 +76,7 @@ export const routes: Routes = [
             path: 'states',
             component: StateComponent,
             title: 'State Management',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'states',
               permission: PermissionType.View
@@ -85,6 +86,7 @@ export const routes: Routes = [
             path: 'cities',
             component: CityComponent,
             title: 'City Management',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'cities',
               permission: PermissionType.View
@@ -94,6 +96,7 @@ export const routes: Routes = [
             path: 'roles',
             component: RoleManagementComponent,
             title: 'Role Management',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'roles',
               permission: PermissionType.View,
@@ -104,6 +107,7 @@ export const routes: Routes = [
             path: 'users',
             component: UserComponent,
             title: 'User Management',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'users',
               permission: PermissionType.View,
@@ -114,6 +118,7 @@ export const routes: Routes = [
             path: 'modules',
             component: ModuleManagementComponent,
             title: 'Module Management',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'modules',
               permission: PermissionType.View,
@@ -124,6 +129,7 @@ export const routes: Routes = [
             path: 'modules/:id/permissions',
             component: ModulePermissionsComponent,
             title: 'Module Permissions',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'modules',
               permission: PermissionType.View,
@@ -134,6 +140,7 @@ export const routes: Routes = [
             path: 'module-permissions',
             component: ModulePermissionsComponent, // You could create a dedicated component or reuse the module management one
             title: 'Module Permissions',
+            canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'modules',
               permission: PermissionType.View,

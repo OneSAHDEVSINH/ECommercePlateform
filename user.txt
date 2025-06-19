@@ -1,0 +1,3410 @@
+//UserController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class UserController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+        private readonly IPermissionService _permissionService;
+
+        public UserController(IMediator mediator, IPermissionService permissionService)
+        {
+            _mediator = mediator;
+            _permissionService = permissionService;
+        }
+
+        // Admin endpoints
+        [HttpGet]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetAllUsers([FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetAllUsersQuery(activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetPagedUsers([FromQuery] GetPagedUsersQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("{id}")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUserById(Guid id)
+        {
+            var result = await _mediator.Send(new GetUserByIdQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("{id}/roles")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUserWithRoles(Guid id)
+        {
+            var result = await _mediator.Send(new GetUserWithRolesQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("by-email")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
+        {
+            var result = await _mediator.Send(new GetUserByEmailQuery(email));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("by-role/{roleId}")]
+        [HasPermission("Users", "View")]
+        public async Task<IActionResult> GetUsersByRoleId(Guid roleId, [FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetUsersByRoleIdQuery(roleId, activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost]
+        [HasPermission("Users", "Add")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetUserById), new { id = result.Value.Id }, result.Value);
+
+            return Conflict(new { message = result.Error });
+        }
+
+        [HttpPut("{id}")]
+        [HasPermission("Users", "Edit")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : Conflict(new { message = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [HasPermission("Users", "Delete")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteUserCommand(id));
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost("{id}/roles")]
+        [HasPermission("Users", "Edit")]
+        public async Task<IActionResult> AssignRoles(Guid id, [FromBody] List<Guid> roleIds)
+        {
+            var command = new AssignRolesToUserCommand
+            {
+                UserId = id,
+                RoleIds = roleIds
+            };
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserProfile()
+        {
+            var userId = this.GetCurrentUserId();
+
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
+
+            var result = await _mediator.Send(new GetCurrentUserProfileQuery(userId.Value.ToString()));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateCurrentUserProfile([FromBody] UpdateUserProfileCommand command)
+        {
+            var userId = this.GetCurrentUserId();
+
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "User not authenticated" });
+
+            command.Id = userId.Value;
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpPost("profile/change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            if (!Guid.TryParse(userId, out var userGuid))
+                return BadRequest(new { message = "Invalid user ID format" });
+
+            command.UserId = userGuid;
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return Ok(new { message = "Password changed successfully" });
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("profile/permissions")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUserPermissions()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "User not authenticated" });
+
+            if (!Guid.TryParse(userId, out var userGuid))
+                return BadRequest(new { message = "Invalid user ID format" });
+
+            var permissions = await _permissionService.GetUserPermissionsAsync(userGuid);
+
+            return Ok(new { permissions });
+        }
+
+        //[HttpPost("profile/upload-avatar")]
+        //[Authorize]
+        //public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file)
+        //{
+        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized(new { message = "User not authenticated" });
+
+        //    if (!Guid.TryParse(userId, out var userGuid))
+        //        return BadRequest(new { message = "Invalid user ID format" });
+
+        //    if (file == null || file.Length == 0)
+        //        return BadRequest(new { message = "No file uploaded" });
+
+        //    // Validate file type
+        //    var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+        //    if (!allowedTypes.Contains(file.ContentType))
+        //        return BadRequest(new { message = "Invalid file type. Only JPEG, PNG, and GIF are allowed." });
+
+        //    // Validate file size (5MB max)
+        //    if (file.Length > 5 * 1024 * 1024)
+        //        return BadRequest(new { message = "File size must not exceed 5MB" });
+
+        //    var command = new UploadAvatarCommand
+        //    {
+        //        UserId = userGuid,
+        //        File = file
+        //    };
+
+        //    var result = await _mediator.Send(command);
+
+        //    if (result.IsSuccess)
+        //        return Ok(new { message = "Avatar uploaded successfully", avatarUrl = result.Value });
+
+        //    return BadRequest(new { message = result.Error });
+        //}
+
+        //[HttpDelete("profile/avatar")]
+        //[Authorize]
+        //public async Task<IActionResult> RemoveAvatar()
+        //{
+        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        //    if (string.IsNullOrEmpty(userId))
+        //        return Unauthorized(new { message = "User not authenticated" });
+
+        //    if (!Guid.TryParse(userId, out var userGuid))
+        //        return BadRequest(new { message = "Invalid user ID format" });
+
+        //    var command = new RemoveAvatarCommand { UserId = userGuid };
+
+        //    var result = await _mediator.Send(command);
+
+        //    if (result.IsSuccess)
+        //        return Ok(new { message = "Avatar removed successfully" });
+
+        //    return BadRequest(new { message = result.Error });
+        //}
+    }
+}
+
+//UserDto.cs
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class UserDto
+    {
+        public Guid Id { get; init; }
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? Email { get; init; }
+        public required string Password { get; init; }
+        public string? PhoneNumber { get; init; }
+        public Gender Gender { get; init; }
+        public DateOnly DateOfBirth { get; init; }
+        public string? Bio { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+        public List<RoleDto>? Roles { get; init; }
+
+        // Explicit conversion operator from User entity to UserDto
+        public static explicit operator UserDto(User user)
+        {
+            return new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Password = user.PasswordHash!,
+                PhoneNumber = user.PhoneNumber,
+                Gender = user.Gender,
+                DateOfBirth = user.DateOfBirth,
+                Bio = user.Bio,
+                IsActive = user.IsActive,
+                CreatedOn = user.CreatedOn,
+                Roles = user.UserRoles?
+                    .Where(ur => ur.Role != null)
+                    .Select(ur => (RoleDto)ur.Role!)
+                    .ToList()
+            };
+        }
+    }
+
+    public class CreateUserDto
+    {
+        public required string FirstName { get; init; }
+        public required string LastName { get; init; }
+        public required string Email { get; init; }
+        public required string Password { get; init; }
+        public string? PhoneNumber { get; init; }
+        public Gender Gender { get; init; } = Gender.Other;
+        public DateOnly? DateOfBirth { get; init; }
+        public string? Bio { get; init; }
+        public List<Guid>? RoleIds { get; init; }
+        public bool IsActive { get; init; } = true;
+    }
+
+    public class UpdateUserDto
+    {
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? Email { get; init; }
+        public string? Password { get; init; }
+        public string? PhoneNumber { get; init; }
+        public Gender? Gender { get; init; }
+        public DateOnly? DateOfBirth { get; init; }
+        public string? Bio { get; init; }
+        public List<Guid>? RoleIds { get; init; }
+        public bool? IsActive { get; init; }
+
+        public static explicit operator UpdateUserDto(UpdateUserCommand command)
+        {
+            return new UpdateUserDto
+            {
+                FirstName = command.FirstName,
+                LastName = command.LastName,
+                Email = command.Email,
+                Password = command.Password,
+                PhoneNumber = command.PhoneNumber,
+                Gender = command.Gender,
+                DateOfBirth = command.DateOfBirth,
+                Bio = command.Bio,
+                RoleIds = command.RoleIds,
+                IsActive = command.IsActive
+            };
+        }
+    }
+
+    public class UserListDto
+    {
+        public Guid Id { get; init; }
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? Email { get; init; }
+        public string? PhoneNumber { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+        public int RoleCount { get; init; }
+
+        public static explicit operator UserListDto(User user)
+        {
+            return new UserListDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                IsActive = user.IsActive,
+                CreatedOn = user.CreatedOn,
+                RoleCount = user.UserRoles?.Count ?? 0
+            };
+        }
+    }
+}
+
+//UserProfileDto.cs
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class UserProfileDto
+    {
+        public Guid Id { get; init; }
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? Email { get; init; }
+        public string? PhoneNumber { get; init; }
+        public Gender Gender { get; init; }
+        public DateOnly DateOfBirth { get; init; }
+        public string? Bio { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+        public List<RoleDto>? Roles { get; init; }
+        public List<UserPermissionDto>? Permissions { get; init; }
+
+        public static explicit operator UserProfileDto(User user)
+        {
+            return new UserProfileDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Gender = user.Gender,
+                DateOfBirth = user.DateOfBirth,
+                Bio = user.Bio,
+                IsActive = user.IsActive,
+                CreatedOn = user.CreatedOn,
+                Roles = user.UserRoles?
+                    .Where(ur => ur.Role != null)
+                    .Select(ur => (RoleDto)ur.Role!)
+                    .ToList()
+            };
+        }
+
+        // Factory method instead of explicit operator
+        public static UserProfileDto Create(User user, List<RoleDto>? roles = null, List<UserPermissionDto>? permissions = null)
+        {
+            return new UserProfileDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Gender = user.Gender,
+                DateOfBirth = user.DateOfBirth,
+                Bio = user.Bio,
+                IsActive = user.IsActive,
+                CreatedOn = user.CreatedOn,
+                Roles = roles ?? user.UserRoles?
+                    .Where(ur => ur.Role != null)
+                    .Select(ur => (RoleDto)ur.Role!)
+                    .ToList(),
+                Permissions = permissions
+            };
+        }
+    }
+}
+
+//UserRoleDto.cs
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class UserRoleDto
+    {
+        public Guid Id { get; init; }
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
+        public string? UserName { get; init; }
+        public string? UserEmail { get; init; }
+        public string? RoleName { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+        public string? CreatedBy { get; init; }
+
+        // Explicit conversion operator from UserRole entity to UserRoleDto
+        public static explicit operator UserRoleDto(UserRole userRole)
+        {
+            return new UserRoleDto
+            {
+                UserId = userRole.UserId,
+                RoleId = userRole.RoleId,
+                UserName = userRole.User != null ? $"{userRole.User.FirstName} {userRole.User.LastName}".Trim() : null,
+                UserEmail = userRole.User?.Email,
+                RoleName = userRole.Role?.Name,
+                IsActive = userRole.IsActive,
+                CreatedOn = userRole.CreatedOn,
+                CreatedBy = userRole.CreatedBy
+            };
+        }
+    }
+
+    public class CreateUserRoleDto
+    {
+        public required Guid UserId { get; init; }
+        public required Guid RoleId { get; init; }
+        public bool IsActive { get; init; } = true;
+    }
+
+    public class UpdateUserRoleDto
+    {
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
+        public bool? IsActive { get; init; }
+    }
+
+    public class UserRoleListDto
+    {
+        public Guid Id { get; init; }
+        public Guid UserId { get; init; }
+        public Guid RoleId { get; init; }
+        public string? UserName { get; init; }
+        public string? RoleName { get; init; }
+        public bool IsActive { get; init; }
+
+        public static explicit operator UserRoleListDto(UserRole userRole)
+        {
+            return new UserRoleListDto
+            {
+                UserId = userRole.UserId,
+                RoleId = userRole.RoleId,
+                UserName = userRole.User != null ? $"{userRole.User.FirstName} {userRole.User.LastName}".Trim() : null,
+                RoleName = userRole.Role?.Name,
+                IsActive = userRole.IsActive
+            };
+        }
+    }
+}
+
+//AssignRolesToUserCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser
+{
+    public record AssignRolesToUserCommand : IRequest<AppResult>, ITransactionalBehavior, IAuditableUpdateRequest
+    {
+        public required Guid UserId { get; init; }
+        public required List<Guid> RoleIds { get; init; }
+
+        [JsonIgnore]
+        public string? ModifiedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime ModifiedOn { get; set; } = DateTime.UtcNow;
+    }
+}
+
+//AssignRolesToUserHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser
+{
+    public class AssignRolesToUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<AssignRolesToUserCommand, AppResult>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult> Handle(AssignRolesToUserCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Get user from UserManager
+                var user = await _unitOfWork.UserManager.FindByIdAsync(request.UserId.ToString());
+                if (user == null)
+                    return AppResult.Failure($"User with ID {request.UserId} not found.");
+
+                // Get current roles
+                var currentRoles = await _unitOfWork.UserManager.GetRolesAsync(user);
+
+                // Remove existing roles
+                if (currentRoles.Any())
+                {
+                    await _unitOfWork.UserManager.RemoveFromRolesAsync(user, currentRoles);
+                }
+
+                // Add new roles
+                foreach (var roleId in request.RoleIds)
+                {
+                    var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+                    if (role == null)
+                        return AppResult.Failure($"Role with ID {roleId} not found.");
+
+                    var result = await _unitOfWork.UserManager.AddToRoleAsync(user, role.Name!);
+                    if (!result.Succeeded)
+                    {
+                        var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                        return AppResult.Failure($"Failed to assign role {role.Name}: {errors}");
+                    }
+                }
+
+                // Update modification tracking
+                user.ModifiedBy = request.ModifiedBy;
+                user.ModifiedOn = request.ModifiedOn;
+                await _unitOfWork.UserManager.UpdateAsync(user);
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while assigning roles: {ex.Message}");
+            }
+        }
+    }
+}
+
+//AssignRolesToUserValidator.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser
+{
+    public class AssignRolesToUserValidator : AbstractValidator<AssignRolesToUserCommand>
+    {
+        public AssignRolesToUserValidator()
+        {
+            RuleFor(x => x.UserId)
+                .NotEmpty().WithMessage("User ID is required");
+
+            RuleFor(x => x.RoleIds)
+                .NotNull().WithMessage("Role IDs cannot be null")
+                .Must(roles => roles.Count > 0)
+                    .WithMessage("At least one role must be assigned");
+
+            RuleForEach(x => x.RoleIds)
+                .NotEmpty().WithMessage("Role ID cannot be empty");
+        }
+    }
+}
+
+//ChangePasswordCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.ChangePassword
+{
+    public class ChangePasswordCommand : IRequest<AppResult>, ITransactionalBehavior
+    {
+        [JsonIgnore]
+        public Guid UserId { get; set; } // Set by controller
+
+        public required string CurrentPassword { get; init; }
+        public required string NewPassword { get; init; }
+    }
+}
+
+//ChangePasswordHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.ChangePassword
+{
+    public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, AppResult>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public ChangePasswordHandler(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<AppResult> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var user = await _unitOfWork.UserManager.FindByIdAsync(request.UserId.ToString());
+                if (user == null)
+                    return AppResult.Failure("User not found.");
+
+                // Verify current password
+                var passwordCheck = await _unitOfWork.UserManager.CheckPasswordAsync(user, request.CurrentPassword);
+                if (!passwordCheck)
+                    return AppResult.Failure("Current password is incorrect.");
+
+                // Change password
+                var result = await _unitOfWork.UserManager.ChangePasswordAsync(
+                    user,
+                    request.CurrentPassword,
+                    request.NewPassword);
+
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return AppResult.Failure($"Failed to change password: {errors}");
+                }
+
+                // Update modification info
+                user.ModifiedOn = DateTime.UtcNow;
+                await _unitOfWork.UserManager.UpdateAsync(user);
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while changing password: {ex.Message}");
+            }
+        }
+    }
+}
+
+//ChangePasswordValidator.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.ChangePassword
+{
+    public class ChangePasswordValidator : AbstractValidator<ChangePasswordCommand>
+    {
+        public ChangePasswordValidator()
+        {
+            RuleFor(x => x.CurrentPassword)
+                .NotEmpty().WithMessage("Current password is required");
+
+            RuleFor(x => x.NewPassword)
+                .NotEmpty().WithMessage("New password is required")
+                .MinimumLength(6).WithMessage("Password must be at least 6 characters")
+                .MaximumLength(100).WithMessage("Password must not exceed 100 characters")
+                .NotEqual(x => x.CurrentPassword).WithMessage("New password must be different from current password");
+        }
+    }
+}
+
+//CreateUserCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Create
+{
+    public record CreateUserCommand : IRequest<AppResult<UserDto>>, ITransactionalBehavior, IAuditableCreateRequest
+    {
+        public required string FirstName { get; init; }
+        public required string LastName { get; init; }
+        public required string Email { get; init; }
+        public required string Password { get; init; }
+        public string? PhoneNumber { get; init; }
+        public Gender Gender { get; init; } = Gender.Other;
+        public DateOnly? DateOfBirth { get; init; }
+        public string? Bio { get; init; }
+        public List<Guid>? RoleIds { get; init; } = new();
+        public bool IsActive { get; init; } = true;
+
+        [JsonIgnore]
+        public string? CreatedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+    }
+}
+
+//CreateUserHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Create
+{
+    public class CreateUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<CreateUserCommand, AppResult<UserDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<UserDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Validate email uniqueness
+                var emailResult = await _unitOfWork.Users.EnsureEmailIsUniqueAsync(request.Email);
+                if (emailResult.IsFailure)
+                    return AppResult<UserDto>.Failure(emailResult.Error);
+
+                // Create user with UserManager
+                var user = new User
+                {
+                    UserName = request.Email,
+                    Email = request.Email,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    PhoneNumber = request.PhoneNumber,
+                    Gender = request.Gender,
+                    DateOfBirth = request.DateOfBirth ?? DateOnly.FromDateTime(DateTime.Now.AddYears(-18)),
+                    Bio = request.Bio,
+                    IsActive = request.IsActive,
+                    CreatedBy = request.CreatedBy,
+                    CreatedOn = request.CreatedOn
+                };
+
+                var result = await _unitOfWork.UserManager.CreateAsync(user, request.Password);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return AppResult<UserDto>.Failure($"Failed to create user: {errors}");
+                }
+
+                // Assign roles if provided
+                if (request.RoleIds != null && request.RoleIds.Any())
+                {
+                    foreach (var roleId in request.RoleIds)
+                    {
+                        var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+                        if (role != null)
+                        {
+                            await _unitOfWork.UserManager.AddToRoleAsync(user, role.Name!);
+                        }
+                    }
+                }
+
+                // Reload user with roles
+                var createdUser = await _unitOfWork.Users.GetByIdAsync(user.Id);
+                if (createdUser == null)
+                    return AppResult<UserDto>.Failure("User was created but could not be retrieved.");
+
+                // Map to DTO without exposing password
+                var userDto = new UserDto
+                {
+                    Id = createdUser.Id,
+                    FirstName = createdUser.FirstName,
+                    LastName = createdUser.LastName,
+                    Email = createdUser.Email!,
+                    Password = createdUser.PasswordHash, // Don't expose
+                    PhoneNumber = createdUser.PhoneNumber,
+                    Gender = createdUser.Gender,
+                    DateOfBirth = createdUser.DateOfBirth,
+                    Bio = createdUser.Bio,
+                    IsActive = createdUser.IsActive,
+                    CreatedOn = createdUser.CreatedOn,
+                    Roles = new List<RoleDto>()
+                };
+
+                return AppResult<UserDto>.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserDto>.Failure($"An error occurred while creating the user: {ex.Message}");
+            }
+        }
+    }
+}
+
+//CreateUserValidator.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Create
+{
+    public class CreateUserValidator : AbstractValidator<CreateUserCommand>
+    {
+        private static readonly Regex EmailRegex = GeneratedRegex.Email();
+        private static readonly Regex NameRegex = GeneratedRegex.Name();
+
+        public CreateUserValidator()
+        {
+            RuleFor(x => x.FirstName.Trim())
+                .NotEmpty().WithMessage("First name is required")
+                .MaximumLength(50).WithMessage("First name must not exceed 50 characters")
+                .Must(static value => NameRegex.IsMatch(value))
+                    .WithMessage("First name must contain only letters and spaces");
+
+            RuleFor(x => x.LastName.Trim())
+                .NotEmpty().WithMessage("Last name is required")
+                .MaximumLength(50).WithMessage("Last name must not exceed 50 characters")
+                .Must(static value => NameRegex.IsMatch(value))
+                    .WithMessage("Last name must contain only letters and spaces");
+
+            RuleFor(x => x.Email.Trim())
+                .NotEmpty().WithMessage("Email is required")
+                .MaximumLength(100).WithMessage("Email must not exceed 100 characters")
+                .EmailAddress().WithMessage("A valid email address is required")
+                .Must(static value => EmailRegex.IsMatch(value))
+                    .WithMessage("Please enter a valid email address format");
+
+            RuleFor(x => x.Password)
+                .NotEmpty().WithMessage("Password is required")
+                .MinimumLength(6).WithMessage("Password must be at least 6 characters")
+                .MaximumLength(100).WithMessage("Password must not exceed 100 characters");
+
+            RuleFor(x => x.PhoneNumber)
+                .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters")
+                .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
+
+            RuleFor(x => x.Bio)
+                .MaximumLength(500).WithMessage("Bio must not exceed 500 characters")
+                .When(x => !string.IsNullOrEmpty(x.Bio));
+
+            RuleFor(x => x.RoleIds)
+                .NotNull().WithMessage("At least one role must be assigned")
+                .Must(roles => roles != null && roles.Count > 0)
+                    .WithMessage("At least one role must be assigned");
+
+            RuleForEach(x => x.RoleIds)
+                .NotEmpty().WithMessage("Role ID cannot be empty");
+        }
+    }
+}
+
+//DeleteUserCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Delete
+{
+    public record DeleteUserCommand(Guid Id) : IRequest<AppResult>, ITransactionalBehavior;
+}
+
+//DeleteUserHandler.cs
+
+using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.Interfaces;
+using MediatR;
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Delete
+{
+    public class DeleteUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteUserCommand, AppResult>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
+                if (user == null)
+                    return AppResult.Failure($"User with ID {request.Id} not found.");
+
+                // First delete associated user roles
+                await _unitOfWork.UserRoles.DeleteByUserIdAsync(request.Id);
+
+                // Then delete the user
+                await _unitOfWork.Users.DeleteAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while deleting the user: {ex.Message}");
+            }
+        }
+    }
+}
+
+//DeleteUserValidator.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Delete
+{
+    public class DeleteUserValidator : AbstractValidator<DeleteUserCommand>
+    {
+        public DeleteUserValidator()
+        {
+            RuleFor(x => x.Id).NotEmpty();
+        }
+    }
+}
+
+//RemoveAvatarCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.RemoveAvatar
+{
+    public class RemoveAvatarCommand : IRequest<AppResult>, ITransactionalBehavior
+    {
+        [JsonIgnore]
+        public Guid UserId { get; set; }
+    }
+}
+
+//RemoveAvatarHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.RemoveAvatar
+{
+    public class RemoveAvatarHandler : IRequestHandler<RemoveAvatarCommand, AppResult>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public RemoveAvatarHandler(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<AppResult> Handle(RemoveAvatarCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
+                if (user == null)
+                    return AppResult.Failure("User not found.");
+
+                // Remove avatar
+                user.Avatar = null;
+                user.ModifiedOn = DateTime.UtcNow;
+
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while removing avatar: {ex.Message}");
+            }
+        }
+    }
+}
+
+//UpdateUserCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Update
+{
+    public record UpdateUserCommand : IRequest<AppResult<UserDto>>, ITransactionalBehavior, IAuditableUpdateRequest
+    {
+        public required Guid Id { get; init; }
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? Email { get; init; }
+        public string? Password { get; init; } // Optional for updates
+        public string? PhoneNumber { get; init; }
+        public Gender? Gender { get; init; }
+        public DateOnly? DateOfBirth { get; init; }
+        public string? Bio { get; init; }
+        public List<Guid>? RoleIds { get; init; }
+        public bool? IsActive { get; init; }
+
+        [JsonIgnore]
+        public string? ModifiedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime ModifiedOn { get; set; } = DateTime.UtcNow;
+    }
+}
+
+//UpdateUserHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Update
+{
+    public class UpdateUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<UpdateUserCommand, AppResult<UserDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<UserDto>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Get user from UserManager
+                var user = await _unitOfWork.UserManager.FindByIdAsync(request.Id.ToString());
+                if (user == null)
+                    return AppResult<UserDto>.Failure($"User with ID {request.Id} not found.");
+
+                // Check email uniqueness if changing
+                if (!string.IsNullOrEmpty(request.Email) && request.Email != user.Email)
+                {
+                    var emailResult = await _unitOfWork.Users.EnsureEmailIsUniqueAsync(request.Email, request.Id);
+                    if (emailResult.IsFailure)
+                        return AppResult<UserDto>.Failure(emailResult.Error);
+
+                    user.Email = request.Email;
+                    user.UserName = request.Email;
+                }
+
+                // Update user properties
+                if (!string.IsNullOrEmpty(request.FirstName))
+                    user.FirstName = request.FirstName;
+                if (!string.IsNullOrEmpty(request.LastName))
+                    user.LastName = request.LastName;
+                if (request.Gender.HasValue)
+                    user.Gender = request.Gender.Value;
+                if (request.DateOfBirth.HasValue)
+                    user.DateOfBirth = request.DateOfBirth.Value;
+                if (request.PhoneNumber != null)
+                    user.PhoneNumber = request.PhoneNumber;
+                if (request.Bio != null)
+                    user.Bio = request.Bio;
+                if (request.IsActive.HasValue)
+                    user.IsActive = request.IsActive.Value;
+
+                user.ModifiedBy = request.ModifiedBy;
+                user.ModifiedOn = request.ModifiedOn;
+
+                // Update user
+                var updateResult = await _unitOfWork.UserManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                    return AppResult<UserDto>.Failure($"Failed to update user: {errors}");
+                }
+
+                // Update password if provided
+                if (!string.IsNullOrEmpty(request.Password))
+                {
+                    await _unitOfWork.UserManager.RemovePasswordAsync(user);
+                    var passwordResult = await _unitOfWork.UserManager.AddPasswordAsync(user, request.Password);
+                    if (!passwordResult.Succeeded)
+                    {
+                        var errors = string.Join(", ", passwordResult.Errors.Select(e => e.Description));
+                        return AppResult<UserDto>.Failure($"Failed to update password: {errors}");
+                    }
+                }
+
+                // Update roles if provided
+                if (request.RoleIds != null)
+                {
+                    // Remove existing roles
+                    var currentRoles = await _unitOfWork.UserManager.GetRolesAsync(user);
+                    await _unitOfWork.UserManager.RemoveFromRolesAsync(user, currentRoles);
+
+                    // Add new roles
+                    foreach (var roleId in request.RoleIds)
+                    {
+                        var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+                        if (role != null)
+                        {
+                            await _unitOfWork.UserManager.AddToRoleAsync(user, role.Name!);
+                        }
+                    }
+                }
+
+                // Reload user with updated data
+                var updatedUser = await _unitOfWork.Users.GetByIdAsync(user.Id);
+                if (updatedUser == null)
+                    return AppResult<UserDto>.Failure("User was updated but could not be retrieved.");
+
+                // Map to DTO
+                var userDto = (UserDto)updatedUser;
+                //userDto.Password = ""; // Don't expose password
+
+                return AppResult<UserDto>.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserDto>.Failure($"An error occurred while updating the user: {ex.Message}");
+            }
+        }
+    }
+}
+
+//UpdateUserValidator.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.Update
+{
+    public class UpdateUserValidator : AbstractValidator<UpdateUserCommand>
+    {
+        private static readonly Regex EmailRegex = GeneratedRegex.Email();
+        private static readonly Regex NameRegex = GeneratedRegex.Name();
+
+        public UpdateUserValidator()
+        {
+            RuleFor(x => x.Id)
+                .NotEmpty().WithMessage("User ID is required");
+
+            When(x => !string.IsNullOrEmpty(x.FirstName), () =>
+            {
+                RuleFor(x => x.FirstName!.Trim())
+                    .MaximumLength(50).WithMessage("First name must not exceed 50 characters")
+                    .Must(static value => NameRegex.IsMatch(value))
+                        .WithMessage("First name must contain only letters and spaces");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.LastName), () =>
+            {
+                RuleFor(x => x.LastName!.Trim())
+                    .MaximumLength(50).WithMessage("Last name must not exceed 50 characters")
+                    .Must(static value => NameRegex.IsMatch(value))
+                        .WithMessage("Last name must contain only letters and spaces");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Email), () =>
+            {
+                RuleFor(x => x.Email!.Trim())
+                    .MaximumLength(100).WithMessage("Email must not exceed 100 characters")
+                    .EmailAddress().WithMessage("A valid email address is required")
+                    .Must(static value => EmailRegex.IsMatch(value))
+                        .WithMessage("Please enter a valid email address format");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Password), () =>
+            {
+                RuleFor(x => x.Password!)
+                    .MinimumLength(6).WithMessage("Password must be at least 6 characters")
+                    .MaximumLength(100).WithMessage("Password must not exceed 100 characters");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.PhoneNumber), () =>
+            {
+                RuleFor(x => x.PhoneNumber!)
+                    .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Bio), () =>
+            {
+                RuleFor(x => x.Bio!)
+                    .MaximumLength(500).WithMessage("Bio must not exceed 500 characters");
+            });
+
+            When(x => x.RoleIds != null && x.RoleIds.Any(), () =>
+            {
+                RuleForEach(x => x.RoleIds!)
+                    .NotEmpty().WithMessage("Role ID cannot be empty");
+            });
+        }
+    }
+}
+
+//UpdateUserProfileCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile
+{
+    public class UpdateUserProfileCommand : IRequest<AppResult<UserProfileDto>>, ITransactionalBehavior
+    {
+        [JsonIgnore]
+        public Guid Id { get; set; } // Set by controller
+
+        public string? FirstName { get; init; }
+        public string? LastName { get; init; }
+        public string? PhoneNumber { get; init; }
+        public Gender? Gender { get; init; }
+        public DateOnly? DateOfBirth { get; init; }
+        public string? Bio { get; init; }
+    }
+}
+
+//UpdateUserProfileHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile
+{
+    public class UpdateUserProfileHandler(IUnitOfWork unitOfWork, IPermissionService permissionService) : IRequestHandler<UpdateUserProfileCommand, AppResult<UserProfileDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IPermissionService _permissionService = permissionService;
+
+        public async Task<AppResult<UserProfileDto>> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var user = await _unitOfWork.UserManager.FindByIdAsync(request.Id.ToString());
+                if (user == null)
+                    return AppResult<UserProfileDto>.Failure("User not found.");
+
+                // Update only provided fields
+                if (!string.IsNullOrEmpty(request.FirstName))
+                    user.FirstName = request.FirstName;
+                if (!string.IsNullOrEmpty(request.LastName))
+                    user.LastName = request.LastName;
+                if (request.Gender.HasValue)
+                    user.Gender = request.Gender.Value;
+                if (request.DateOfBirth.HasValue)
+                    user.DateOfBirth = request.DateOfBirth.Value;
+                if (request.PhoneNumber != null)
+                    user.PhoneNumber = request.PhoneNumber;
+                if (request.Bio != null)
+                    user.Bio = request.Bio;
+
+                user.ModifiedOn = DateTime.UtcNow;
+
+                var result = await _unitOfWork.UserManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return AppResult<UserProfileDto>.Failure($"Failed to update profile: {errors}");
+                }
+
+                // Reload user data
+                var updatedUser = await _unitOfWork.Users.GetByIdAsync(user.Id);
+                if (updatedUser == null)
+                    return AppResult<UserProfileDto>.Failure("User was updated but could not be retrieved.");
+
+                // Get permissions
+                var permissions = await _permissionService.GetUserPermissionsAsync(user.Id);
+
+                // Get user roles
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(user.Id);
+                var allRoles = await _unitOfWork.Roles.GetAllAsync();
+
+                var rolesDto = userRoles
+                    .Select(ur => allRoles.FirstOrDefault(r => r.Id == ur.RoleId))
+                    .Where(r => r != null)
+                    .Select(r => (RoleDto)r!)
+                    .ToList();
+
+                // Create new UserProfileDto with all properties in the initializer
+                //var userProfile = new UserProfileDto
+                //{
+                //    Id = updatedUser.Id,
+                //    FirstName = updatedUser.FirstName,
+                //    LastName = updatedUser.LastName,
+                //    Email = updatedUser.Email,
+                //    PhoneNumber = updatedUser.PhoneNumber,
+                //    Gender = updatedUser.Gender,
+                //    DateOfBirth = updatedUser.DateOfBirth,
+                //    Bio = updatedUser.Bio,
+                //    IsActive = updatedUser.IsActive,
+                //    CreatedOn = updatedUser.CreatedOn,
+                //    Roles = rolesDto,
+                //    Permissions = permissions // Set in initializer
+                //};
+
+                var userProfile = UserProfileDto.Create(user, rolesDto, permissions);
+
+                return AppResult<UserProfileDto>.Success(userProfile);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserProfileDto>.Failure($"An error occurred while updating profile: {ex.Message}");
+            }
+        }
+    }
+}
+
+//UpdateUserProfileValidator.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile
+{
+    public class UpdateUserProfileValidator : AbstractValidator<UpdateUserProfileCommand>
+    {
+        public UpdateUserProfileValidator()
+        {
+            When(x => !string.IsNullOrEmpty(x.FirstName), () =>
+            {
+                RuleFor(x => x.FirstName!)
+                    .MaximumLength(50).WithMessage("First name must not exceed 50 characters");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.LastName), () =>
+            {
+                RuleFor(x => x.LastName!)
+                    .MaximumLength(50).WithMessage("Last name must not exceed 50 characters");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.PhoneNumber), () =>
+            {
+                RuleFor(x => x.PhoneNumber!)
+                    .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Bio), () =>
+            {
+                RuleFor(x => x.Bio!)
+                    .MaximumLength(500).WithMessage("Bio must not exceed 500 characters");
+            });
+        }
+    }
+}
+
+//UploadAvatarCommand.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.UploadAvatar
+{
+    public class UploadAvatarCommand : IRequest<AppResult<string>>, ITransactionalBehavior
+    {
+        [JsonIgnore]
+        public Guid UserId { get; set; }
+
+        public required IFormFile File { get; init; }
+    }
+}
+
+
+//UploadAvatarHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Commands.UploadAvatar
+{
+    public class UploadAvatarHandler : IRequestHandler<UploadAvatarCommand, AppResult<string>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public UploadAvatarHandler(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<AppResult<string>> Handle(UploadAvatarCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
+                if (user == null)
+                    return AppResult<string>.Failure("User not found.");
+
+                // Convert file to byte array
+                using var memoryStream = new MemoryStream();
+                await request.File.CopyToAsync(memoryStream, cancellationToken);
+                var avatarData = memoryStream.ToArray();
+
+                // Update user avatar
+                user.Avatar = avatarData;
+                user.ModifiedOn = DateTime.UtcNow;
+
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Return a base64 string or URL depending on your implementation
+                var avatarBase64 = Convert.ToBase64String(avatarData);
+                var avatarUrl = $"data:{request.File.ContentType};base64,{avatarBase64}";
+
+                return AppResult<string>.Success(avatarUrl);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<string>.Failure($"An error occurred while uploading avatar: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetAllUsersHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetAllUsers
+{
+    public class GetAllUsersHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllUsersQuery, AppResult<List<UserDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<List<UserDto>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var users = request.ActiveOnly
+                    ? await _unitOfWork.Users.GetActiveUsersAsync()
+                    : await _unitOfWork.Users.GetAllAsync();
+
+                var userDtos = new List<UserDto>();
+
+                foreach (var user in users)
+                {
+                    // Get user roles
+                    var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(user.Id);
+                    var allRoles = await _unitOfWork.Roles.GetAllAsync();
+
+                    var rolesDto = userRoles
+                        .Select(ur => allRoles.FirstOrDefault(r => r.Id == ur.RoleId))
+                        .Where(r => r != null)
+                        .Select(r => (RoleDto)r!)
+                        .ToList();
+
+                    userDtos.Add(new UserDto
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        Password = "", // Don't expose password hash
+                        PhoneNumber = user.PhoneNumber,
+                        Gender = user.Gender,
+                        DateOfBirth = user.DateOfBirth,
+                        Bio = user.Bio,
+                        IsActive = user.IsActive,
+                        CreatedOn = user.CreatedOn,
+                        Roles = rolesDto
+                    });
+                }
+
+                return AppResult<List<UserDto>>.Success(userDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<UserDto>>.Failure($"An error occurred while retrieving users: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetAllUsersQuery.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetAllUsers
+{
+    public record GetAllUsersQuery(bool ActiveOnly = true) : IRequest<AppResult<List<UserDto>>>;
+}
+
+//GetCurrentUserProfileHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetCurrentUserProfile
+{
+    public class GetCurrentUserProfileHandler(IUnitOfWork unitOfWork, IPermissionService permissionService) : IRequestHandler<GetCurrentUserProfileQuery, AppResult<UserProfileDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IPermissionService _permissionService = permissionService;
+
+        public async Task<AppResult<UserProfileDto>> Handle(GetCurrentUserProfileQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (!Guid.TryParse(request.UserId, out var userId))
+                    return AppResult<UserProfileDto>.Failure("Invalid user ID format.");
+
+                // Get user with roles
+                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (user == null)
+                    return AppResult<UserProfileDto>.Failure("User not found.");
+
+                // Get user permissions
+                var permissions = await _permissionService.GetUserPermissionsAsync(userId);
+
+                // Get user roles
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+                var allRoles = await _unitOfWork.Roles.GetAllAsync();
+
+                var rolesDto = userRoles
+                    .Select(ur => allRoles.FirstOrDefault(r => r.Id == ur.RoleId))
+                    .Where(r => r != null)
+                    .Select(r => (RoleDto)r!)
+                    .ToList();
+
+                // Create UserProfileDto with all properties in the initializer
+                //var userProfile = new UserProfileDto
+                //{
+                //    Id = user.Id,
+                //    FirstName = user.FirstName,
+                //    LastName = user.LastName,
+                //    Email = user.Email,
+                //    PhoneNumber = user.PhoneNumber,
+                //    Gender = user.Gender,
+                //    DateOfBirth = user.DateOfBirth,
+                //    Bio = user.Bio,
+                //    IsActive = user.IsActive,
+                //    CreatedOn = user.CreatedOn,
+                //    Roles = rolesDto,
+                //    Permissions = permissions // Set in initializer
+                //};
+
+                var userProfile = UserProfileDto.Create(user, rolesDto, permissions);
+
+                return AppResult<UserProfileDto>.Success(userProfile);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserProfileDto>.Failure($"An error occurred while retrieving user profile: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetCurrentUserProfileQuery.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetCurrentUserProfile
+{
+    public record GetCurrentUserProfileQuery(string UserId) : IRequest<AppResult<UserProfileDto>>;
+}
+
+//GetPagedUserHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetPagedUsers
+{
+    public class GetPagedUsersHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetPagedUsersQuery, AppResult<PagedResponse<UserDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<PagedResponse<UserDto>>> Handle(GetPagedUsersQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var pagedResponse = await _unitOfWork.Users.GetPagedUserDtosAsync(
+                    request,
+                    request.ActiveOnly,
+                    cancellationToken);
+
+                return AppResult<PagedResponse<UserDto>>.Success(pagedResponse);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<PagedResponse<UserDto>>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetPagedUserQuery.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetPagedUsers
+{
+    public class GetPagedUsersQuery : PagedRequest, IRequest<AppResult<PagedResponse<UserDto>>>
+    {
+        public bool ActiveOnly { get; set; } = true;
+    }
+}
+
+//GetUserByEmailHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUserByEmail
+{
+    public class GetUserByEmailHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetUserByEmailQuery, AppResult<UserDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<UserDto>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var user = await _unitOfWork.Users.FindUserByEmailAsync(request.Email);
+                if (user == null)
+                    return AppResult<UserDto>.Failure($"User with email {request.Email} not found.");
+
+                // Get user roles
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(user.Id);
+                var allRoles = await _unitOfWork.Roles.GetAllAsync();
+
+                var rolesDto = userRoles.Select(ur =>
+                {
+                    var role = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
+                    return role != null ? (RoleDto)role : null;
+                })
+                .Where(r => r != null)
+                .Cast<RoleDto>() // Ensure non-nullable type
+                .ToList();
+
+                // Use object initializer to set init-only property
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Password = user.PasswordHash,
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Bio = user.Bio,
+                    IsActive = user.IsActive,
+                    CreatedOn = user.CreatedOn,
+                    Roles = rolesDto // Assign roles here
+                };
+
+                return AppResult<UserDto>.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserDto>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetUserByEmailQuery.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUserByEmail
+{
+    public record GetUserByEmailQuery(string Email) : IRequest<AppResult<UserDto>>;
+}
+
+//GetUserByIdHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUserById
+{
+    public class GetUserByIdHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetUserByIdQuery, AppResult<UserDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<UserDto>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
+                if (user == null)
+                    return AppResult<UserDto>.Failure($"User with ID {request.Id} not found.");
+
+                // Get user roles
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(user.Id);
+                var allRoles = await _unitOfWork.Roles.GetAllAsync();
+
+                var rolesDto = userRoles
+                    .Select(ur =>
+                    {
+                        var role = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
+                        return role != null ? (RoleDto)role : null;
+                    })
+                    .Where(r => r != null)
+                    .Cast<RoleDto>() // Ensure nullability is handled
+                    .ToList();
+
+                // Fix for CS8852: Use object initializer to set init-only property
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Password = user.PasswordHash,
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Bio = user.Bio,
+                    IsActive = user.IsActive,
+                    CreatedOn = user.CreatedOn,
+                    Roles = rolesDto // Assign roles here
+                };
+
+                return AppResult<UserDto>.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserDto>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetUserByIdQuery.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUserById
+{
+    public record GetUserByIdQuery(Guid Id) : IRequest<AppResult<UserDto>>;
+}
+
+//GetUsersByRoleIdHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUsersByRoleId
+{
+    public class GetUsersByRoleIdHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetUsersByRoleIdQuery, AppResult<List<UserDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<List<UserDto>>> Handle(GetUsersByRoleIdQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // First check if role exists
+                var role = await _unitOfWork.Roles.GetByIdAsync(request.RoleId);
+                if (role == null)
+                    return AppResult<List<UserDto>>.Failure($"Role with ID {request.RoleId} not found.");
+
+                // Get all users with this role
+                var users = await _unitOfWork.Users.GetUsersByRoleIdAsync(request.RoleId);
+
+                // Filter by active if requested
+                if (request.ActiveOnly)
+                    users = users.Where(u => u.IsActive && !u.IsDeleted).ToList();
+
+                // Map users to DTOs with their roles
+                var userDtos = new List<UserDto>();
+                foreach (var user in users)
+                {
+                    // Get user roles
+                    var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(user.Id);
+                    var allRoles = await _unitOfWork.Roles.GetAllAsync();
+
+                    var rolesDto = userRoles.Select(ur =>
+                    {
+                        var userRole = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
+                        return userRole != null ? (RoleDto)userRole : null;
+                    })
+                    .Where(r => r != null)
+                    .Cast<RoleDto>() // Ensure non-nullable type
+                    .ToList();
+
+                    // Create user DTO with roles
+                    var userDto = new UserDto
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        Password = user.PasswordHash,
+                        PhoneNumber = user.PhoneNumber,
+                        Gender = user.Gender,
+                        DateOfBirth = user.DateOfBirth,
+                        Bio = user.Bio,
+                        IsActive = user.IsActive,
+                        CreatedOn = user.CreatedOn,
+                        Roles = rolesDto
+                    };
+
+                    userDtos.Add(userDto);
+                }
+
+                return AppResult<List<UserDto>>.Success(userDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<UserDto>>.Failure($"An error occurred while retrieving users by role: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetUsersByRoleIdQuery.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUsersByRoleId
+{
+    public record GetUsersByRoleIdQuery(Guid RoleId, bool ActiveOnly = true) : IRequest<AppResult<List<UserDto>>>;
+}
+
+//GetUserWithRolesHandler.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUserWithRoles
+{
+    public class GetUserWithRolesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetUserWithRolesQuery, AppResult<UserDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<UserDto>> Handle(GetUserWithRolesQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Find user with full role details
+                var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
+                if (user == null)
+                    return AppResult<UserDto>.Failure($"User with ID {request.Id} not found.");
+
+                // Get user roles with all needed relationships
+                var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(user.Id);
+                var allRoles = await _unitOfWork.Roles.GetAllAsync();
+
+                // Map roles to DTOs with their permissions
+                var rolesDto = userRoles.Select(ur =>
+                {
+                    var role = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
+                    return role != null ? (RoleDto)role : null;
+                })
+                .Where(r => r != null)
+                .Cast<RoleDto>() // Ensure non-nullable type
+                .ToList();
+
+                // Create UserDto using object initializer for init-only properties
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Password = user.PasswordHash,
+                    PhoneNumber = user.PhoneNumber,
+                    Gender = user.Gender,
+                    DateOfBirth = user.DateOfBirth,
+                    Bio = user.Bio,
+                    IsActive = user.IsActive,
+                    CreatedOn = user.CreatedOn,
+                    Roles = rolesDto // Assign roles here
+                };
+
+                return AppResult<UserDto>.Success(userDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<UserDto>.Failure($"An error occurred while retrieving user with roles: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetUserWithRolesQuery.cs
+
+namespace ECommercePlatform.Application.Features.Users.Queries.GetUserWithRoles
+{
+    public record GetUserWithRolesQuery(Guid Id) : IRequest<AppResult<UserDto>>;
+}
+
+//IUserRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IUserRepository : IGenericRepository<User>
+    {
+        Task<User?> FindUserByEmailAsync(string email);
+        Task<User?> FindUserByEmailAndPasswordAsync(string email, string password);
+        Task<User?> FindUserWithRolesByEmailAsync(string email);
+        Task<bool> IsEmailUniqueAsync(string email);
+        Task<bool> IsEmailUniqueAsync(string email, Guid excludeUserId);
+        new Task<User?> GetByIdAsync(Guid id);
+        new Task<List<User>> GetAllAsync();
+        Task<List<User>> GetUsersByRoleIdAsync(Guid roleId);
+        Task<List<User>> GetActiveUsersAsync();
+        Task<bool> AnyAsync(Expression<Func<User, bool>> predicate);
+        IQueryable<User> AsQueryable();
+        Task<Result<string>> EnsureEmailIsUniqueAsync(string email, Guid? excludeId = null);
+
+        // Pagination methods
+        Task<PagedResponse<User>> GetPagedUsersAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<UserDto>> GetPagedUserDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<UserListDto>> GetPagedUserListDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+    }
+}
+
+//IUserRoleRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IUserRoleRepository : IGenericRepository<UserRole>
+    {
+        Task<List<UserRole>> GetByUserIdAsync(Guid userId);
+        Task<List<UserRole>> GetByRoleIdAsync(Guid roleId);
+        Task DeleteByUserIdAsync(Guid userId);
+        Task DeleteByRoleIdAsync(Guid roleId);
+        Task<bool> ExistsAsync(Guid userId, Guid roleId);
+        Task<bool> AnyAsync(Expression<Func<UserRole, bool>> predicate);
+        IQueryable<UserRole> AsQueryable();
+        Task<List<UserRole>> GetActiveUserRolesAsync();
+
+        // Pagination methods
+        Task<PagedResponse<UserRole>> GetPagedUserRolesAsync(
+            PagedRequest request,
+            Guid? userId = null,
+            Guid? roleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<UserRoleDto>> GetPagedUserRoleDtosAsync(
+            PagedRequest request,
+            Guid? userId = null,
+            Guid? roleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+    }
+}
+
+//IGenericRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IGenericRepository<T> where T : class
+    {
+        Task<T> GetByIdAsync(Guid id);
+        Task<IReadOnlyList<T>> GetAllAsync();
+        Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate);
+        Task<T> AddAsync(T entity);
+        Task UpdateAsync(T entity);
+        Task DeleteAsync(T entity);
+        Task<bool> ExistsAsync(Guid id);
+
+        // Add pagination method
+        IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null);
+
+        // Unified paging method with support for search
+        Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default);
+
+    }
+}
+
+//IUnitOfWork.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IUnitOfWork : IDisposable
+    {
+        ICountryRepository Countries { get; }
+        IUserRepository Users { get; }
+        IStateRepository States { get; }
+        ICityRepository Cities { get; }
+        IModuleRepository Modules { get; }
+        IRolePermissionRepository RolePermissions { get; }
+        IRoleRepository Roles { get; }
+        IUserRoleRepository UserRoles { get; }
+        UserManager<User> UserManager { get; }
+        RoleManager<Role> RoleManager { get; }
+        SignInManager<User> SignInManager { get; }
+        // Shall be added more repositories as properties
+
+        Task<int> CompleteAsync();
+        Task<int> SaveChangesAsync();
+        new void Dispose();
+    }
+}
+
+//UserRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class UserRepository(AppDbContext context) : GenericRepository<User>(context), IUserRepository
+    {
+        public async Task<User?> FindUserByEmailAsync(string email)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+        }
+
+        public async Task<User?> FindUserByEmailAndPasswordAsync(string email, string password)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password && !u.IsDeleted);
+        }
+
+        public async Task<User?> FindUserWithRolesByEmailAsync(string email)
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
+        }
+
+        public async Task<bool> IsEmailUniqueAsync(string email)
+        {
+            return !await _context.Users
+                .AnyAsync(u => u.Email != null &&
+                              u.Email.ToLower().Trim() == email.ToLower().Trim() &&
+                              !u.IsDeleted);
+        }
+
+        public async Task<bool> IsEmailUniqueAsync(string email, Guid excludeUserId)
+        {
+            return !await _context.Users
+                .AnyAsync(u => u.Email != null &&
+                              u.Email.ToLower().Trim() == email.ToLower().Trim() &&
+                              u.Id != excludeUserId &&
+                              !u.IsDeleted);
+        }
+
+        public new async Task<User?> GetByIdAsync(Guid id)
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                        .ThenInclude(r => r.RolePermissions)
+                            .ThenInclude(rp => rp.Module)
+                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
+        }
+
+        public new async Task<List<User>> GetAllAsync()
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Where(u => !u.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> GetUsersByRoleIdAsync(Guid roleId)
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                .Where(u => u.UserRoles.Any(ur => ur.RoleId == roleId) && !u.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> GetActiveUsersAsync()
+        {
+            return await _context.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Where(u => u.IsActive && !u.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<User, bool>> predicate)
+        {
+            return await _context.Users.AnyAsync(predicate);
+        }
+
+        public IQueryable<User> AsQueryable()
+        {
+            return _context.Users.AsQueryable();
+        }
+
+        // Combined validation method that returns a Result object
+        public Task<Result<string>> EnsureEmailIsUniqueAsync(string email, Guid? excludeId = null)
+        {
+            return Result.Success(email)
+                // Validate email is not empty
+                .Ensure(e => !string.IsNullOrEmpty(e?.Trim()), "Email cannot be null or empty.")
+                // Normalize the input
+                .Map(e => e.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedEmail =>
+                {
+                    var query = _context.Users.Where(u =>
+                        u.Email != null &&
+                        u.Email.ToLower().Trim() == normalizedEmail &&
+                        !u.IsDeleted);
+
+                    // Apply ID exclusion if provided
+                    if (excludeId.HasValue)
+                        query = query.Where(u => u.Id != excludeId.Value);
+
+                    var exists = await query.AnyAsync();
+
+                    return exists
+                        ? Result.Failure<string>($"User with email \"{email}\" already exists.")
+                        : Result.Success(normalizedEmail);
+                });
+        }
+
+        // Search function for users
+        private static IQueryable<User> ApplyUserSearch(IQueryable<User> query, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(u =>
+                (u.FirstName != null && EF.Functions.Like(u.FirstName.ToLower(), $"%{searchTerm}%")) ||
+                (u.LastName != null && EF.Functions.Like(u.LastName.ToLower(), $"%{searchTerm}%")) ||
+                (u.Email != null && EF.Functions.Like(u.Email.ToLower(), $"%{searchTerm}%")) ||
+                (u.PhoneNumber != null && EF.Functions.Like(u.PhoneNumber, $"%{searchTerm}%")));
+        }
+
+        // Get paginated users
+        public async Task<PagedResponse<User>> GetPagedUsersAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            // Create base filter
+            Expression<Func<User, bool>> baseFilter = activeOnly
+                ? u => u.IsActive && !u.IsDeleted
+                : u => !u.IsDeleted;
+
+            // Define a search function that also includes roles
+            static IQueryable<User> searchWithInclude(IQueryable<User> query, string? searchText)
+            {
+                // First include related entities
+                var queryWithInclude = query
+                    .Include(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role);
+
+                // Then apply search if text is provided
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    return ApplyUserSearch(queryWithInclude, searchText);
+
+                return queryWithInclude;
+            }
+
+            // Use the generic paging method
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                searchWithInclude,
+                cancellationToken);
+        }
+
+        // Get paginated user DTOs
+        public async Task<PagedResponse<UserDto>> GetPagedUserDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedUsersAsync(
+                request,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to DTOs
+            var dtos = pagedEntities.Items.Select(u => (UserDto)u).ToList();
+
+            return new PagedResponse<UserDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+
+        // Get paginated user list DTOs (simplified version for lists)
+        public async Task<PagedResponse<UserListDto>> GetPagedUserListDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedUsersAsync(
+                request,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to list DTOs
+            var dtos = pagedEntities.Items.Select(u => (UserListDto)u).ToList();
+
+            return new PagedResponse<UserListDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+    }
+}
+
+//UserRoleRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class UserRoleRepository(AppDbContext context) : GenericRepository<UserRole>(context), IUserRoleRepository
+    {
+        public async Task<List<UserRole>> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.UserRoles
+                .Include(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Module) // Remove Permission reference
+                .Include(ur => ur.User)
+                .Where(ur => ur.UserId == userId && !ur.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<List<UserRole>> GetByRoleIdAsync(Guid roleId)
+        {
+            return await _context.UserRoles
+                .Include(ur => ur.User)
+                .Include(ur => ur.Role)
+                .Where(ur => ur.RoleId == roleId && !ur.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task DeleteByUserIdAsync(Guid userId)
+        {
+            var userRoles = await _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .ToListAsync();
+
+            _context.UserRoles.RemoveRange(userRoles);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteByRoleIdAsync(Guid roleId)
+        {
+            var userRoles = await _context.UserRoles
+                .Where(ur => ur.RoleId == roleId)
+                .ToListAsync();
+
+            _context.UserRoles.RemoveRange(userRoles);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsAsync(Guid userId, Guid roleId)
+        {
+            return await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId && !ur.IsDeleted);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<UserRole, bool>> predicate)
+        {
+            return await _context.UserRoles.AnyAsync(predicate);
+        }
+
+        public IQueryable<UserRole> AsQueryable()
+        {
+            return _context.UserRoles.AsQueryable();
+        }
+
+        public async Task<List<UserRole>> GetActiveUserRolesAsync()
+        {
+            return await _context.UserRoles
+                .Include(ur => ur.User)
+                .Include(ur => ur.Role)
+                .Where(ur => ur.IsActive && !ur.IsDeleted)
+                .OrderBy(ur => ur.User.FirstName)
+                .ToListAsync();
+        }
+
+        // Search function for user roles
+        private static IQueryable<UserRole> ApplyUserRoleSearch(IQueryable<UserRole> query, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(ur =>
+                (ur.User != null && ur.User.FirstName != null &&
+                    EF.Functions.Like(ur.User.FirstName.ToLower(), $"%{searchTerm}%")) ||
+                (ur.User != null && ur.User.LastName != null &&
+                    EF.Functions.Like(ur.User.LastName.ToLower(), $"%{searchTerm}%")) ||
+                (ur.User != null && ur.User.Email != null &&
+                    EF.Functions.Like(ur.User.Email.ToLower(), $"%{searchTerm}%")) ||
+                (ur.Role != null && ur.Role.Name != null &&
+                    EF.Functions.Like(ur.Role.Name.ToLower(), $"%{searchTerm}%")));
+        }
+
+        // Get paginated user roles with filters
+        public async Task<PagedResponse<UserRole>> GetPagedUserRolesAsync(
+            PagedRequest request,
+            Guid? userId = null,
+            Guid? roleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            // Create base filter based on provided parameters
+            Expression<Func<UserRole, bool>> baseFilter;
+
+            if (userId.HasValue && roleId.HasValue)
+            {
+                baseFilter = activeOnly
+                    ? ur => ur.IsActive && !ur.IsDeleted && ur.UserId == userId.Value && ur.RoleId == roleId.Value
+                    : ur => !ur.IsDeleted && ur.UserId == userId.Value && ur.RoleId == roleId.Value;
+            }
+            else if (userId.HasValue)
+            {
+                baseFilter = activeOnly
+                    ? ur => ur.IsActive && !ur.IsDeleted && ur.UserId == userId.Value
+                    : ur => !ur.IsDeleted && ur.UserId == userId.Value;
+            }
+            else if (roleId.HasValue)
+            {
+                baseFilter = activeOnly
+                    ? ur => ur.IsActive && !ur.IsDeleted && ur.RoleId == roleId.Value
+                    : ur => !ur.IsDeleted && ur.RoleId == roleId.Value;
+            }
+            else
+            {
+                baseFilter = activeOnly
+                    ? ur => ur.IsActive && !ur.IsDeleted
+                    : ur => !ur.IsDeleted;
+            }
+
+            // Define a search function that includes related entities
+            static IQueryable<UserRole> searchWithInclude(IQueryable<UserRole> query, string? searchText)
+            {
+                // First include related entities
+                var queryWithInclude = query
+                    .Include(ur => ur.User)
+                    .Include(ur => ur.Role);
+
+                // Then apply search if text is provided
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    return ApplyUserRoleSearch(queryWithInclude, searchText);
+
+                return queryWithInclude;
+            }
+
+            // Use the generic paging method
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                searchWithInclude,
+                cancellationToken);
+        }
+
+        // Get paginated user role DTOs
+        public async Task<PagedResponse<UserRoleDto>> GetPagedUserRoleDtosAsync(
+            PagedRequest request,
+            Guid? userId = null,
+            Guid? roleId = null,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedUserRolesAsync(
+                request,
+                userId,
+                roleId,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to DTOs with conversion
+            var dtos = pagedEntities.Items.Select(ur => new UserRoleDto
+            {
+                UserId = ur.UserId,
+                RoleId = ur.RoleId,
+                UserName = $"{ur.User?.FirstName} {ur.User?.LastName}",
+                UserEmail = ur.User?.Email,
+                RoleName = ur.Role?.Name,
+                IsActive = ur.IsActive,
+                CreatedOn = ur.CreatedOn,
+                CreatedBy = ur.CreatedBy
+            }).ToList();
+
+            return new PagedResponse<UserRoleDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+    }
+}
+
+//GenericRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> where T : class
+    {
+        protected readonly AppDbContext _context = context;
+
+        public async Task<T> AddAsync(T entity)
+        {
+            await _context.Set<T>().AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+
+        public async Task DeleteAsync(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>()
+                .Where(predicate)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> GetAllAsync()
+        {
+            return await _context.Set<T>()
+                .OrderByDescending(e => EF.Property<object>(e, "CreatedOn"))
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<T> GetByIdAsync(Guid id)
+        {
+            var entity = await _context.Set<T>().FindAsync(id)
+                ?? throw new InvalidOperationException($"Entity of type {typeof(T).Name} with ID {id} was not found.");
+            _context.Entry(entity).State = EntityState.Detached; // Detach the entity to avoid tracking issues
+            return entity;
+        }
+
+        public async Task UpdateAsync(T entity)
+        {
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsAsync(Guid id)
+        {
+            var entity = await _context.Set<T>().FindAsync(id);
+            return entity != null;
+        }
+
+        // Implement the new method
+        public IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null)
+        {
+            return predicate == null
+                ? _context.Set<T>().AsQueryable()
+                : _context.Set<T>().Where(predicate);
+        }
+
+        // Streamlined paging method with support for search
+        public async Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Start with base query
+                var query = _context.Set<T>().AsQueryable();
+
+                // Apply base filter if provided
+                if (baseFilter != null)
+                    query = query.Where(baseFilter);
+
+                // Apply date range filter if entity is BaseEntity type
+                if (typeof(BaseEntity).IsAssignableFrom(typeof(T)))
+                {
+                    // Apply start date filter if provided
+                    if (request.StartDate.HasValue)
+                    {
+                        //var startDate = request.StartDate.Value;
+                        //query = query.Where(e => EF.Property<DateTime>(e, nameof(BaseEntity.CreatedOn)) >= startDate);
+
+                        var startDate = request.StartDate.Value.Date; // Use Date to ignore time component
+                        query = query.Where(e => EF.Property<DateTime>(e, "CreatedOn").Date >= startDate);
+                    }
+
+                    // Apply end date filter if provided
+                    if (request.EndDate.HasValue)
+                    {
+                        //// Add one day to include all records until the end of the day
+                        //var endDate = request.EndDate.Value.AddDays(1);
+                        //query = query.Where(e => EF.Property<DateTime>(e, nameof(BaseEntity.CreatedOn)) < endDate);
+
+                        var endDate = request.EndDate.Value.Date.AddDays(1); // Include all records of the end date
+                        query = query.Where(e => EF.Property<DateTime>(e, "CreatedOn") < endDate);
+                    }
+                }
+
+                // Apply search if provided
+                if (searchFunction != null && !string.IsNullOrWhiteSpace(request.SearchText))
+                    query = searchFunction(query, request.SearchText);
+
+                // Get total count before pagination
+                var totalCount = await query.CountAsync(cancellationToken);
+
+                // Apply sorting or use default
+                if (!string.IsNullOrWhiteSpace(request.SortColumn))
+                    query = query.ApplyDynamicOrderBy(request.SortColumn, request.SortDirection ?? "asc");
+
+                // Apply pagination
+                var items = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                // Return paged response
+                return new PagedResponse<T>
+                {
+                    Items = items,
+                    TotalCount = totalCount,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetPagedAsync: {ex.Message}");
+                throw;
+            }
+        }
+    }
+}
+
+//UnitOfWork.cs
+
+namespace ECommercePlatform.Infrastructure
+{
+    public class UnitOfWork(AppDbContext context, UserManager<User> UserManager, RoleManager<Role> RoleManager, SignInManager<User> SignInManager) : IUnitOfWork, IDisposable
+    {
+        private readonly AppDbContext _context = context;
+        private ICountryRepository? _countryRepository;
+        private IUserRepository? _userRepository;
+        private IStateRepository? _stateRepository;
+        private ICityRepository? _cityRepository;
+        private IRolePermissionRepository? _rolePermissionRepository;
+        private IModuleRepository? _moduleRepository;
+        private IRoleRepository? _roleRepository;
+        private IUserRoleRepository? _userRoleRepository;
+
+        private readonly UserManager<User> _userManager = UserManager;
+        private readonly RoleManager<Role> _roleManager = RoleManager;
+        private readonly SignInManager<User> _signInManager = SignInManager;
+
+        public ICountryRepository Countries => _countryRepository ??= new CountryRepository(_context);
+
+        public IUserRepository Users => _userRepository ??= new UserRepository(_context);
+
+        public IStateRepository States => _stateRepository ??= new StateRepository(_context);
+
+        public ICityRepository Cities => _cityRepository ??= new CityRepository(_context);
+
+        public IRolePermissionRepository RolePermissions => _rolePermissionRepository ??= new RolePermissionRepository(_context);
+
+        public IModuleRepository Modules => _moduleRepository ??= new ModuleRepository(_context);
+
+        public IRoleRepository Roles => _roleRepository ??= new RoleRepository(_context);
+
+        public IUserRoleRepository UserRoles => _userRoleRepository ??= new UserRoleRepository(_context);
+
+
+        public UserManager<User> UserManager => _userManager;
+        public RoleManager<Role> RoleManager => _roleManager;
+        public SignInManager<User> SignInManager => _signInManager;
+
+        public async Task<int> CompleteAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
+        }
+    }
+}
+
+//User.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class User : IdentityUser<Guid>
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public byte[]? Avatar { get; set; }
+        public Gender Gender { get; set; }
+        public DateOnly DateOfBirth { get; set; }
+        //public string? PhoneNumber { get; set; }
+        //public string? Email { get; set; }
+        //public string? Password { get; set; }
+        public string? Bio { get; set; }
+        //public UserRole? Role { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+
+        //Navigation properties
+        public virtual ICollection<Address>? Addresses { get; set; }
+        public virtual ICollection<Order>? Orders { get; set; }
+        public virtual ICollection<Review>? Reviews { get; set; }
+        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        // Default parameterless constructor required by EF Core
+        public User() { }
+
+        // With method for creating modified copies
+        public User With(
+            string? firstName = null,
+            string? lastName = null,
+            Gender? gender = null,
+            DateOnly? dateOfBirth = null,
+            string? phoneNumber = null,
+            string? email = null,
+            string? password = null,
+            string? bio = null,
+            UserRole? role = null
+        )
+        {
+            var user = new User
+            {
+                Id = this.Id,
+                UserName = this.UserName,
+                CreatedOn = this.CreatedOn,
+                CreatedBy = this.CreatedBy,
+                ModifiedOn = DateTime.Now,
+                ModifiedBy = this.ModifiedBy,
+                IsActive = this.IsActive,
+                IsDeleted = this.IsDeleted,
+                FirstName = firstName ?? this.FirstName,
+                LastName = lastName ?? this.LastName,
+                Gender = gender ?? this.Gender,
+                DateOfBirth = dateOfBirth ?? this.DateOfBirth,
+                PhoneNumber = phoneNumber ?? this.PhoneNumber,
+                Email = email ?? this.Email,
+                Bio = bio ?? this.Bio,
+                Addresses = this.Addresses,
+                Orders = this.Orders,
+                Reviews = this.Reviews,
+                UserRoles = this.UserRoles
+            };
+
+            if (role != null && !user.UserRoles.Any(r => r.RoleId == role.RoleId))
+            {
+                user.UserRoles.Add(role);
+            }
+
+            return user;
+        }
+
+        // Factory method for creating admin users
+        public static User AdminCreate(
+            Guid id,
+            string firstName,
+            string lastName,
+            Gender gender,
+            DateOnly dateOfBirth,
+            string phoneNumber,
+            string email,
+            string password,
+            string bio,
+            UserRole userRole,
+            string createdBy,
+            DateTime createdOn,
+            bool isActive = true,
+            bool isDeleted = false,
+            string? modifiedBy = null,
+            DateTime? modifiedOn = null
+        )
+        {
+            var user = new User
+            {
+                Id = id,
+                UserName = email, // Using email as username
+                NormalizedUserName = email.ToUpper(),
+                Email = email,
+                NormalizedEmail = email.ToUpper(),
+                FirstName = firstName,
+                LastName = lastName,
+                Gender = gender,
+                DateOfBirth = dateOfBirth,
+                PhoneNumber = phoneNumber,
+                Bio = bio,
+                IsActive = isActive,
+                IsDeleted = isDeleted,
+                CreatedBy = createdBy,
+                CreatedOn = createdOn,
+                ModifiedBy = modifiedBy ?? createdBy,
+                ModifiedOn = modifiedOn ?? createdOn,
+                EmailConfirmed = true,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+
+            if (userRole != null)
+            {
+                user.UserRoles.Add(userRole);
+            }
+
+            return user;
+        }
+    }
+}
+
+//UserRole.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class UserRole : IdentityUserRole<Guid>
+    {
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime ModifiedOn { get; set; } = DateTime.Now;
+        public string? ModifiedBy { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; }
+
+        //Navigation properties
+        public virtual User? User { get; set; }
+        public virtual Role? Role { get; set; }
+
+        // Private constructor for EF Core
+        public UserRole() { }
+
+        public static UserRole Create(
+            Guid userId,
+            Guid roleId)
+        {
+            return new UserRole
+            {
+                UserId = userId,
+                RoleId = roleId
+            };
+        }
+
+        public void Update(Guid userId,
+            Guid roleId)
+        {
+            UserId = userId;
+            RoleId = roleId;
+        }
+    }
+}
+
+//user.service.ts
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  private apiUrl = `${environment.apiUrl}/user`;
+
+  constructor(private http: HttpClient) { }
+
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPagedUsers(request: PagedRequest): Observable<PagedResponse<User>> {
+    return this.http.get<PagedResponse<User>>(`${this.apiUrl}/paged`, {
+      params: { ...request as any }
+    }).pipe(catchError(this.handleError));
+  }
+
+  getUserById(id: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUserByEmail(email: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/by-email`, {
+      params: { email }
+    }).pipe(catchError(this.handleError));
+  }
+
+  createUser(user: any): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateUser(id: string, user: any): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, user)
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getUserWithRoles(id: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}/roles`)
+      .pipe(catchError(this.handleError));
+  }
+
+  assignRolesToUser(userId: string, roleIds: string[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${userId}/roles`, { roleIds })
+      .pipe(catchError(this.handleError));
+  }
+
+  resetPassword(userId: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${userId}/reset-password`, { newPassword })
+      .pipe(catchError(this.handleError));
+  }
+
+  private handleError(error: any) {
+    console.error('An error occurred', error);
+    return throwError(() => error);
+  }
+}
+
+
+//use.model.ts
+
+import { Role } from './role.model';
+
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password?: string;
+  roles: Role[];
+  isActive: boolean;
+  phoneNumber?: string;
+  bio?: string;
+  createdOn?: Date;
+  modifiedOn?: Date;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+  permissions?: UserPermissionDto[];
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface UserPermissionDto {
+  moduleName: string;
+  canView: boolean;
+  canAdd: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+
+//user.component.html
+
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Manage Users</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Users</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <!-- User Form Card -->
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit User' : 'Add New User' }}</h3>
+      </div>
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
+          <div class="row">
+            <!-- First Name -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text"
+                       id="firstName"
+                       formControlName="firstName"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('firstName')?.touched && userForm.get('firstName')?.errors}"
+                       placeholder="Enter first name">
+                <span *ngIf="userForm.get('firstName')?.touched && userForm.get('firstName')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('firstName')?.errors?.['required']">First name is required</span>
+                  <span *ngIf="userForm.get('firstName')?.errors?.['maxlength']">First name cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text"
+                       id="lastName"
+                       formControlName="lastName"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('lastName')?.touched && userForm.get('lastName')?.errors}"
+                       placeholder="Enter last name">
+                <span *ngIf="userForm.get('lastName')?.touched && userForm.get('lastName')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('lastName')?.errors?.['required']">Last name is required</span>
+                  <span *ngIf="userForm.get('lastName')?.errors?.['maxlength']">Last name cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Email -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email"
+                       id="email"
+                       formControlName="email"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('email')?.touched && userForm.get('email')?.errors}"
+                       placeholder="Enter email">
+                <span *ngIf="userForm.get('email')?.touched && userForm.get('email')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('email')?.errors?.['required']">Email is required</span>
+                  <span *ngIf="userForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+                  <span *ngIf="userForm.get('email')?.errors?.['maxlength']">Email cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="password">{{ isEditMode ? 'Password (leave blank to keep current)' : 'Password *' }}</label>
+                <input type="password"
+                       id="password"
+                       formControlName="password"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('password')?.touched && userForm.get('password')?.errors}"
+                       placeholder="Enter password">
+                <span *ngIf="userForm.get('password')?.touched && userForm.get('password')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('password')?.errors?.['required']">Password is required</span>
+                  <span *ngIf="userForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+                  <span *ngIf="userForm.get('password')?.errors?.['maxlength']">Password cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Phone Number -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="phoneNumber">Phone Number</label>
+                <input type="text"
+                       id="phoneNumber"
+                       formControlName="phoneNumber"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': userForm.get('phoneNumber')?.touched && userForm.get('phoneNumber')?.errors}"
+                       placeholder="Enter phone number">
+                <span *ngIf="userForm.get('phoneNumber')?.touched && userForm.get('phoneNumber')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('phoneNumber')?.errors?.['maxlength']">Phone number cannot exceed 20 characters</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Active Status -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Roles Selection -->
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <label>Assign Roles</label>
+              <div class="role-selection border p-3">
+                <div class="row">
+                  <div *ngFor="let role of availableRoles" class="col-md-3 mb-2">
+                    <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input"
+                             [id]="'role_' + role.id"
+                             [checked]="role.id && isRoleSelected(role.id)"
+                             (change)="role.id && toggleRoleSelection(role.id)">
+                      <label class="custom-control-label" [for]="'role_' + role.id">{{ role.name }}</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="card-footer">
+          <button type="submit"
+                  class="btn btn-primary"
+                  [disabled]="userForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'users', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+            <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} User
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="isEditMode">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="!isEditMode && userForm.dirty">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Users List Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">User List</h3>
+        <div class="card-tools">
+          <div class="input-group input-group-sm" style="width: 250px;">
+            <input type="text"
+                   #searchInput
+                   [(ngModel)]="pageRequest.searchText"
+                   (input)="onSearchChange($event)"
+                   class="form-control float-right"
+                   placeholder="Search...">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-default">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body table-responsive p-0">
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-refresh fa-spin"></i>
+        </div>
+        <table class="table table-hover text-nowrap">
+          <thead>
+            <tr>
+              <th (click)="onSortChange('firstName')" class="sortable">
+                Name
+                <i *ngIf="pageRequest.sortColumn === 'firstName'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th (click)="onSortChange('email')" class="sortable">
+                Email
+                <i *ngIf="pageRequest.sortColumn === 'email'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th>
+                Roles
+              </th>
+              <th (click)="onSortChange('isActive')" class="sortable">
+                Status
+                <i *ngIf="pageRequest.sortColumn === 'isActive'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th style="width: 150px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!users || users.length === 0">
+              <td colspan="5" class="text-center">No records found</td>
+            </tr>
+            <tr *ngFor="let user of users">
+              <td>{{ user.firstName }} {{ user.lastName }}</td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span *ngFor="let role of user.roles" class="badge badge-info mr-1">
+                  {{ role.name }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="user.isActive ? 'badge-success' : 'badge-danger'">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-primary mr-1" (click)="editUser(user)"
+                        *appPermission="{ moduleRoute: 'users', type: PermissionType.Edit }">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="user.id && deleteUser(user.id)"
+                        *appPermission="{ moduleRoute: 'users', type: PermissionType.Delete }">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer clearfix">
+        <div class="float-right">
+          <app-pagination *ngIf="pagedResponse"
+                          [totalPages]="pagedResponse.totalPages"
+                          [currentPage]="pagedResponse.pageNumber"
+                          (pageChange)="onPageChange($event)">
+          </app-pagination>
+        </div>
+        <div class="float-left">
+          <div class="dataTables_info" role="status" aria-live="polite">
+            Showing {{ pagedResponse ? (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 : 0 }}
+            to {{ pagedResponse ? Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) : 0 }}
+            of {{ pagedResponse?.totalCount || 0 }} entries
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+//user.component.ts
+
+@Component({
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    PaginationComponent,
+    PermissionDirective,
+    RouterModule
+  ]
+})
+export class UserComponent implements OnInit, OnDestroy {
+  users: User[] = [];
+  roles: Role[] = [];
+  userForm!: FormGroup;
+  isEditMode: boolean = false;
+  currentUserId: string | null = null;
+  loading: boolean = false;
+  message: Message | null = null;
+
+  // User roles assignment
+  selectedRoles: string[] = [];
+  availableRoles: Role[] = [];
+
+  PermissionType = PermissionType;
+  Math = Math;
+
+  // Pagination properties
+  pagedResponse: PagedResponse<User> | null = null;
+  pageRequest: PagedRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    searchText: '',
+    sortColumn: 'email',
+    sortDirection: 'asc'
+  };
+
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private userService: UserService,
+    private roleService: RoleService,
+    private messageService: MessageService,
+    private fb: FormBuilder
+  ) { }
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadUsers();
+    this.loadRoles();
+
+    const messageSub = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+
+    this.subscriptions.push(messageSub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private initForm(): void {
+    this.userForm = this.fb.group({
+      firstName: ['', [Validators.required, Validators.maxLength(50)]],
+      lastName: ['', [Validators.required, Validators.maxLength(50)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      password: ['', [Validators.minLength(6), Validators.maxLength(100)]],
+      phoneNumber: ['', [Validators.maxLength(20)]],
+      isActive: [true]
+    });
+
+    // Only require password when creating a new user
+    this.userForm.get('password')?.setValidators(
+      this.isEditMode ? [Validators.minLength(6), Validators.maxLength(100)] :
+        [Validators.required, Validators.minLength(6), Validators.maxLength(100)]
+    );
+    this.userForm.get('password')?.updateValueAndValidity();
+  }
+
+  loadUsers(): void {
+    this.loading = true;
+    const sub = this.userService.getPagedUsers(this.pageRequest).subscribe({
+      next: (response) => {
+        this.pagedResponse = response;
+        this.users = response.items;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.messageService.showMessage({
+          type: 'error',
+          text: error.error?.message || 'Failed to load users'
+        });
+        this.loading = false;
+      }
+    });
+
+    this.subscriptions.push(sub);
+  }
+
+  loadRoles(): void {
+    this.roleService.getRoles().subscribe({
+      next: (roles) => {
+        this.availableRoles = roles;
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+        this.messageService.showMessage({
+          type: 'error',
+          text: error.error?.message || 'Failed to load roles'
+        });
+      }
+    });
+  }
+
+  onSubmit(): void {
+    if (this.userForm.invalid) return;
+
+    const userData = {
+      ...this.userForm.value,
+      roleIds: this.selectedRoles
+    };
+
+    this.loading = true;
+
+    if (this.isEditMode && this.currentUserId) {
+      this.userService.updateUser(this.currentUserId, userData).subscribe({
+        next: () => {
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'User updated successfully'
+          });
+          this.resetForm();
+          this.loadUsers();
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error updating user:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: error.error?.message || 'Failed to update user'
+          });
+          this.loading = false;
+        }
+      });
+    } else {
+      this.userService.createUser(userData).subscribe({
+        next: () => {
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'User created successfully'
+          });
+          this.resetForm();
+          this.loadUsers();
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error creating user:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: error.error?.message || 'Failed to create user'
+          });
+          this.loading = false;
+        }
+      });
+    }
+  }
+
+  editUser(user: User): void {
+    this.isEditMode = true;
+    this.currentUserId = user.id || null; 
+    this.userForm.patchValue({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      isActive: user.isActive
+    });
+
+    // Clear password as it's not returned from the API
+    this.userForm.get('password')?.setValue('');
+    this.userForm.get('password')?.clearValidators();
+    this.userForm.get('password')?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
+    this.userForm.get('password')?.updateValueAndValidity();
+
+    this.selectedRoles = user.roles?.map(role => role.id).filter((id): id is string => id !== undefined) || [];
+  }
+
+  deleteUser(id: string | undefined): void {
+    if (!id) {
+      this.messageService.showMessage({
+        type: 'error',
+        text: 'Cannot delete user: Invalid ID'
+      });
+      return;
+    }
+
+    if (confirm('Are you sure you want to delete this user?')) {
+      this.loading = true;
+
+      this.userService.deleteUser(id).subscribe({
+        next: () => {
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'User deleted successfully'
+          });
+          this.resetForm();
+          this.loadUsers();
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error deleting user:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: error.error?.message || 'Failed to delete user'
+          });
+          this.loading = false;
+        }
+      });
+    }
+  }
+
+  resetForm(): void {
+    this.userForm.reset({ isActive: true });
+    this.selectedRoles = [];
+    this.isEditMode = false;
+    this.currentUserId = null;
+
+    // Reset password validation
+    this.userForm.get('password')?.setValidators([
+      Validators.required,
+      Validators.minLength(6),
+      Validators.maxLength(100)
+    ]);
+    this.userForm.get('password')?.updateValueAndValidity();
+  }
+
+  toggleRoleSelection(roleId: string): void {
+    const index = this.selectedRoles.indexOf(roleId);
+    if (index === -1) {
+      this.selectedRoles.push(roleId);
+    } else {
+      this.selectedRoles.splice(index, 1);
+    }
+  }
+
+  isRoleSelected(roleId: string): boolean {
+    return this.selectedRoles.includes(roleId);
+  }
+
+  onPageChange(page: number): void {
+    this.pageRequest.pageNumber = page;
+    this.loadUsers();
+  }
+
+  onSortChange(column: string): void {
+    if (this.pageRequest.sortColumn === column) {
+      // Toggle sort direction if clicking on the same column
+      this.pageRequest.sortDirection = this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Default to ascending for a new column
+      this.pageRequest.sortColumn = column;
+      this.pageRequest.sortDirection = 'asc';
+    }
+    this.loadUsers();
+  }
+
+  onSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.pageRequest.searchText = target.value;
+
+    // Reset to first page when searching
+    this.pageRequest.pageNumber = 1;
+
+    // Debounce search
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.loadUsers();
+    }, 500);
+  }
+
+  private searchTimeout: any;
+}

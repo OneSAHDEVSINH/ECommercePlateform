@@ -3,15 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ECommercePlatform.Application.Common.Authorization.Requirements
 {
-    public class PermissionRequirement : IAuthorizationRequirement
+    public class PermissionRequirement(string module, string permission) : IAuthorizationRequirement
     {
-        public string Module { get; }
-        public string Permission { get; }
-
-        public PermissionRequirement(string module, string permission)
-        {
-            Module = module;
-            Permission = permission;
-        }
+        public string Module { get; } = module;
+        public string Permission { get; } = permission;
     }
 }

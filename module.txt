@@ -1,0 +1,2313 @@
+//ModuleController.cs
+
+namespace ECommercePlatform.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class ModuleController(IMediator mediator) : ControllerBase
+    {
+        private readonly IMediator _mediator = mediator;
+
+        [HttpGet]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetAllModules([FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetAllModulesQuery(activeOnly));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("paged")]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetPagedModules([FromQuery] GetPagedModulesQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return BadRequest(new { message = result.Error });
+        }
+
+        [HttpGet("{id}")]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetModuleById(Guid id)
+        {
+            var result = await _mediator.Send(new GetModuleByIdQuery(id));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpGet("by-route/{route}")]
+        [HasPermission("Modules", "View")]
+        public async Task<IActionResult> GetModuleByRoute(string route)
+        {
+            var result = await _mediator.Send(new GetModuleByRouteQuery(route));
+
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return NotFound(new { message = result.Error });
+        }
+
+        [HttpPost]
+        [HasPermission("Modules", "Add")]
+        public async Task<IActionResult> CreateModule([FromBody] CreateModuleCommand command)
+        {
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return CreatedAtAction(nameof(GetModuleById), new { id = result.Value.Id }, result.Value);
+
+            return Conflict(new { message = result.Error });
+        }
+
+        [HttpPut("{id}")]
+        [HasPermission("Modules", "Edit")]
+        public async Task<IActionResult> UpdateModule(Guid id, [FromBody] UpdateModuleCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest(new { message = "Id in the URL does not match the Id in the request body" });
+
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : Conflict(new { message = result.Error });
+        }
+
+        [HttpDelete("{id}")]
+        [HasPermission("Modules", "Delete")]
+        public async Task<IActionResult> DeleteModule(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteModuleCommand(id));
+
+            if (result.IsSuccess)
+                return NoContent();
+
+            return result.Error.Contains("not found")
+                ? NotFound(new { message = result.Error })
+                : BadRequest(new { message = result.Error });
+        }
+    }
+}
+
+//ModuleDto.cs
+
+namespace ECommercePlatform.Application.DTOs
+{
+    public class ModuleDto
+    {
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public string? Route { get; init; }
+        public string? Icon { get; init; }
+        public int DisplayOrder { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedOn { get; init; }
+
+        // Explicit conversion operator from Module entity to ModuleDto
+        public static explicit operator ModuleDto(Module module)
+        {
+            return new ModuleDto
+            {
+                Id = module.Id,
+                Name = module.Name,
+                Description = module.Description,
+                Route = module.Route,
+                Icon = module.Icon,
+                DisplayOrder = module.DisplayOrder,
+                IsActive = module.IsActive,
+                CreatedOn = module.CreatedOn
+            };
+        }
+    }
+
+    public class CreateModuleDto
+    {
+        public required string Name { get; init; }
+        public string? Description { get; init; }
+        public required string Route { get; init; }
+        public string? Icon { get; init; }
+        public int DisplayOrder { get; init; } = 0;
+        public bool IsActive { get; init; } = true;
+    }
+
+    public class UpdateModuleDto
+    {
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public string? Route { get; init; }
+        public string? Icon { get; init; }
+        public int? DisplayOrder { get; init; }
+        public bool? IsActive { get; init; }
+
+        public static explicit operator UpdateModuleDto(UpdateModuleCommand command)
+        {
+            return new UpdateModuleDto
+            {
+                Name = command.Name,
+                Description = command.Description,
+                Route = command.Route,
+                Icon = command.Icon,
+                DisplayOrder = command.DisplayOrder,
+                IsActive = command.IsActive
+            };
+        }
+    }
+
+    public class ModuleListDto
+    {
+        public Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Description { get; init; }
+        public string? Route { get; init; }
+        public string? Icon { get; init; }
+        public int DisplayOrder { get; init; }
+        public bool IsActive { get; init; }
+
+        public static explicit operator ModuleListDto(Module module)
+        {
+            return new ModuleListDto
+            {
+                Id = module.Id,
+                Name = module.Name,
+                Description = module.Description,
+                Route = module.Route,
+                Icon = module.Icon,
+                DisplayOrder = module.DisplayOrder,
+                IsActive = module.IsActive
+            };
+        }
+    }
+}
+
+//CreateModuleCommand.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Create
+{
+    public class CreateModuleCommand : IRequest<AppResult<ModuleDto>>, ITransactionalBehavior, IAuditableCreateRequest
+    {
+        public required string Name { get; init; }
+        public required string Route { get; init; }
+        public string? Description { get; init; }
+        public string? Icon { get; init; }
+        public int DisplayOrder { get; init; }
+        public bool IsActive { get; init; } = true;
+
+        [JsonIgnore]
+        public string? CreatedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+    }
+}
+
+//CreateModuleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Create
+{
+    public class CreateModuleHandler(IUnitOfWork unitOfWork) : IRequestHandler<CreateModuleCommand, AppResult<ModuleDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<ModuleDto>> Handle(CreateModuleCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Validate name uniqueness
+                var nameResult = await _unitOfWork.Modules.EnsureNameIsUniqueAsync(request.Name);
+                if (nameResult.IsFailure)
+                    return AppResult<ModuleDto>.Failure(nameResult.Error);
+
+                // Validate route uniqueness
+                var routeResult = await _unitOfWork.Modules.EnsureRouteIsUniqueAsync(request.Route);
+                if (routeResult.IsFailure)
+                    return AppResult<ModuleDto>.Failure(routeResult.Error);
+
+                // Create module entity
+                var module = Domain.Entities.Module.Create(
+                    request.Name,
+                    request.Description ?? string.Empty,
+                    request.Route,
+                    request.Icon ?? string.Empty,
+                    request.DisplayOrder
+                );
+
+                // Use the SetActive method from BaseEntity
+                if (!request.IsActive)
+                {
+                    module.SetActive(false, request.CreatedBy ?? "system");
+                }
+
+                // Set audit fields
+                module.SetCreatedBy(request.CreatedBy ?? "system");
+
+                // Add module to database
+                await _unitOfWork.Modules.AddAsync(module);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Map to DTO and return
+                var moduleDto = (ModuleDto)module;
+
+                return AppResult<ModuleDto>.Success(moduleDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<ModuleDto>.Failure($"An error occurred while creating the module: {ex.Message}");
+            }
+        }
+    }
+}
+
+//CreateModuleValidator.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Create
+{
+    public class CreateModuleValidator : AbstractValidator<CreateModuleCommand>
+    {
+        private static readonly Regex RouteRegex = GeneratedRegex.RouteFormat();
+        private static readonly Regex NameRegex = GeneratedRegex.AlphanumericWithSpaces();
+
+        public CreateModuleValidator()
+        {
+            RuleFor(x => x.Name.Trim())
+                .NotEmpty().WithMessage("Module name is required.")
+                .MaximumLength(100).WithMessage("Module name must not exceed 100 characters.")
+                .Must(name => NameRegex.IsMatch(name))
+                    .WithMessage("Module name must contain only letters, numbers and spaces.");
+
+            RuleFor(x => x.Route.Trim())
+                .NotEmpty().WithMessage("Route is required.")
+                .MaximumLength(50).WithMessage("Route must not exceed 50 characters.")
+                .Must(route => RouteRegex.IsMatch(route))
+                    .WithMessage("Route must be URL-friendly (lowercase letters, numbers, and hyphens only).");
+
+            RuleFor(x => x.Description)
+                .MaximumLength(500).WithMessage("Description must not exceed 500 characters.")
+                .When(x => !string.IsNullOrEmpty(x.Description));
+
+            RuleFor(x => x.Icon)
+                .MaximumLength(100).WithMessage("Icon class must not exceed 100 characters.")
+                .When(x => !string.IsNullOrEmpty(x.Icon));
+
+            RuleFor(x => x.DisplayOrder)
+                .GreaterThanOrEqualTo(0).WithMessage("Display order must be a non-negative number.");
+        }
+    }
+}
+
+//DeleteModuleCommand.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Delete
+{
+    public record DeleteModuleCommand(Guid Id) : IRequest<AppResult>, ITransactionalBehavior;
+}
+
+//DeleteModuleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Delete
+{
+    public class DeleteModuleHandler(IUnitOfWork unitOfWork) : IRequestHandler<DeleteModuleCommand, AppResult>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult> Handle(DeleteModuleCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var module = await _unitOfWork.Modules.GetByIdAsync(request.Id);
+                if (module == null)
+                    return AppResult.Failure($"Module with ID {request.Id} not found.");
+
+                // Check if module has role permissions
+                var hasRolePermissions = await _unitOfWork.RolePermissions
+                    .AnyAsync(rp => rp.ModuleId == request.Id);
+
+                if (hasRolePermissions)
+                {
+                    return AppResult.Failure("Cannot delete module with associated role permissions. Please remove all role permissions for this module first.");
+                }
+
+                // Soft delete the module not needed righ now, will be applied later on demand
+                //module.MarkAsDeleted(request.DeletedBy ?? "system"); // Need to add DeletedBy to command
+                //await _unitOfWork.Modules.UpdateAsync(module);
+                // Delete the module
+                await _unitOfWork.Modules.DeleteAsync(module);
+                await _unitOfWork.SaveChangesAsync();
+
+                return AppResult.Success();
+            }
+            catch (Exception ex)
+            {
+                return AppResult.Failure($"An error occurred while deleting the module: {ex.Message}");
+            }
+        }
+    }
+}
+
+//DeleteModuleValidator.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Delete
+{
+    public class DeleteModuleValidator : AbstractValidator<DeleteModuleCommand>
+    {
+        public DeleteModuleValidator()
+        {
+            RuleFor(x => x.Id)
+                .NotEmpty().WithMessage("Module ID is required.");
+        }
+    }
+}
+
+//UpdateModuleCommand.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Update
+{
+    public class UpdateModuleCommand : IRequest<AppResult<ModuleDto>>, ITransactionalBehavior, IAuditableUpdateRequest
+    {
+        public required Guid Id { get; init; }
+        public string? Name { get; init; }
+        public string? Route { get; init; }
+        public string? Description { get; init; }
+        public string? Icon { get; init; }
+        public int? DisplayOrder { get; init; }
+        public bool? IsActive { get; init; }
+
+        [JsonIgnore]
+        public string? ModifiedBy { get; set; }
+
+        [JsonIgnore]
+        public DateTime ModifiedOn { get; set; } = DateTime.UtcNow;
+    }
+}
+
+//UpdateModuleHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Update
+{
+    public class UpdateModuleHandler(IUnitOfWork unitOfWork) : IRequestHandler<UpdateModuleCommand, AppResult<ModuleDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<ModuleDto>> Handle(UpdateModuleCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Get module by ID
+                var module = await _unitOfWork.Modules.GetByIdAsync(request.Id);
+                if (module == null)
+                    return AppResult<ModuleDto>.Failure($"Module with ID {request.Id} not found.");
+
+                // Validate name uniqueness if name is being updated
+                if (!string.IsNullOrEmpty(request.Name) && request.Name != module.Name)
+                {
+                    var nameResult = await _unitOfWork.Modules.EnsureNameIsUniqueAsync(request.Name, request.Id);
+                    if (nameResult.IsFailure)
+                        return AppResult<ModuleDto>.Failure(nameResult.Error);
+                }
+
+                // Validate route uniqueness if route is being updated
+                if (!string.IsNullOrEmpty(request.Route) && request.Route != module.Route)
+                {
+                    var routeResult = await _unitOfWork.Modules.EnsureRouteIsUniqueAsync(request.Route, request.Id);
+                    if (routeResult.IsFailure)
+                        return AppResult<ModuleDto>.Failure(routeResult.Error);
+                }
+
+                // Update module properties
+                module.Update(
+                    request.Name ?? module.Name ?? string.Empty,
+                    request.Description ?? module.Description ?? string.Empty,
+                    request.Route ?? module.Route ?? string.Empty,
+                    request.Icon ?? module.Icon ?? string.Empty,
+                    request.DisplayOrder ?? module.DisplayOrder
+                );
+
+                if (request.IsActive.HasValue)
+                {
+                    module.SetActive(request.IsActive.Value, request.ModifiedBy ?? "system");
+                }
+                else
+                {
+                    module.SetModifiedBy(request.ModifiedBy ?? "system");
+                }
+
+                // Update module in database
+                await _unitOfWork.Modules.UpdateAsync(module);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Map to DTO and return
+                var moduleDto = (ModuleDto)module;
+
+                return AppResult<ModuleDto>.Success(moduleDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<ModuleDto>.Failure($"An error occurred while updating the module: {ex.Message}");
+            }
+        }
+    }
+}
+
+//UpdateModuleValidator.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Commands.Update
+{
+    public class UpdateModuleValidator : AbstractValidator<UpdateModuleCommand>
+    {
+        private static readonly Regex RouteRegex = GeneratedRegex.RouteFormat();
+        private static readonly Regex NameRegex = GeneratedRegex.AlphanumericWithSpaces();
+
+        public UpdateModuleValidator()
+        {
+            RuleFor(x => x.Id)
+                .NotEmpty().WithMessage("Module ID is required.");
+
+            When(x => !string.IsNullOrEmpty(x.Name), () =>
+            {
+                RuleFor(x => x.Name!.Trim())
+                    .MaximumLength(100).WithMessage("Module name must not exceed 100 characters.")
+                    .Must(name => NameRegex.IsMatch(name))
+                        .WithMessage("Module name must contain only letters, numbers, and spaces.");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Route), () =>
+            {
+                RuleFor(x => x.Route!.Trim())
+                    .MaximumLength(50).WithMessage("Route must not exceed 50 characters.")
+                    .Must(route => RouteRegex.IsMatch(route))
+                        .WithMessage("Route must be URL-friendly (lowercase letters, numbers, and hyphens only).");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Description), () =>
+            {
+                RuleFor(x => x.Description)
+                    .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
+            });
+
+            When(x => !string.IsNullOrEmpty(x.Icon), () =>
+            {
+                RuleFor(x => x.Icon)
+                    .MaximumLength(100).WithMessage("Icon class must not exceed 100 characters.");
+            });
+
+            When(x => x.DisplayOrder.HasValue, () =>
+            {
+                RuleFor(x => x.DisplayOrder!.Value)
+                    .GreaterThanOrEqualTo(0).WithMessage("Display order must be a non-negative number.");
+            });
+        }
+    }
+}
+
+//GetAllModulesHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetAllModules
+{
+    public class GetAllModulesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetAllModulesQuery, AppResult<List<ModuleDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<List<ModuleDto>>> Handle(GetAllModulesQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var modules = request.ActiveOnly
+                    ? await _unitOfWork.Modules.GetActiveModulesAsync()
+                    : await _unitOfWork.Modules.GetAllAsync();
+
+                // Map to DTOs using the explicit operator
+                var moduleDtos = modules.Select(m => (ModuleDto)m).ToList();
+
+                return AppResult<List<ModuleDto>>.Success(moduleDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<ModuleDto>>.Failure($"An error occurred while retrieving modules: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetAllModulesQuery.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetAllModules
+{
+    public record GetAllModulesQuery(bool ActiveOnly = true) : IRequest<AppResult<List<ModuleDto>>>;
+}
+
+//GetModuleByIdHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleById
+{
+    public class GetModuleByIdHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetModuleByIdQuery, AppResult<ModuleDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<ModuleDto>> Handle(GetModuleByIdQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var module = await _unitOfWork.Modules.GetByIdAsync(request.Id);
+                if (module == null)
+                    return AppResult<ModuleDto>.Failure($"Module with ID {request.Id} not found.");
+
+                // Map to DTO using the explicit operator
+                var moduleDto = (ModuleDto)module;
+
+                return AppResult<ModuleDto>.Success(moduleDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<ModuleDto>.Failure($"An error occurred while retrieving the module: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetModuleByIdQuery.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleById
+{
+    public record GetModuleByIdQuery(Guid Id) : IRequest<AppResult<ModuleDto>>;
+}
+
+//GetModuleByRouteHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRoute
+{
+    public class GetModuleByRouteHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetModuleByRouteQuery, AppResult<ModuleDto>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<ModuleDto>> Handle(GetModuleByRouteQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var module = await _unitOfWork.Modules.GetByRouteAsync(request.Route);
+                if (module == null)
+                    return AppResult<ModuleDto>.Failure($"Module with route '{request.Route}' not found.");
+
+                // Map to DTO using the explicit operator
+                var moduleDto = (ModuleDto)module;
+
+                return AppResult<ModuleDto>.Success(moduleDto);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<ModuleDto>.Failure($"An error occurred while retrieving the module: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetModuleByRouteQuery.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRoute
+{
+    public record GetModuleByRouteQuery(string Route) : IRequest<AppResult<ModuleDto>>;
+}
+
+//GetModulePermissionsHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetModulePermissions
+{
+    public class GetModulePermissionsHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetModulePermissionsQuery, AppResult<List<RolePermissionDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<List<RolePermissionDto>>> Handle(GetModulePermissionsQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var permissions = await _unitOfWork.RolePermissions
+                    .GetByModuleIdAsync(request.ModuleId);
+
+                var permissionDtos = permissions.Select(p => (RolePermissionDto)p).ToList();
+
+                return AppResult<List<RolePermissionDto>>.Success(permissionDtos);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<List<RolePermissionDto>>.Failure($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+}
+
+
+//GetModulePermissionsQuery.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetModulePermissions
+{
+    public record GetModulePermissionsQuery(Guid ModuleId) : IRequest<AppResult<List<RolePermissionDto>>>;
+}
+
+
+//GetPagedModulesHandler.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetPagedModules
+{
+    public class GetPagedModulesHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetPagedModulesQuery, AppResult<PagedResponse<ModuleDto>>>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<AppResult<PagedResponse<ModuleDto>>> Handle(GetPagedModulesQuery request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var pagedResponse = await _unitOfWork.Modules.GetPagedModuleDtosAsync(
+                    request,
+                    request.ActiveOnly,
+                    cancellationToken);
+
+                return AppResult<PagedResponse<ModuleDto>>.Success(pagedResponse);
+            }
+            catch (Exception ex)
+            {
+                return AppResult<PagedResponse<ModuleDto>>.Failure($"An error occurred while retrieving modules: {ex.Message}");
+            }
+        }
+    }
+}
+
+//GetPagedModulesQuery.cs
+
+namespace ECommercePlatform.Application.Features.Modules.Queries.GetPagedModules
+{
+    public class GetPagedModulesQuery : PagedRequest, IRequest<AppResult<PagedResponse<ModuleDto>>>
+    {
+        public bool ActiveOnly { get; set; } = true;
+    }
+}
+
+//IModuleRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IModuleRepository : IGenericRepository<Module>
+    {
+        Task<bool> IsNameUniqueAsync(string name);
+        Task<bool> IsNameUniqueAsync(string name, Guid excludeId);
+        Task<bool> IsRouteUniqueAsync(string route);
+        Task<bool> IsRouteUniqueAsync(string route, Guid excludeId);
+        new Task<Module?> GetByIdAsync(Guid id);
+        new Task<List<Module>> GetAllAsync();
+        Task<List<Module>> GetActiveModulesAsync();
+        Task<Module?> GetByRouteAsync(string route);
+        Task<bool> AnyAsync(Expression<Func<Module, bool>> predicate);
+        IQueryable<Module> AsQueryable();
+        Task<Result<string>> EnsureNameIsUniqueAsync(string name, Guid? excludeId = null);
+        Task<Result<string>> EnsureRouteIsUniqueAsync(string route, Guid? excludeId = null);
+
+        // Pagination methods
+        Task<PagedResponse<Module>> GetPagedModulesAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<ModuleDto>> GetPagedModuleDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+
+        Task<PagedResponse<ModuleListDto>> GetPagedModuleListDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default);
+    }
+}
+
+//IGenericRepository.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IGenericRepository<T> where T : class
+    {
+        Task<T> GetByIdAsync(Guid id);
+        Task<IReadOnlyList<T>> GetAllAsync();
+        Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate);
+        Task<T> AddAsync(T entity);
+        Task UpdateAsync(T entity);
+        Task DeleteAsync(T entity);
+        Task<bool> ExistsAsync(Guid id);
+
+        // Add pagination method
+        IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null);
+
+        // Unified paging method with support for search
+        Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default);
+
+    }
+}
+
+//IUnitOfWork.cs
+
+namespace ECommercePlatform.Application.Interfaces
+{
+    public interface IUnitOfWork : IDisposable
+    {
+        ICountryRepository Countries { get; }
+        IUserRepository Users { get; }
+        IStateRepository States { get; }
+        ICityRepository Cities { get; }
+        IModuleRepository Modules { get; }
+        IRolePermissionRepository RolePermissions { get; }
+        IRoleRepository Roles { get; }
+        IUserRoleRepository UserRoles { get; }
+        UserManager<User> UserManager { get; }
+        RoleManager<Role> RoleManager { get; }
+        SignInManager<User> SignInManager { get; }
+        // Shall be added more repositories as properties
+
+        Task<int> CompleteAsync();
+        Task<int> SaveChangesAsync();
+        new void Dispose();
+    }
+}
+
+//ModuleRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class ModuleRepository(AppDbContext context) : GenericRepository<Module>(context), IModuleRepository
+    {
+        public async Task<bool> IsNameUniqueAsync(string name)
+        {
+            return !await _context.Modules
+                .AnyAsync(m => m.Name != null &&
+                              m.Name.ToLower().Trim() == name.ToLower().Trim() &&
+                              !m.IsDeleted);
+        }
+
+        public async Task<bool> IsNameUniqueAsync(string name, Guid excludeId)
+        {
+            return !await _context.Modules
+                .AnyAsync(m => m.Name != null &&
+                              m.Name.ToLower().Trim() == name.ToLower().Trim() &&
+                              m.Id != excludeId &&
+                              !m.IsDeleted);
+        }
+
+        public async Task<bool> IsRouteUniqueAsync(string route)
+        {
+            return !await _context.Modules
+                .AnyAsync(m => m.Route != null &&
+                              m.Route.ToLower().Trim() == route.ToLower().Trim() &&
+                              !m.IsDeleted);
+        }
+
+        public async Task<bool> IsRouteUniqueAsync(string route, Guid excludeId)
+        {
+            return !await _context.Modules
+                .AnyAsync(m => m.Route != null &&
+                              m.Route.ToLower().Trim() == route.ToLower().Trim() &&
+                              m.Id != excludeId &&
+                              !m.IsDeleted);
+        }
+
+        public new async Task<Module?> GetByIdAsync(Guid id)
+        {
+            return await _context.Modules
+                .Include(m => m.RolePermissions) // Changed from Permissions
+                .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
+        }
+
+
+        public new async Task<List<Module>> GetAllAsync()
+        {
+            return await _context.Modules
+                .Include(m => m.RolePermissions) // Changed from Permissions
+                .Where(m => !m.IsDeleted)
+                .OrderBy(m => m.DisplayOrder)
+                .ToListAsync();
+        }
+
+        public async Task<List<Module>> GetActiveModulesAsync()
+        {
+            return await _context.Modules
+                .Include(m => m.RolePermissions)
+                .Where(m => m.IsActive && !m.IsDeleted)
+                .OrderBy(m => m.DisplayOrder)
+                .ToListAsync();
+        }
+
+        public async Task<Module?> GetByRouteAsync(string route)
+        {
+            return await _context.Modules
+                .Include(m => m.RolePermissions)
+                .FirstOrDefaultAsync(m => m.Route != null &&
+                                         m.Route.ToLower() == route.ToLower() &&
+                                         !m.IsDeleted);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<Module, bool>> predicate)
+        {
+            return await _context.Modules.AnyAsync(predicate);
+        }
+
+        public IQueryable<Module> AsQueryable()
+        {
+            return _context.Modules.AsQueryable();
+        }
+
+        // Combined validation method for name uniqueness
+        public Task<Result<string>> EnsureNameIsUniqueAsync(string name, Guid? excludeId = null)
+        {
+            return Result.Success(name)
+                // Validate name is not empty
+                .Ensure(n => !string.IsNullOrEmpty(n?.Trim()), "Module name cannot be null or empty.")
+                // Normalize the input
+                .Map(n => n.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedName =>
+                {
+                    var query = _context.Modules.Where(m =>
+                        m.Name != null &&
+                        m.Name.ToLower().Trim() == normalizedName &&
+                        !m.IsDeleted);
+
+                    // Apply ID exclusion if provided
+                    if (excludeId.HasValue)
+                        query = query.Where(m => m.Id != excludeId.Value);
+
+                    var exists = await query.AnyAsync();
+
+                    return exists
+                        ? Result.Failure<string>($"Module with name \"{name}\" already exists.")
+                        : Result.Success(normalizedName);
+                });
+        }
+
+        // Combined validation method for route uniqueness
+        public Task<Result<string>> EnsureRouteIsUniqueAsync(string route, Guid? excludeId = null)
+        {
+            return Result.Success(route)
+                // Validate route is not empty
+                .Ensure(r => !string.IsNullOrEmpty(r?.Trim()), "Module route cannot be null or empty.")
+                // Normalize the input
+                .Map(r => r.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedRoute =>
+                {
+                    var query = _context.Modules.Where(m =>
+                        m.Route != null &&
+                        m.Route.ToLower().Trim() == normalizedRoute &&
+                        !m.IsDeleted);
+
+                    // Apply ID exclusion if provided
+                    if (excludeId.HasValue)
+                        query = query.Where(m => m.Id != excludeId.Value);
+
+                    var exists = await query.AnyAsync();
+
+                    return exists
+                        ? Result.Failure<string>($"Module with route \"{route}\" already exists.")
+                        : Result.Success(normalizedRoute);
+                });
+        }
+
+        // Search function for modules
+        private static IQueryable<Module> ApplyModuleSearch(IQueryable<Module> query, string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return query;
+
+            var searchTerm = searchText.ToLower();
+            return query.Where(m =>
+                (m.Name != null && EF.Functions.Like(m.Name.ToLower(), $"%{searchTerm}%")) ||
+                (m.Description != null && EF.Functions.Like(m.Description.ToLower(), $"%{searchTerm}%")) ||
+                (m.Route != null && EF.Functions.Like(m.Route.ToLower(), $"%{searchTerm}%")));
+        }
+
+        // Get paginated modules
+        public async Task<PagedResponse<Module>> GetPagedModulesAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            // Create base filter
+            Expression<Func<Module, bool>> baseFilter = activeOnly
+                ? m => m.IsActive && !m.IsDeleted
+                : m => !m.IsDeleted;
+
+            // Define a search function that also includes permissions
+            static IQueryable<Module> searchWithInclude(IQueryable<Module> query, string? searchText)
+            {
+                // First include related entities
+                var queryWithInclude = query
+                    .Include(m => m.RolePermissions);
+
+                // Then apply search if text is provided
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    return ApplyModuleSearch(queryWithInclude, searchText);
+
+                return queryWithInclude;
+            }
+
+            // Use the generic paging method
+            return await GetPagedAsync(
+                request,
+                baseFilter,
+                searchWithInclude,
+                cancellationToken);
+        }
+
+        // Get paginated module DTOs
+        public async Task<PagedResponse<ModuleDto>> GetPagedModuleDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedModulesAsync(
+                request,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to DTOs
+            var dtos = pagedEntities.Items.Select(m => (ModuleDto)m).ToList();
+
+            return new PagedResponse<ModuleDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+
+        // Get paginated module list DTOs (simplified version for lists)
+        public async Task<PagedResponse<ModuleListDto>> GetPagedModuleListDtosAsync(
+            PagedRequest request,
+            bool activeOnly = true,
+            CancellationToken cancellationToken = default)
+        {
+            var pagedEntities = await GetPagedModulesAsync(
+                request,
+                activeOnly,
+                cancellationToken);
+
+            // Map entities to list DTOs
+            var dtos = pagedEntities.Items.Select(m => (ModuleListDto)m).ToList();
+
+            return new PagedResponse<ModuleListDto>
+            {
+                Items = dtos,
+                TotalCount = pagedEntities.TotalCount,
+                PageNumber = pagedEntities.PageNumber,
+                PageSize = pagedEntities.PageSize
+            };
+        }
+    }
+}
+
+//GenericRepository.cs
+
+namespace ECommercePlatform.Infrastructure.Repositories
+{
+    public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> where T : class
+    {
+        protected readonly AppDbContext _context = context;
+
+        public async Task<T> AddAsync(T entity)
+        {
+            await _context.Set<T>().AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+
+        public async Task DeleteAsync(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>()
+                .Where(predicate)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> GetAllAsync()
+        {
+            return await _context.Set<T>()
+                .OrderByDescending(e => EF.Property<object>(e, "CreatedOn"))
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<T> GetByIdAsync(Guid id)
+        {
+            var entity = await _context.Set<T>().FindAsync(id)
+                ?? throw new InvalidOperationException($"Entity of type {typeof(T).Name} with ID {id} was not found.");
+            _context.Entry(entity).State = EntityState.Detached; // Detach the entity to avoid tracking issues
+            return entity;
+        }
+
+        public async Task UpdateAsync(T entity)
+        {
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsAsync(Guid id)
+        {
+            var entity = await _context.Set<T>().FindAsync(id);
+            return entity != null;
+        }
+
+        // Implement the new method
+        public IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null)
+        {
+            return predicate == null
+                ? _context.Set<T>().AsQueryable()
+                : _context.Set<T>().Where(predicate);
+        }
+
+        // Streamlined paging method with support for search
+        public async Task<PagedResponse<T>> GetPagedAsync(
+            PagedRequest request,
+            Expression<Func<T, bool>>? baseFilter = null,
+            Func<IQueryable<T>, string?, IQueryable<T>>? searchFunction = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Start with base query
+                var query = _context.Set<T>().AsQueryable();
+
+                // Apply base filter if provided
+                if (baseFilter != null)
+                    query = query.Where(baseFilter);
+
+                // Apply date range filter if entity is BaseEntity type
+                if (typeof(BaseEntity).IsAssignableFrom(typeof(T)))
+                {
+                    // Apply start date filter if provided
+                    if (request.StartDate.HasValue)
+                    {
+                        //var startDate = request.StartDate.Value;
+                        //query = query.Where(e => EF.Property<DateTime>(e, nameof(BaseEntity.CreatedOn)) >= startDate);
+
+                        var startDate = request.StartDate.Value.Date; // Use Date to ignore time component
+                        query = query.Where(e => EF.Property<DateTime>(e, "CreatedOn").Date >= startDate);
+                    }
+
+                    // Apply end date filter if provided
+                    if (request.EndDate.HasValue)
+                    {
+                        //// Add one day to include all records until the end of the day
+                        //var endDate = request.EndDate.Value.AddDays(1);
+                        //query = query.Where(e => EF.Property<DateTime>(e, nameof(BaseEntity.CreatedOn)) < endDate);
+
+                        var endDate = request.EndDate.Value.Date.AddDays(1); // Include all records of the end date
+                        query = query.Where(e => EF.Property<DateTime>(e, "CreatedOn") < endDate);
+                    }
+                }
+
+                // Apply search if provided
+                if (searchFunction != null && !string.IsNullOrWhiteSpace(request.SearchText))
+                    query = searchFunction(query, request.SearchText);
+
+                // Get total count before pagination
+                var totalCount = await query.CountAsync(cancellationToken);
+
+                // Apply sorting or use default
+                if (!string.IsNullOrWhiteSpace(request.SortColumn))
+                    query = query.ApplyDynamicOrderBy(request.SortColumn, request.SortDirection ?? "asc");
+
+                // Apply pagination
+                var items = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
+                // Return paged response
+                return new PagedResponse<T>
+                {
+                    Items = items,
+                    TotalCount = totalCount,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetPagedAsync: {ex.Message}");
+                throw;
+            }
+        }
+    }
+}
+
+//UnitOfWork.cs
+
+namespace ECommercePlatform.Infrastructure
+{
+    public class UnitOfWork(AppDbContext context, UserManager<User> UserManager, RoleManager<Role> RoleManager, SignInManager<User> SignInManager) : IUnitOfWork, IDisposable
+    {
+        private readonly AppDbContext _context = context;
+        private ICountryRepository? _countryRepository;
+        private IUserRepository? _userRepository;
+        private IStateRepository? _stateRepository;
+        private ICityRepository? _cityRepository;
+        private IRolePermissionRepository? _rolePermissionRepository;
+        private IModuleRepository? _moduleRepository;
+        private IRoleRepository? _roleRepository;
+        private IUserRoleRepository? _userRoleRepository;
+
+        private readonly UserManager<User> _userManager = UserManager;
+        private readonly RoleManager<Role> _roleManager = RoleManager;
+        private readonly SignInManager<User> _signInManager = SignInManager;
+
+        public ICountryRepository Countries => _countryRepository ??= new CountryRepository(_context);
+
+        public IUserRepository Users => _userRepository ??= new UserRepository(_context);
+
+        public IStateRepository States => _stateRepository ??= new StateRepository(_context);
+
+        public ICityRepository Cities => _cityRepository ??= new CityRepository(_context);
+
+        public IRolePermissionRepository RolePermissions => _rolePermissionRepository ??= new RolePermissionRepository(_context);
+
+        public IModuleRepository Modules => _moduleRepository ??= new ModuleRepository(_context);
+
+        public IRoleRepository Roles => _roleRepository ??= new RoleRepository(_context);
+
+        public IUserRoleRepository UserRoles => _userRoleRepository ??= new UserRoleRepository(_context);
+
+
+        public UserManager<User> UserManager => _userManager;
+        public RoleManager<Role> RoleManager => _roleManager;
+        public SignInManager<User> SignInManager => _signInManager;
+
+        public async Task<int> CompleteAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
+        }
+    }
+}
+
+//Module.cs
+
+namespace ECommercePlatform.Domain.Entities
+{
+    public class Module : BaseEntity
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? Route { get; set; }
+        public string? Icon { get; set; }
+        public int DisplayOrder { get; set; }
+
+        // Initialize to prevent null reference
+        public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+
+        private Module() { }
+
+        public static Module Create(
+            string name,
+            string description,
+            string route,
+            string icon,
+            int displayOrder)
+        {
+            return new Module
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Description = description,
+                Route = route,
+                Icon = icon,
+                DisplayOrder = displayOrder,
+                CreatedOn = DateTime.UtcNow,
+                IsActive = true
+            };
+        }
+
+        public void Update(
+            string name,
+            string description,
+            string route,
+            string icon,
+            int displayOrder)
+        {
+            Name = name;
+            Description = description;
+            Route = route;
+            Icon = icon;
+            DisplayOrder = displayOrder;
+            ModifiedOn = DateTime.UtcNow;
+        }
+    }
+}
+
+//module.service.ts
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ModuleService {
+  private apiUrl = `${environment.apiUrl}/module`;
+
+  constructor(private http: HttpClient) { }
+
+  getModules(): Observable<Module[]> {
+    return this.http.get<Module[]>(this.apiUrl)
+      .pipe(catchError(this.handleError));
+  }
+
+  getPagedModules(request: PagedRequest): Observable<PagedResponse<Module>> {
+    return this.http.get<PagedResponse<Module>>(`${this.apiUrl}/paged`, {
+      params: { ...request as any }
+    }).pipe(catchError(this.handleError));
+  }
+
+  getModule(id: string): Observable<Module> {
+    return this.http.get<Module>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getModuleWithPermissions(id: string): Observable<Module> {
+    return this.http.get<Module>(`${this.apiUrl}/${id}/permissions`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getAllModulesWithPermissions(): Observable<Module[]> {
+    return this.http.get<Module[]>(`${this.apiUrl}/with-permissions`)
+      .pipe(catchError(this.handleError));
+  }
+
+  createModule(module: Module): Observable<Module> {
+    return this.http.post<Module>(this.apiUrl, module)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateModule(id: string, module: Module): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, module)
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteModule(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  // The following methods would be implemented if you have permission endpoints
+  // These are placeholders for now
+  createPermission(permission: Permission): Observable<Permission> {
+    return this.http.post<Permission>(`${environment.apiUrl}/permission`, permission)
+      .pipe(catchError(this.handleError));
+  }
+
+  updatePermission(id: string, permission: Permission): Observable<void> {
+    return this.http.put<void>(`${environment.apiUrl}/permission/${id}`, permission)
+      .pipe(catchError(this.handleError));
+  }
+
+  deletePermission(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/permission/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  private handleError(error: any) {
+    console.error('Module service error:', error);
+    return throwError(() => error);
+  }
+}
+
+
+//module-management.component.html
+
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Manage Modules</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Modules</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <!-- Module Form Card -->
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit Module' : 'Add New Module' }}</h3>
+      </div>
+      <form [formGroup]="moduleForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Module Name</label>
+                <input type="text"
+                       id="name"
+                       formControlName="name"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': moduleForm.get('name')?.touched && moduleForm.get('name')?.errors}"
+                       placeholder="Enter module name">
+                <span *ngIf="moduleForm.get('name')?.touched && moduleForm.get('name')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('name')?.errors?.['required']">Module name is required</span>
+                  <span *ngIf="moduleForm.get('name')?.errors?.['maxlength']">Module name cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="route">Route</label>
+                <input type="text"
+                       id="route"
+                       formControlName="route"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': moduleForm.get('route')?.touched && moduleForm.get('route')?.errors}"
+                       placeholder="Enter route (e.g., 'countries')">
+                <span *ngIf="moduleForm.get('route')?.touched && moduleForm.get('route')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('route')?.errors?.['required']">Route is required</span>
+                  <span *ngIf="moduleForm.get('route')?.errors?.['maxlength']">Route cannot exceed 50 characters</span>
+                  <span *ngIf="moduleForm.get('route')?.errors?.['pattern']">Route must contain only lowercase letters, numbers, and hyphens</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="icon">Icon CSS Class</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-icons"></i></span>
+                  </div>
+                  <input type="text"
+                         id="icon"
+                         formControlName="icon"
+                         class="form-control"
+                         [ngClass]="{'is-invalid': moduleForm.get('icon')?.touched && moduleForm.get('icon')?.errors}"
+                         placeholder="e.g., 'fas fa-users'">
+                </div>
+                <span *ngIf="moduleForm.get('icon')?.touched && moduleForm.get('icon')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('icon')?.errors?.['maxlength']">Icon class cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="displayOrder">Display Order</label>
+                <input type="number"
+                       id="displayOrder"
+                       formControlName="displayOrder"
+                       class="form-control"
+                       min="0"
+                       [ngClass]="{'is-invalid': moduleForm.get('displayOrder')?.touched && moduleForm.get('displayOrder')?.errors}">
+                <span *ngIf="moduleForm.get('displayOrder')?.touched && moduleForm.get('displayOrder')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('displayOrder')?.errors?.['required']">Display order is required</span>
+                  <span *ngIf="moduleForm.get('displayOrder')?.errors?.['min']">Display order must be a positive number</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch mt-2">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control"
+                          id="description"
+                          formControlName="description"
+                          rows="3"
+                          [ngClass]="{'is-invalid': moduleForm.get('description')?.touched && moduleForm.get('description')?.errors}"
+                          placeholder="Enter module description"></textarea>
+                <span *ngIf="moduleForm.get('description')?.touched && moduleForm.get('description')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('description')?.errors?.['maxlength']">Description cannot exceed 500 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button type="submit"
+                  class="btn btn-primary"
+                  [disabled]="moduleForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'modules', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+            <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} Module
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="isEditMode">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="!isEditMode && moduleForm.dirty">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Module List Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Module List</h3>
+        <div class="card-tools">
+          <div class="input-group input-group-sm" style="width: 250px;">
+            <input type="text"
+                   #searchInput
+                   [(ngModel)]="pageRequest.searchText"
+                   (input)="onSearchChange($event)"
+                   class="form-control float-right"
+                   placeholder="Search...">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-default">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body table-responsive p-0">
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-refresh fa-spin"></i>
+        </div>
+        <table class="table table-hover text-nowrap">
+          <thead>
+            <tr>
+              <th class="sortable" (click)="onSortChange('name')">
+                Name
+                <i *ngIf="pageRequest.sortColumn === 'name'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th class="sortable" (click)="onSortChange('route')">
+                Route
+                <i *ngIf="pageRequest.sortColumn === 'route'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th class="sortable" (click)="onSortChange('displayOrder')">
+                Display Order
+                <i *ngIf="pageRequest.sortColumn === 'displayOrder'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th>Icon</th>
+              <th class="sortable" (click)="onSortChange('isActive')">
+                Status
+                <i *ngIf="pageRequest.sortColumn === 'isActive'"
+                   [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+              </th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!modules || modules.length === 0">
+              <td colspan="6" class="text-center">No records found</td>
+            </tr>
+            <tr *ngFor="let module of modules">
+              <td>{{ module.name }}</td>
+              <td><code>{{ module.route }}</code></td>
+              <td>{{ module.displayOrder }}</td>
+              <td>
+                <i [class]="module.icon || 'fas fa-cube'" title="{{ module.icon }}"></i>
+                <small class="text-muted ml-2">{{ module.icon }}</small>
+              </td>
+              <td>
+                <span [class]="module.isActive ? 'badge badge-success' : 'badge badge-danger'">
+                  {{ module.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-info mr-1"
+                        [routerLink]="['/admin/modules', module.id, 'permissions']"
+                        *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
+                  <i class="fas fa-shield-alt"></i> Permissions
+                </button>
+                <button class="btn btn-sm btn-primary mr-1"
+                        (click)="editModule(module)"
+                        *appPermission="{ moduleRoute: 'modules', type: PermissionType.Edit }">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-sm btn-danger"
+                        (click)="deleteModule(module.id)"
+                        *appPermission="{ moduleRoute: 'modules', type: PermissionType.Delete }">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer clearfix">
+        <div class="float-right">
+          <app-pagination *ngIf="pagedResponse"
+                          [totalCount]="pagedResponse.totalCount"
+                          [pageSize]="pagedResponse.pageSize"
+                          [pageNumber]="pagedResponse.pageNumber"
+                          (pageChange)="onPageChange($event)">
+          </app-pagination>
+        </div>
+        <div class="float-left">
+          <label class="mr-2">Items per page:</label>
+          <select class="form-control-sm" (change)="onPageSizeChange($event)">
+            <option [selected]="pageRequest.pageSize === 5" value="5">5</option>
+            <option [selected]="pageRequest.pageSize === 10" value="10">10</option>
+            <option [selected]="pageRequest.pageSize === 25" value="25">25</option>
+            <option [selected]="pageRequest.pageSize === 50" value="50">50</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+//module-management.component.ts
+
+@Component({
+  selector: 'app-module-management',
+  templateUrl: './module-management.component.html',
+  styleUrls: ['./module-management.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    PaginationComponent,
+    PermissionDirective,
+    RouterModule
+  ]
+})
+export class ModuleManagementComponent implements OnInit, OnDestroy {
+  modules: Module[] = [];
+  moduleForm!: FormGroup;
+  isEditMode: boolean = false;
+  currentModuleId: string | null = null;
+  loading: boolean = false;
+  message: Message | null = null;
+  PermissionType = PermissionType;
+  Math = Math;
+
+  // Pagination properties
+  pagedResponse: PagedResponse<Module> | null = null;
+  pageRequest: PagedRequest = {
+    pageNumber: 1,
+    pageSize: 10,
+    searchText: '',
+    sortColumn: 'displayOrder',
+    sortDirection: 'asc'
+  };
+
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private moduleService: ModuleService,
+    private authorizationService: AuthorizationService,
+    private messageService: MessageService,
+    private fb: FormBuilder
+  ) { }
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadModules();
+
+    const messageSub = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+
+    // Clear authorization cache when managing modules to ensure permissions are up-to-date
+    this.authorizationService.clearCache();
+
+    this.subscriptions.push(messageSub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private initForm(): void {
+    this.moduleForm = this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', [Validators.maxLength(500)]],
+      route: ['', [Validators.required, Validators.maxLength(50), Validators.pattern('^[a-z0-9-]+$')]],
+      icon: ['', [Validators.maxLength(50)]],
+      displayOrder: [0, [Validators.required, Validators.min(0)]],
+      isActive: [true]
+    });
+  }
+
+  loadModules(): void {
+    this.loading = true;
+    const sub = this.moduleService.getPagedModules(this.pageRequest).subscribe({
+      next: (response) => {
+        this.pagedResponse = response;
+        this.modules = response.items;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading modules:', error);
+        this.messageService.showMessage({
+          type: 'error',
+          text: error.error?.message || 'Failed to load modules'
+        });
+        this.loading = false;
+      }
+    });
+
+    this.subscriptions.push(sub);
+  }
+
+  onSubmit(): void {
+    if (this.moduleForm.invalid) {
+      // Mark all fields as touched to trigger validation messages
+      Object.keys(this.moduleForm.controls).forEach(key => {
+        const control = this.moduleForm.get(key);
+        control?.markAsTouched();
+      });
+      return;
+    }
+
+    this.loading = true;
+    const moduleData: Module = this.moduleForm.value;
+
+    if (this.isEditMode && this.currentModuleId) {
+      const sub = this.moduleService.updateModule(this.currentModuleId, moduleData).subscribe({
+        next: () => {
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'Module updated successfully'
+          });
+          this.loadModules();
+          this.resetForm();
+          this.loading = false;
+          // Clear authorization cache after updating a module
+          this.authorizationService.clearCache();
+        },
+        error: (error) => {
+          console.error('Error updating module:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: error.error?.message || 'Failed to update module'
+          });
+          this.loading = false;
+        }
+      });
+
+      this.subscriptions.push(sub);
+    } else {
+      const sub = this.moduleService.createModule(moduleData).subscribe({
+        next: () => {
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'Module created successfully'
+          });
+          this.loadModules();
+          this.resetForm();
+          this.loading = false;
+          // Clear authorization cache after creating a module
+          this.authorizationService.clearCache();
+        },
+        error: (error) => {
+          console.error('Error creating module:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: error.error?.message || 'Failed to create module'
+          });
+          this.loading = false;
+        }
+      });
+
+      this.subscriptions.push(sub);
+    }
+  }
+
+  editModule(module: Module): void {
+    this.isEditMode = true;
+    this.currentModuleId = module.id || null;
+
+    this.moduleForm.patchValue({
+      name: module.name,
+      description: module.description,
+      route: module.route,
+      icon: module.icon,
+      displayOrder: module.displayOrder,
+      isActive: module.isActive
+    });
+
+    this.messageService.scrollToTop();
+  }
+
+  deleteModule(id: string | undefined): void {
+    if (!id) return;
+
+    if (confirm('Are you sure you want to delete this module? This will also delete all permissions associated with this module and may affect user roles.')) {
+      this.loading = true;
+      const sub = this.moduleService.deleteModule(id).subscribe({
+        next: () => {
+          this.messageService.showMessage({
+            type: 'success',
+            text: 'Module deleted successfully'
+          });
+          this.loadModules();
+          this.loading = false;
+          // Clear authorization cache after deleting a module
+          this.authorizationService.clearCache();
+        },
+        error: (error) => {
+          console.error('Error deleting module:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: error.error?.message || 'Failed to delete module'
+          });
+          this.loading = false;
+        }
+      });
+
+      this.subscriptions.push(sub);
+    }
+  }
+
+  resetForm(): void {
+    this.moduleForm.reset({
+      displayOrder: 0,
+      isActive: true
+    });
+    this.isEditMode = false;
+    this.currentModuleId = null;
+  }
+
+  // Pagination methods
+  onPageChange(page: number): void {
+    this.pageRequest.pageNumber = page;
+    this.loadModules();
+  }
+
+  onPageSizeChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.pageRequest.pageSize = Number(selectElement.value);
+    this.pageRequest.pageNumber = 1;
+    this.loadModules();
+  }
+
+  onSortChange(column: string): void {
+    if (this.pageRequest.sortColumn === column) {
+      this.pageRequest.sortDirection = this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.pageRequest.sortColumn = column;
+      this.pageRequest.sortDirection = 'asc';
+    }
+    this.loadModules();
+  }
+
+  onSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.pageRequest.searchText = target.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page on search
+    this.loadModules();
+  }
+}
+
+
+//module-permission.component.html
+
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Module Permissions: {{ module?.name }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item"><a routerLink="/admin/modules">Modules</a></li>
+          <li class="breadcrumb-item active">Permissions</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <!-- Back button -->
+    <div class="mb-3">
+      <button type="button" class="btn btn-secondary" (click)="backToModules()">
+        <i class="fas fa-arrow-left"></i> Back to Modules
+      </button>
+    </div>
+
+    <!-- Module Info Card -->
+    <div class="card card-primary" *ngIf="module">
+      <div class="card-header">
+        <h3 class="card-title">Module Information</h3>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Name:</strong> {{ module.name }}</p>
+            <p><strong>Route:</strong> <code>{{ module.route }}</code></p>
+            <p><strong>Icon:</strong> <i [class]="module.icon"></i> {{ module.icon }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Display Order:</strong> {{ module.displayOrder }}</p>
+            <p>
+              <strong>Active:</strong>
+              <span [ngClass]="module.isActive ? 'badge bg-success' : 'badge bg-danger'">
+                {{ module.isActive ? 'Yes' : 'No' }}
+              </span>
+            </p>
+            <p><strong>Description:</strong> {{ module.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permission Form Card -->
+    <div class="card card-info">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit Permission' : 'Add Permission' }}</h3>
+      </div>
+      <form [formGroup]="permissionForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Permission Name</label>
+                <input type="text"
+                       id="name"
+                       formControlName="name"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': permissionForm.get('name')?.touched && permissionForm.get('name')?.errors}"
+                       placeholder="Enter permission name">
+                <span *ngIf="permissionForm.get('name')?.touched && permissionForm.get('name')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="permissionForm.get('name')?.errors?.['required']">Permission name is required</span>
+                  <span *ngIf="permissionForm.get('name')?.errors?.['maxlength']">Permission name cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="type">Permission Type</label>
+                <select id="type"
+                        formControlName="type"
+                        class="form-control"
+                        [ngClass]="{'is-invalid': permissionForm.get('type')?.touched && permissionForm.get('type')?.errors}">
+                  <option *ngFor="let type of permissionTypes" [value]="type">{{ type }}</option>
+                </select>
+                <span *ngIf="permissionForm.get('type')?.touched && permissionForm.get('type')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="permissionForm.get('type')?.errors?.['required']">Permission type is required</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch mt-2">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control"
+                          id="description"
+                          formControlName="description"
+                          rows="3"
+                          [ngClass]="{'is-invalid': permissionForm.get('description')?.touched && permissionForm.get('description')?.errors}"
+                          placeholder="Enter permission description"></textarea>
+                <span *ngIf="permissionForm.get('description')?.touched && permissionForm.get('description')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="permissionForm.get('description')?.errors?.['maxlength']">Description cannot exceed 250 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button type="submit"
+                  class="btn btn-info"
+                  [disabled]="permissionForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'modules', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+            <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} Permission
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="isEditMode">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="!isEditMode && permissionForm.dirty">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Permissions List Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Module Permissions</h3>
+      </div>
+      <div class="card-body">
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="permissions.length === 0 && !loading" class="alert alert-info">
+          <i class="icon fas fa-info"></i>
+          No permissions defined for this module.
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-responsive" *ngIf="permissions.length > 0">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width: 50px">Index</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th style="width: 100px">Status</th>
+                <th style="width: 150px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let permission of permissions; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ permission.name }}</td>
+                <td>
+                  <span [ngClass]="getPermissionTypeClass(permission.type)">
+                    {{ permission.type }}
+                  </span>
+                </td>
+                <td>{{ permission.description }}</td>
+                <td>
+                  <span [ngClass]="permission.isActive ? 'badge bg-success' : 'badge bg-danger'">
+                    {{ permission.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-primary mr-1"
+                          (click)="editPermission(permission)"
+                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.Edit }">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger"
+                          (click)="permission.id && deletePermission(permission.id)">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+//module-permission.component.ts
+
+@Component({
+  selector: 'app-module-permissions',
+  templateUrl: './module-permissions.component.html',
+  styleUrls: ['./module-permissions.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    PermissionDirective,
+    RouterModule
+  ]
+})
+export class ModulePermissionsComponent implements OnInit, OnDestroy {
+  module: Module | null = null;
+  permissions: Permission[] = [];
+  permissionForm!: FormGroup;
+  isEditMode: boolean = false;
+  currentPermissionId: string | null = null;
+  loading: boolean = false;
+  message: Message | null = null;
+  PermissionType = PermissionType;
+  permissionTypes = Object.values(PermissionType);
+
+  private moduleId: string | null = null;
+  private subscriptions: Subscription[] = [];
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private moduleService: ModuleService,
+    private authorizationService: AuthorizationService,
+    private messageService: MessageService,
+    private fb: FormBuilder
+  ) { }
+
+  ngOnInit(): void {
+    this.initForm();
+
+    // Get module ID from route parameters
+    const routeSub = this.route.paramMap.subscribe(params => {
+      this.moduleId = params.get('id');
+      if (this.moduleId) {
+        this.loadModule(this.moduleId);
+      } else {
+        this.router.navigate(['/admin/modules']);
+      }
+    });
+
+    const messageSub = this.messageService.currentMessage.subscribe(message => {
+      this.message = message;
+    });
+
+    this.subscriptions.push(routeSub, messageSub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  private initForm(): void {
+    this.permissionForm = this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', [Validators.maxLength(250)]],
+      type: [PermissionType.View, [Validators.required]],
+      isActive: [true]
+    });
+  }
+
+  loadModule(id: string): void {
+    this.loading = true;
+    const sub = this.moduleService.getModuleWithPermissions(id).subscribe({
+      next: (module) => {
+        this.module = module;
+        this.permissions = module.permissions || [];
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading module permissions:', error);
+        this.messageService.showMessage({
+          type: 'error',
+          text: error.error?.message || 'Failed to load module permissions'
+        });
+        this.loading = false;
+        this.router.navigate(['/admin/modules']);
+      }
+    });
+
+    this.subscriptions.push(sub);
+  }
+
+  onSubmit(): void {
+    if (this.permissionForm.invalid || !this.moduleId) {
+      // Mark all fields as touched to show validation errors
+      Object.keys(this.permissionForm.controls).forEach(key => {
+        this.permissionForm.get(key)?.markAsTouched();
+      });
+      return;
+    }
+
+    const permissionData: any = {
+      ...this.permissionForm.value,
+      moduleId: this.moduleId
+    };
+
+    this.loading = true;
+
+    if (this.isEditMode && this.currentPermissionId) {
+      // This would be the updatePermission method if implemented
+      this.loading = false;
+      this.messageService.showMessage({
+        type: 'info',
+        text: 'Permission update functionality is not yet implemented'
+      });
+    } else {
+      // This would be the createPermission method if implemented
+      this.loading = false;
+      this.messageService.showMessage({
+        type: 'info',
+        text: 'Permission creation functionality is not yet implemented'
+      });
+    }
+
+    // Mock implementation for UI demonstration
+    setTimeout(() => {
+      if (!this.isEditMode) {
+        // Simulate permission creation
+        const newPermission: Permission = {
+          id: crypto.randomUUID(),
+          name: permissionData.name,
+          description: permissionData.description,
+          type: permissionData.type,
+          moduleId: this.moduleId as string,
+          moduleName: this.module?.name,
+          isActive: permissionData.isActive
+        };
+        this.permissions = [...this.permissions, newPermission];
+      } else {
+        // Simulate permission update
+        this.permissions = this.permissions.map(p =>
+          p.id === this.currentPermissionId
+            ? { ...p, ...permissionData }
+            : p
+        );
+      }
+
+      // Reset form and state
+      this.resetForm();
+      this.messageService.showMessage({
+        type: 'success',
+        text: `Permission ${this.isEditMode ? 'updated' : 'created'} successfully`
+      });
+      this.loading = false;
+
+      // Clear authorization cache to refresh permissions
+      this.authorizationService.clearCache();
+    }, 500);
+  }
+
+  editPermission(permission: Permission): void {
+    this.isEditMode = true;
+    this.currentPermissionId = permission.id || null;
+
+    this.permissionForm.patchValue({
+      name: permission.name,
+      description: permission.description,
+      type: permission.type,
+      isActive: permission.isActive
+    });
+
+    this.messageService.scrollToTop();
+  }
+
+  deletePermission(id: string | undefined): void {
+    if (!id) return;
+
+    if (confirm('Are you sure you want to delete this permission? This may affect user roles that use this permission.')) {
+      this.loading = true;
+
+      // Mock implementation for UI demonstration
+      setTimeout(() => {
+        this.permissions = this.permissions.filter(p => p.id !== id);
+        this.messageService.showMessage({
+          type: 'success',
+          text: 'Permission deleted successfully'
+        });
+        this.loading = false;
+
+        // Clear authorization cache to refresh permissions
+        this.authorizationService.clearCache();
+      }, 500);
+    }
+  }
+
+  resetForm(): void {
+    this.permissionForm.reset({
+      type: PermissionType.View,
+      isActive: true
+    });
+    this.isEditMode = false;
+    this.currentPermissionId = null;
+  }
+
+  backToModules(): void {
+    this.router.navigate(['/admin/modules']);
+  }
+
+  getPermissionTypeClass(type: PermissionType | undefined): string {
+    if (!type) return 'badge bg-info';
+
+    switch (type) {
+      case PermissionType.View: return 'badge bg-primary';
+      case PermissionType.Add: return 'badge bg-success';
+      case PermissionType.Edit: return 'badge bg-warning';
+      case PermissionType.Delete: return 'badge bg-danger';
+      default: return 'badge bg-info';
+    }
+  }
+}
+
+
+these are module specific code structures. as i said, in frontend all crud should be performed from one single page only at top, add, edit related things, below that list of data with specific options which is already implemented. using AdminLTE is mandatory. Please check for any updation ot addition and suggest if any removal of the component is needed.

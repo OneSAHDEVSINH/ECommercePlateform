@@ -10,10 +10,10 @@ namespace ECommercePlatform.API.Extensions
         {
             var userIdClaim = controller.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
                 return null;
 
-            return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
+            return userId;
         }
 
         public static string? GetCurrentUserEmail(this ControllerBase controller)

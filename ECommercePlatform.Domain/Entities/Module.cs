@@ -8,8 +8,8 @@
         public string? Icon { get; set; }
         public int DisplayOrder { get; set; }
 
-        // Updated navigation property
-        public virtual ICollection<RolePermission>? RolePermissions { get; set; }
+        // Initialize to prevent null reference
+        public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
 
         private Module() { }
 
@@ -27,11 +27,14 @@
                 Description = description,
                 Route = route,
                 Icon = icon,
-                DisplayOrder = displayOrder
+                DisplayOrder = displayOrder,
+                CreatedOn = DateTime.UtcNow,
+                IsActive = true
             };
         }
 
-        public void Update(string name,
+        public void Update(
+            string name,
             string description,
             string route,
             string icon,
@@ -42,7 +45,7 @@
             Route = route;
             Icon = icon;
             DisplayOrder = displayOrder;
-            ModifiedOn = DateTime.Now;
+            ModifiedOn = DateTime.UtcNow;
         }
     }
 }

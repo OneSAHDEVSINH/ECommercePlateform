@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250618131215_InitialCreate")]
+    [Migration("20250619111224_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -860,6 +860,9 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasIndex("RoleId", "ModuleId")
                         .IsUnique();
 
+                    b.HasIndex("RoleId", "ModuleId", "IsDeleted")
+                        .HasFilter("[IsDeleted] = 0");
+
                     b.ToTable("RolePermissions");
 
                     b.HasData(
@@ -1214,7 +1217,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                             ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             NormalizedEmail = "ADMIN@ADMIN.COM",
                             NormalizedUserName = "ADMIN@ADMIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAELST0qdl0q97wkBBDJGfpJbVjWOLG22r8WQZlTKUeeoQQbPsQj0rr9bvBUEJnk9Blw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEv/bo1LxfCHqJbVeYSoThceO8hNAfcSL4dUc5BcrUg1FosLq7QqxiVhW+T6mnpiCg==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "f7426c48-c7c4-4c44-a30c-adcb4d1c8636",
@@ -1252,6 +1255,9 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId", "IsDeleted")
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("UserRoles", (string)null);
 

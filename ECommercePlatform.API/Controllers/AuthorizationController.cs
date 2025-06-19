@@ -1,5 +1,7 @@
 ﻿using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -8,16 +10,10 @@ namespace ECommercePlatform.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class AuthorizationController : ControllerBase
+    public class AuthorizationController(IUnitOfWork unitOfWork, IPermissionService permissionService) : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IPermissionService _permissionService;
-
-        public AuthorizationController(IUnitOfWork unitOfWork, IPermissionService permissionService)
-        {
-            _unitOfWork = unitOfWork;
-            _permissionService = permissionService;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IPermissionService _permissionService = permissionService;
 
         [HttpGet("check")]
         public async Task<IActionResult> CheckPermission([FromQuery] string moduleRoute, [FromQuery] string permissionType)
@@ -164,6 +160,33 @@ namespace ECommercePlatform.API.Controllers
                 .OrderBy(m => m.DisplayOrder);
 
             return Ok(accessibleModules);
+        }
+
+        [HttpGet("test-password-hash")]
+        [AllowAnonymous]
+        public IActionResult TestPasswordHash()
+        {
+            var user = new User { UserName = "test" };
+            var passwordHasher = new PasswordHasher<User>();
+            var hash = passwordHasher.HashPassword(user, "Admin@1234");
+            return Ok(new { hash });
+        }
+
+        [HttpPost("reset-admin-password")]
+        [AllowAnonymous] // Remove this in production!
+        public async Task<IActionResult> ResetAdminPassword()
+        {
+            var user = await _unitOfWork.UserManager.FindByEmailAsync("admin@admin.com");
+            if (user == null)
+                return NotFound("Admin user not found");
+
+            var token = await _unitOfWork.UserManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _unitOfWork.UserManager.ResetPasswordAsync(user, token, "Admin@1234");
+
+            if (result.Succeeded)
+                return Ok("Password reset successfully");
+
+            return BadRequest(result.Errors);
         }
     }
 }

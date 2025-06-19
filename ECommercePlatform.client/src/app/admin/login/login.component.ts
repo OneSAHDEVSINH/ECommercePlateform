@@ -224,6 +224,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -236,7 +237,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   loginForm!: FormGroup;
   errorMessage: string = '';
   loading: boolean = false;
-  showPassword: boolean = false; // Add this
+  showPassword: boolean = false;
   returnUrl: string = '/admin/dashboard';
 
   constructor(
@@ -263,7 +264,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.returnUrl = this.getValidReturnUrl();
 
     // Check if already logged in
-    if (this.authService.isAuthenticated() && this.authService.isAdmin()) {
+    if (this.authService.isAuthenticated() && this.authService.hasAnyRole()) {
       this.router.navigate([this.returnUrl]);
     }
   }
@@ -313,50 +314,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.showPassword = !this.showPassword;
   }
 
-  //onSubmit(): void {
-  //  if (this.loginForm.invalid) {
-  //    return;
-  //  }
-
-  //  this.loading = true;
-  //  this.errorMessage = '';
-
-  //  this.authService.login({
-  //    email: this.f['email'].value,
-  //    password: this.f['password'].value
-  //  }).subscribe({
-  //    next: (response) => {
-  //      console.log('Auth response:', response);
-  //      if (response.user.roles.includes('Admin')) {
-  //        // Ensure returnUrl is valid before navigating
-  //        try {
-  //          // This will throw if URL is malformed
-  //          const url = new URL(this.returnUrl, window.location.origin);
-  //          this.router.navigate([this.returnUrl]);
-  //        } catch (e) {
-  //          // If URL is malformed, go to default dashboard
-  //          console.error('Invalid return URL:', this.returnUrl);
-  //          this.router.navigate(['/admin/dashboard']);
-  //        }
-  //      } else {
-  //        this.loading = false;
-  //        this.errorMessage = 'Access denied. Administrators only.';
-  //        setTimeout(() => {
-  //          this.errorMessage = '';
-  //        }, 25000);
-  //        this.authService.logout();
-  //      }
-  //    },
-  //    error: (error) => {
-  //      this.loading = false;
-  //      this.errorMessage = error.error?.message || 'Invalid credentials';
-  //      setTimeout(() => {
-  //        this.errorMessage = '';
-  //      }, 2500);
-  //    }
-  //  });
-  //}
-
   onSubmit(): void {
     if (this.loginForm.invalid) {
       return;
@@ -365,69 +322,75 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.errorMessage = '';
 
-    this.authService.login({
+    const loginData = {
       email: this.f['email'].value,
       password: this.f['password'].value
-    }).subscribe({
+    };
+
+    console.log('Login attempt with:', loginData); // Add this line
+
+    this.authService.login(loginData).subscribe({
       next: (response) => {
-        console.log('Auth response:', response);
+        console.log('Login successful:', response);
 
-        // Check if the user has Admin role - handle cases with or without user object
-        let isAdmin = false;
-
-        if (response.token) {
-          // If we have a token but no user, we can still check for admin role
-          if (!response.user) {
-            try {
-              // Use the JWT token directly to check for admin role
-              const token = response.token;
-              const decodedToken: any = jwtDecode(token);
-              // Check if the role claim indicates admin
-              isAdmin = decodedToken.role === 'Admin';
-            } catch (error) {
-              console.error('Error decoding token to check admin role:', error);
-            }
-          } else if (response.user.roles) {
-            // Normal case with user object
-            // If roles is an array of objects
-            if (Array.isArray(response.user.roles) && typeof response.user.roles[0] === 'object') {
-              isAdmin = response.user.roles.some((role: any) => role.name === 'Admin');
-            }
-            // If roles is an array of strings
-            else if (Array.isArray(response.user.roles)) {
-              isAdmin = response.user.roles.some(role => role.name === 'Admin');
-            }
-          }
-          // Legacy check for role property (not roles)
-          else if (response.user.roles === 'Admin') {
-            isAdmin = true;
-          }
-        }
-
-        if (isAdmin) {
-          try {
-            const url = new URL(this.returnUrl, window.location.origin);
-            this.router.navigate([this.returnUrl]);
-          } catch (e) {
-            console.error('Invalid return URL:', this.returnUrl);
+        // Check if user has any role (not just Admin)
+        if (this.authService.hasAnyRole()) {
+          // Navigate to return URL or dashboard
+          this.router.navigate([this.returnUrl]).catch(() => {
             this.router.navigate(['/admin/dashboard']);
-          }
+          });
         } else {
           this.loading = false;
-          this.errorMessage = 'Access denied. Administrators only.';
-          setTimeout(() => {
-            this.errorMessage = '';
-          }, 5000);
+          this.errorMessage = 'Access denied. You don\'t have any assigned roles. Please contact the administrator.';
           this.authService.logout();
         }
       },
       error: (error) => {
         this.loading = false;
-        this.errorMessage = error.error?.message || 'Invalid credentials';
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 2500);
+        console.error('Login error:', error); // Add this line
+        console.error('Error response:', error.error); // Add this line
+
+        // Handle specific error messages
+        if (error.status === 401) {
+          this.errorMessage = 'Invalid email or password';
+        } else if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else {
+          this.errorMessage = 'Login failed. Please try again.';
+        }
       }
     });
+  }
+  // Add this method to your login component for testing
+  testApiConnection(): void {
+    const testUrl = `${environment.apiUrl}/Auth/login`;
+    console.log('Testing API at:', testUrl);
+
+    fetch(testUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'admin@admin.com',
+        password: 'Admin@123'
+      })
+    })
+      .then(response => {
+        console.log('Response status:', response.status);
+        return response.text();
+      })
+      .then(text => {
+        console.log('Response body:', text);
+        try {
+          const json = JSON.parse(text);
+          console.log('Parsed response:', json);
+        } catch (e) {
+          console.log('Response is not JSON:', text);
+        }
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+      });
   }
 }

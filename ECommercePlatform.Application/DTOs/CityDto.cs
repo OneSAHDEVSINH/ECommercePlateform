@@ -14,7 +14,7 @@ namespace ECommercePlatform.Application.DTOs
         public bool IsActive { get; init; }
         public DateTime CreatedOn { get; init; }
 
-        // Explicit conversion operator from Country to CountryDto
+        // Explicit conversion operator from City to CityDto
         public static explicit operator CityDto(City city)
         {
             return new CityDto

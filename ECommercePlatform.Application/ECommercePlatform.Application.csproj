@@ -46,6 +46,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\AuthService.cs" />
     <Compile Remove="Services\CityService.cs" />
     <Compile Remove="Services\CountryService.cs" />
     <Compile Remove="Services\ProductService.cs" />

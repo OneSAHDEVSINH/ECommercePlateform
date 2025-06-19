@@ -1,23 +1,3 @@
-//import { Injectable } from '@angular/core';
-//import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-//import { PermissionService } from '../services/authorization/permission.service';
-
-//@Injectable({ providedIn: 'root' })
-//export class PermissionGuard implements CanActivate {
-//  constructor(private permissionService: PermissionService, private router: Router) { }
-
-//  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-//    const module = route.data['module'];
-//    const permission = route.data['permission'];
-//    if (this.permissionService.hasPermission(module, permission)) {
-//      return true;
-//    }
-//    // Optionally redirect to a not-authorized page
-//    //this.router.navigate(['/not-authorized']);
-//    return false;
-//  }
-//}
-
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, UrlTree } from '@angular/router';
 import { Observable, map, catchError, of } from 'rxjs';
@@ -39,34 +19,44 @@ export class PermissionGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    // First check if the user is authenticated
+
+    // Step 1: Check if the user is authenticated
     if (!this.authService.isAuthenticated()) {
-      // Redirect to login with return URL
       return this.router.createUrlTree(['/admin/login'], {
         queryParams: { returnUrl: state.url }
       });
     }
 
-    //// Check if the user is an admin
-    //if (!this.authService.isAdmin()) {
-    //  // Not an admin, redirect back to login with access denied message
-    //  this.router.navigate(['/admin/login']);
-    //  return false;
-    //}
+    // Step 2: Check if user has any role (per your requirement)
+    if (!this.authService.hasAnyRole()) {
+      // User is authenticated but has no roles
+      console.warn('User has no assigned roles');
+      return this.router.createUrlTree(['/admin/login'], {
+        queryParams: {
+          returnUrl: state.url,
+          error: 'no-roles'
+        }
+      });
+    }
 
-    // Check if route is exempt from permission checks (like dashboard)
+    // Step 3: Check if route is exempt from permission checks
     if (route.data['exempt'] === true) {
       return true;
     }
 
-    // If user is admin and route has adminOnly flag, allow without checking permissions
-    if (this.authorizationService.isAdmin && route.data['adminOnly'] === true) {
+    // Step 4: Super admin bypass
+    if (this.authorizationService.isAdmin()) {
       return true;
     }
 
-    // Get module route and required permission from route data
+    // Step 5: Check specific permissions
     const moduleRoute = route.data['moduleRoute'] || this.getModuleRouteFromUrl(state.url);
     const requiredPermission = route.data['permission'] as PermissionType || PermissionType.View;
+
+    // For routes without module specification, allow access
+    if (!moduleRoute) {
+      return true;
+    }
 
     // Check permission with the authorization service
     return this.authorizationService.checkPermission(moduleRoute, requiredPermission).pipe(
@@ -75,31 +65,31 @@ export class PermissionGuard implements CanActivate {
           return true;
         }
 
-        // No permission, redirect to dashboard with notification
+        // No permission, redirect to dashboard
         console.warn(`Access denied to ${moduleRoute}: Missing ${requiredPermission} permission`);
         return this.router.createUrlTree(['/admin/dashboard'], {
-          queryParams: { accessDenied: 'true', module: moduleRoute }
+          queryParams: {
+            accessDenied: 'true',
+            module: moduleRoute,
+            permission: requiredPermission
+          }
         });
       }),
       catchError(error => {
         console.error('Permission check failed:', error);
-        // On error, redirect to dashboard
         return of(this.router.createUrlTree(['/admin/dashboard']));
       })
     );
   }
 
   private getModuleRouteFromUrl(url: string): string {
-    // Extract the module name from the URL
-    // Format: /admin/moduleName or /admin/moduleName/subpath
     const segments = url.split('/').filter(segment => segment.length > 0);
 
-    // Handle the case of /admin or /admin/
     if (segments.length < 2) {
       return '';
     }
 
-    // For /admin/moduleName, return moduleName
+    // Return the module name (second segment after 'admin')
     return segments[1];
   }
 }

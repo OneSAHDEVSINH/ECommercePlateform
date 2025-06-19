@@ -67,8 +67,6 @@ namespace ECommercePlatform.API.Controllers
             return NotFound(new { message = result.Error });
         }
 
-        // REMOVED: GetModuleWithPermissions and GetAllModulesWithPermissions endpoints
-
         [HttpPost]
         [HasPermission("Modules", "Add")]
         public async Task<IActionResult> CreateModule([FromBody] CreateModuleCommand command)

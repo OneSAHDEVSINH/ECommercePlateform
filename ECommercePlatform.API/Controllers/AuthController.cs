@@ -15,10 +15,31 @@ namespace ECommercePlatform.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginCommand command)
         {
+            if (command == null)
+            {
+                return BadRequest(new { message = "Invalid request body" });
+            }
+
             var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
+            {
+                // Return 401 for authentication failures
+                if (result.Error.Contains("Invalid email or password") ||
+                    result.Error.Contains("User account is inactive"))
+                {
+                    return Unauthorized(new { message = result.Error });
+                }
+
+                // Return 403 for authorization failures (no roles)
+                if (result.Error.Contains("don't have any assigned roles"))
+                {
+                    return Forbid(result.Error);
+                }
+
+                // Return 400 for other errors
                 return BadRequest(new { message = result.Error });
+            }
 
             return Ok(result.Value);
         }
