@@ -41,7 +41,9 @@ export class UserService {
   }
 
   updateUser(id: string, user: any): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, user)
+    // Ensure id is included in the request body
+    const userData = { ...user, id };
+    return this.http.put<void>(`${this.apiUrl}/${id}`, userData)
       .pipe(catchError(this.handleError));
   }
 
@@ -55,18 +57,14 @@ export class UserService {
       .pipe(catchError(this.handleError));
   }
 
+  // Fix: Send array directly, not wrapped in object
   assignRolesToUser(userId: string, roleIds: string[]): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${userId}/roles`, { roleIds })
-      .pipe(catchError(this.handleError));
-  }
-
-  resetPassword(userId: string, newPassword: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${userId}/reset-password`, { newPassword })
+    return this.http.post<void>(`${this.apiUrl}/${userId}/roles`, roleIds)
       .pipe(catchError(this.handleError));
   }
 
   private handleError(error: any) {
-    console.error('An error occurred', error);
+    console.error('User service error:', error);
     return throwError(() => error);
   }
 }

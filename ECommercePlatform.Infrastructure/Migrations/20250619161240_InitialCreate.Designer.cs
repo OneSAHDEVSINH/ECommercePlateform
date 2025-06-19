@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ECommercePlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250619111224_InitialCreate")]
+    [Migration("20250619161240_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1217,7 +1217,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                             ModifiedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             NormalizedEmail = "ADMIN@ADMIN.COM",
                             NormalizedUserName = "ADMIN@ADMIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEv/bo1LxfCHqJbVeYSoThceO8hNAfcSL4dUc5BcrUg1FosLq7QqxiVhW+T6mnpiCg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELST0qdl0q97wkBBDJGfpJbVjWOLG22r8WQZlTKUeeoQQbPsQj0rr9bvBUEJnk9Blw==",
                             PhoneNumber = "1234567890",
                             PhoneNumberConfirmed = true,
                             SecurityStamp = "f7426c48-c7c4-4c44-a30c-adcb4d1c8636",

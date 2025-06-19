@@ -30,13 +30,8 @@ export class ModuleService {
       .pipe(catchError(this.handleError));
   }
 
-  getModuleWithPermissions(id: string): Observable<Module> {
-    return this.http.get<Module>(`${this.apiUrl}/${id}/permissions`)
-      .pipe(catchError(this.handleError));
-  }
-
-  getAllModulesWithPermissions(): Observable<Module[]> {
-    return this.http.get<Module[]>(`${this.apiUrl}/with-permissions`)
+  getModuleByRoute(route: string): Observable<Module> {
+    return this.http.get<Module>(`${this.apiUrl}/by-route/${route}`)
       .pipe(catchError(this.handleError));
   }
 
@@ -46,29 +41,13 @@ export class ModuleService {
   }
 
   updateModule(id: string, module: Module): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, module)
+    const moduleData = { ...module, id };
+    return this.http.put<void>(`${this.apiUrl}/${id}`, moduleData)
       .pipe(catchError(this.handleError));
   }
 
   deleteModule(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`)
-      .pipe(catchError(this.handleError));
-  }
-
-  // The following methods would be implemented if you have permission endpoints
-  // These are placeholders for now
-  createPermission(permission: Permission): Observable<Permission> {
-    return this.http.post<Permission>(`${environment.apiUrl}/permission`, permission)
-      .pipe(catchError(this.handleError));
-  }
-
-  updatePermission(id: string, permission: Permission): Observable<void> {
-    return this.http.put<void>(`${environment.apiUrl}/permission/${id}`, permission)
-      .pipe(catchError(this.handleError));
-  }
-
-  deletePermission(id: string): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}/permission/${id}`)
       .pipe(catchError(this.handleError));
   }
 

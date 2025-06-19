@@ -67,7 +67,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                     FirstName = createdUser.FirstName,
                     LastName = createdUser.LastName,
                     Email = createdUser.Email!,
-                    Password = createdUser.PasswordHash, // Don't expose
                     PhoneNumber = createdUser.PhoneNumber,
                     Gender = createdUser.Gender,
                     DateOfBirth = createdUser.DateOfBirth,

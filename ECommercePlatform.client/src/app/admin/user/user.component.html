@@ -77,6 +77,64 @@
           </div>
 
           <div class="row">
+            <!-- Gender -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender"
+                        formControlName="gender"
+                        class="form-control"
+                        [ngClass]="{'is-invalid': userForm.get('gender')?.touched && userForm.get('gender')?.errors}">
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span *ngIf="userForm.get('gender')?.touched && userForm.get('gender')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('gender')?.errors?.['required']">Gender is required</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="dateOfBirth">Date of Birth</label>
+                <input type="date"
+                       id="dateOfBirth"
+                       formControlName="dateOfBirth"
+                       class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Bio -->
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="bio">
+                  Bio
+                  <small class="text-muted">
+                    ({{ userForm.get('bio')?.value?.length || 0 }}/500)
+                  </small>
+                </label>
+                <textarea id="bio"
+                          formControlName="bio"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Enter bio"
+                          [ngClass]="{'is-invalid': userForm.get('bio')?.touched && userForm.get('bio')?.errors}">
+                </textarea>
+                <span *ngIf="userForm.get('bio')?.touched && userForm.get('bio')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="userForm.get('bio')?.errors?.['maxlength']">Bio cannot exceed 500 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
             <!-- Email -->
             <div class="col-md-6">
               <div class="form-group">
@@ -138,7 +196,7 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label>Active Status</label>
-                <div class="custom-control custom-switch">
+                <div class="custom-control custom-switch mt-2">
                   <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
                   <label class="custom-control-label" for="isActive">Is Active</label>
                 </div>
@@ -151,14 +209,25 @@
             <div class="col-md-12">
               <label>Assign Roles</label>
               <div class="role-selection border p-3">
-                <div class="row">
+                <div *ngIf="rolesLoading" class="text-center">
+                  <i class="fas fa-spinner fa-spin"></i> Loading roles...
+                </div>
+                <div *ngIf="!rolesLoading && availableRoles.length === 0" class="text-muted">
+                  No active roles available
+                </div>
+                <div class="row" *ngIf="!rolesLoading && availableRoles.length > 0">
                   <div *ngFor="let role of availableRoles" class="col-md-3 mb-2">
                     <div class="custom-control custom-checkbox">
-                      <input type="checkbox" class="custom-control-input"
+                      <input type="checkbox"
+                             class="custom-control-input"
                              [id]="'role_' + role.id"
                              [checked]="role.id && isRoleSelected(role.id)"
-                             (change)="role.id && toggleRoleSelection(role.id)">
-                      <label class="custom-control-label" [for]="'role_' + role.id">{{ role.name }}</label>
+                             (change)="role.id && toggleRoleSelection(role.id)"
+                             [disabled]="loading">
+                      <label class="custom-control-label" [for]="'role_' + role.id">
+                        {{ role.name }}
+                        <small class="text-muted d-block">{{ role.description }}</small>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -235,7 +304,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngIf="!users || users.length === 0">
+                        <tr *ngIf="!users || users.length === 0">
               <td colspan="5" class="text-center">No records found</td>
             </tr>
             <tr *ngFor="let user of users">
@@ -274,10 +343,19 @@
           </app-pagination>
         </div>
         <div class="float-left">
-          <div class="dataTables_info" role="status" aria-live="polite">
+          <div class="dataTables_info mb-2" role="status" aria-live="polite">
             Showing {{ pagedResponse ? (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 : 0 }}
             to {{ pagedResponse ? Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) : 0 }}
             of {{ pagedResponse?.totalCount || 0 }} entries
+          </div>
+          <div class="form-inline">
+            <label class="mr-2">Items per page:</label>
+            <select class="form-control form-control-sm" (change)="onPageSizeChange($event)">
+              <option [selected]="pageRequest.pageSize === 5" value="5">5</option>
+              <option [selected]="pageRequest.pageSize === 10" value="10">10</option>
+              <option [selected]="pageRequest.pageSize === 25" value="25">25</option>
+              <option [selected]="pageRequest.pageSize === 50" value="50">50</option>
+            </select>
           </div>
         </div>
       </div>

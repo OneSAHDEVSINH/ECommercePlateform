@@ -93,6 +93,16 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return _context.Users.AsQueryable();
         }
 
+        public async Task DeleteByUserIdAsync(Guid userId)
+        {
+            var userRoles = await _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .ToListAsync();
+
+            _context.UserRoles.RemoveRange(userRoles);
+            await _context.SaveChangesAsync();
+        }
+
         // Combined validation method that returns a Result object
         public Task<Result<string>> EnsureEmailIsUniqueAsync(string email, Guid? excludeId = null)
         {

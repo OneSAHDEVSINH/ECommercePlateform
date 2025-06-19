@@ -105,9 +105,10 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
 
   loadModules(): void {
     this.loading = true;
-    const sub = this.moduleService.getAllModulesWithPermissions().subscribe({
+    // Use the regular getModules instead of getAllModulesWithPermissions
+    const sub = this.moduleService.getModules().subscribe({
       next: (modules) => {
-        this.modules = modules;
+        this.modules = modules.filter(m => m.isActive); // Only show active modules
         this.initializeModulePermissions();
         this.loading = false;
       },
@@ -173,40 +174,55 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.roleForm.invalid) return;
+    if (this.roleForm.invalid) {
+      Object.keys(this.roleForm.controls).forEach(key => {
+        this.roleForm.get(key)?.markAsTouched();
+      });
+      return;
+    }
 
     this.loading = true;
     const roleData = this.roleForm.value;
 
-    // Convert the module permissions to the format expected by the API
-    const permissions = Array.from(this.modulePermissions.entries())
-      .flatMap(([moduleId, permMap]) => {
-        // Create separate objects for each permission type with UPPERCASE values
-        const result = [];
-        if (permMap.get(PermissionType.View))
-          result.push({ moduleId, permissionType: "View" });
-        if (permMap.get(PermissionType.Add))
-          result.push({ moduleId, permissionType: "Add" });
-        if (permMap.get(PermissionType.Edit))
-          result.push({ moduleId, permissionType: "Edit" });
-        if (permMap.get(PermissionType.Delete))
-          result.push({ moduleId, permissionType: "Delete" });
+    // Convert module permissions to the backend format
+    const permissions: any[] = [];
 
-        return result;
-      });
+    this.modulePermissions.forEach((permMap, moduleId) => {
+      const module = this.modules.find(m => m.id === moduleId);
+      if (module) {
+        permissions.push({
+          moduleId: moduleId,
+          moduleName: module.name,
+          canView: permMap.get(PermissionType.View) || false,
+          canAdd: permMap.get(PermissionType.Add) || false,
+          canEdit: permMap.get(PermissionType.Edit) || false,
+          canDelete: permMap.get(PermissionType.Delete) || false
+        });
+      }
+    });
 
     roleData.permissions = permissions;
 
     if (this.isEditMode && this.currentRoleId) {
-      this.roleService.updateRole(this.currentRoleId, roleData).subscribe({
-        next: () => this.handleSuccess('Role updated successfully'),
-        error: (error) => this.handleError('Failed to update role', error)
+      const sub = this.roleService.updateRole(this.currentRoleId, roleData).subscribe({
+        next: () => {
+          this.handleSuccess('Role updated successfully');
+        },
+        error: (error) => {
+          this.handleError('Failed to update role', error);
+        }
       });
+      this.subscriptions.push(sub);
     } else {
-      this.roleService.createRole(roleData).subscribe({
-        next: () => this.handleSuccess('Role created successfully'),
-        error: (error) => this.handleError('Failed to create role', error)
+      const sub = this.roleService.createRole(roleData).subscribe({
+        next: () => {
+          this.handleSuccess('Role created successfully');
+        },
+        error: (error) => {
+          this.handleError('Failed to create role', error);
+        }
       });
+      this.subscriptions.push(sub);
     }
   }
 
@@ -230,26 +246,48 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     this.isEditMode = true;
     this.currentRoleId = role.id || null;
 
-    this.roleForm.patchValue({
-      name: role.name,
-      description: role.description,
-      isActive: role.isActive
-    });
+    // First get the full role details with permissions
+    if (role.id) {
+      this.loading = true;
+      const sub = this.roleService.getRole(role.id).subscribe({
+        next: (fullRole) => {
+          this.roleForm.patchValue({
+            name: fullRole.name,
+            description: fullRole.description,
+            isActive: fullRole.isActive
+          });
 
-    // Reset all permissions first
-    this.initializeModulePermissions();
+          // Reset all permissions first
+          this.initializeModulePermissions();
 
-    // Then set the permissions from the role
-    if (role.permissions) {
-      role.permissions.forEach(perm => {
-        if (perm.moduleId && this.modulePermissions.has(perm.moduleId)) {
-          const modulePerms = this.modulePermissions.get(perm.moduleId);
-          if (modulePerms && perm.permissionType) {
-            const permType = this.getPermissionTypeFromString(perm.permissionType);
-            if (permType) modulePerms.set(permType, true);
+          // Set permissions from the role
+          if (fullRole.permissions && Array.isArray(fullRole.permissions)) {
+            fullRole.permissions.forEach((perm: any) => {
+              if (perm.moduleId && this.modulePermissions.has(perm.moduleId)) {
+                const modulePerms = this.modulePermissions.get(perm.moduleId);
+                if (modulePerms) {
+                  modulePerms.set(PermissionType.View, perm.canView || false);
+                  modulePerms.set(PermissionType.Add, perm.canAdd || false);
+                  modulePerms.set(PermissionType.Edit, perm.canEdit || false);
+                  modulePerms.set(PermissionType.Delete, perm.canDelete || false);
+                }
+              }
+            });
           }
+
+          this.loading = false;
+          this.messageService.scrollToTop();
+        },
+        error: (error) => {
+          console.error('Error loading role details:', error);
+          this.messageService.showMessage({
+            type: 'error',
+            text: 'Failed to load role details'
+          });
+          this.loading = false;
         }
       });
+      this.subscriptions.push(sub);
     }
   }
 

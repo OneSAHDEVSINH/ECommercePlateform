@@ -10,7 +10,6 @@ namespace ECommercePlatform.Application.DTOs
         public string? FirstName { get; init; }
         public string? LastName { get; init; }
         public string? Email { get; init; }
-        public required string Password { get; init; }
         public string? PhoneNumber { get; init; }
         public Gender Gender { get; init; }
         public DateOnly DateOfBirth { get; init; }
@@ -28,7 +27,6 @@ namespace ECommercePlatform.Application.DTOs
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                Password = user.PasswordHash!,
                 PhoneNumber = user.PhoneNumber,
                 Gender = user.Gender,
                 DateOfBirth = user.DateOfBirth,

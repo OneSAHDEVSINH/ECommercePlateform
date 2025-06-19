@@ -100,28 +100,11 @@
               </a>
             </li>
 
-            <li class="nav-item has-treeview">
-              <a href="#" class="nav-link" (click)="$event.preventDefault(); toggleModulesMenu()">
+            <li class="nav-item">
+              <a routerLink="/admin/modules" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-puzzle-piece"></i>
-                <p>
-                  Modules
-                  <i class="fas fa-angle-left right"></i>
-                </p>
+                <p>Modules</p>
               </a>
-              <ul class="nav nav-treeview" [ngClass]="{'d-block': isModulesMenuOpen, 'd-none': !isModulesMenuOpen}">
-                <li class="nav-item">
-                  <a routerLink="/admin/modules" routerLinkActive="active" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>Manage Modules</p>
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a routerLink="/admin/module-permissions" routerLinkActive="active" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>Module Permissions</p>
-                  </a>
-                </li>
-              </ul>
             </li>
           </ul>
         </nav>

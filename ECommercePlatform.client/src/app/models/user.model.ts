@@ -1,7 +1,7 @@
 import { Role } from './role.model';
 
 export interface User {
-  id: string;
+  id?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -9,9 +9,17 @@ export interface User {
   roles: Role[];
   isActive: boolean;
   phoneNumber?: string;
+  gender?: Gender | string;
+  dateOfBirth?: Date | string;
   bio?: string;
   createdOn?: Date;
   modifiedOn?: Date;
+}
+
+export enum Gender {
+  Male = 'Male',
+  Female = 'Female',
+  Other = 'Other'
 }
 
 export interface LoginResponse {

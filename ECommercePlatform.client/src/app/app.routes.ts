@@ -11,7 +11,6 @@ import { UserComponent } from './admin/user/user.component';
 import { PermissionGuard } from './guards/permission.guard';
 import { PermissionType } from './models/role.model';
 import { ModuleManagementComponent } from './admin/module-management/module-management.component';
-import { ModulePermissionsComponent } from './admin/module-permissions/module-permissions.component';
 
 // Custom matcher to catch malformed URLs
 function malformedUrlMatcher(url: UrlSegment[]) {
@@ -118,28 +117,6 @@ export const routes: Routes = [
             path: 'modules',
             component: ModuleManagementComponent,
             title: 'Module Management',
-            canActivate: [PermissionGuard],
-            data: {
-              moduleRoute: 'modules',
-              permission: PermissionType.View,
-              adminOnly: true
-            }
-          },
-          {
-            path: 'modules/:id/permissions',
-            component: ModulePermissionsComponent,
-            title: 'Module Permissions',
-            canActivate: [PermissionGuard],
-            data: {
-              moduleRoute: 'modules',
-              permission: PermissionType.View,
-              adminOnly: true
-            }
-          },
-          {
-            path: 'module-permissions',
-            component: ModulePermissionsComponent, // You could create a dedicated component or reuse the module management one
-            title: 'Module Permissions',
             canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'modules',

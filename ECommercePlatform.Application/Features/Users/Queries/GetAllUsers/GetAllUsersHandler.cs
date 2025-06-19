@@ -37,7 +37,6 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetAllUsers
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         Email = user.Email,
-                        Password = "", // Don't expose password hash
                         PhoneNumber = user.PhoneNumber,
                         Gender = user.Gender,
                         DateOfBirth = user.DateOfBirth,

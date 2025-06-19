@@ -85,11 +85,12 @@
                   <thead class="thead-light">
                     <tr>
                       <th style="width: 5%">Index</th>
-                      <th style="width: 35%">Module</th>
+                      <th style="width: 30%">Module</th>
                       <th style="width: 15%">Select All</th>
-                      <th style="width: 15%">Is View</th>
-                      <th style="width: 15%">Is Add/Edit</th>
-                      <th style="width: 15%">Is Delete</th>
+                      <th style="width: 12.5%">View</th>
+                      <th style="width: 12.5%">Add</th>
+                      <th style="width: 12.5%">Edit</th>
+                      <th style="width: 12.5%">Delete</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -102,7 +103,6 @@
                                  type="checkbox"
                                  [checked]="isAllSelected(module.id!)"
                                  (change)="handleCheckboxChange(module.id!, $event)">
-
                         </div>
                       </td>
                       <td class="text-center">
@@ -111,6 +111,14 @@
                                  type="checkbox"
                                  [checked]="modulePermissions.get(module.id!)?.get(PermissionType.View)"
                                  (change)="togglePermission(module.id!, PermissionType.View)">
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <div class="form-check">
+                          <input class="form-check-input"
+                                 type="checkbox"
+                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Add)"
+                                 (change)="togglePermission(module.id!, PermissionType.Add)">
                         </div>
                       </td>
                       <td class="text-center">

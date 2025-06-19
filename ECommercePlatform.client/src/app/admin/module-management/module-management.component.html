@@ -226,11 +226,6 @@
                 </span>
               </td>
               <td>
-                <button class="btn btn-sm btn-info mr-1"
-                        [routerLink]="['/admin/modules', module.id, 'permissions']"
-                        *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
-                  <i class="fas fa-shield-alt"></i> Permissions
-                </button>
                 <button class="btn btn-sm btn-primary mr-1"
                         (click)="editModule(module)"
                         *appPermission="{ moduleRoute: 'modules', type: PermissionType.Edit }">

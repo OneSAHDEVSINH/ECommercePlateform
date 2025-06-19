@@ -17,6 +17,7 @@ namespace ECommercePlatform.Application.Interfaces
         new Task<List<User>> GetAllAsync();
         Task<List<User>> GetUsersByRoleIdAsync(Guid roleId);
         Task<List<User>> GetActiveUsersAsync();
+        Task DeleteByUserIdAsync(Guid userId);
         Task<bool> AnyAsync(Expression<Func<User, bool>> predicate);
         IQueryable<User> AsQueryable();
         Task<Result<string>> EnsureEmailIsUniqueAsync(string email, Guid? excludeId = null);
