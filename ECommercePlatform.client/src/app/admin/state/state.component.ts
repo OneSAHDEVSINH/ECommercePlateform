@@ -16,6 +16,8 @@ import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { ListService } from '../../services/general/list.service';
 import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+import { PermissionDirective } from '../../directives/permission.directive';
+import { PermissionType } from '../../models/role.model';
 
 
 @Component({
@@ -23,7 +25,7 @@ import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-ra
   templateUrl: './state.component.html',
   styleUrls: ['./state.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent, PermissionDirective]
 })
 export class StateComponent implements OnInit, OnDestroy {
   states: State[] = [];
@@ -39,6 +41,7 @@ export class StateComponent implements OnInit, OnDestroy {
   private dateRangeSubscription!: Subscription;
   Math = Math; // Make Math available to the template
   selectedCountryId = 'all';
+  PermissionType = PermissionType;
 
   // Pagination properties
   pagedResponse: PagedResponse<State> | null = null;

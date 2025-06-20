@@ -2,6 +2,7 @@ using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
+using ECommercePlatform.Domain.Enums;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.Create
@@ -19,6 +20,23 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                 if (emailResult.IsFailure)
                     return AppResult<UserDto>.Failure(emailResult.Error);
 
+                // Parse gender
+                Gender gender = Gender.Other;
+                if (!string.IsNullOrEmpty(request.Gender))
+                {
+                    Enum.TryParse<Gender>(request.Gender, true, out gender);
+                }
+
+                // Parse date of birth
+                DateOnly dateOfBirth = DateOnly.FromDateTime(DateTime.Now.AddYears(-18));
+                if (!string.IsNullOrEmpty(request.DateOfBirth))
+                {
+                    if (DateTime.TryParse(request.DateOfBirth, out var parsedDate))
+                    {
+                        dateOfBirth = DateOnly.FromDateTime(parsedDate);
+                    }
+                }
+
                 // Create user with UserManager
                 var user = new User
                 {
@@ -27,8 +45,10 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                     FirstName = request.FirstName,
                     LastName = request.LastName,
                     PhoneNumber = request.PhoneNumber,
-                    Gender = request.Gender,
-                    DateOfBirth = request.DateOfBirth ?? DateOnly.FromDateTime(DateTime.Now.AddYears(-18)),
+                    Gender = gender,
+                    DateOfBirth = dateOfBirth,
+                    //Gender = request.Gender,
+                    //DateOfBirth = request.DateOfBirth ?? DateOnly.FromDateTime(DateTime.Now.AddYears(-18)),
                     Bio = request.Bio,
                     IsActive = request.IsActive,
                     CreatedBy = request.CreatedBy,

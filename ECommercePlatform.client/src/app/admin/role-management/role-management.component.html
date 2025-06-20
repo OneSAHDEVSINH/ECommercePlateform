@@ -3,7 +3,7 @@
   <div class="container-fluid">
     <div class="row mb-2">
       <div class="col-sm-6">
-        <h1 class="m-0">{{ isEditMode ? 'Edit Role' : 'New Role' }}</h1>
+        <h1 class="m-0">Manage Roles</h1>
       </div>
       <div class="col-sm-6">
         <ol class="breadcrumb float-sm-right">
@@ -31,9 +31,13 @@
       {{ message.text }}
     </div>
 
-    <div class="card">
-      <div class="card-body">
-        <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+    <!-- Role Form Card -->
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit Role' : 'Add New Role' }}</h3>
+      </div>
+      <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
@@ -77,97 +81,379 @@
             </div>
           </div>
 
+          <!-- Module Permissions Section -->
           <div class="row mt-3">
             <div class="col-md-12">
-              <h4 class="mb-3">Module Permissions</h4>
-              <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                  <thead class="thead-light">
-                    <tr>
-                      <th style="width: 5%">Index</th>
-                      <th style="width: 30%">Module</th>
-                      <th style="width: 15%">Select All</th>
-                      <th style="width: 12.5%">View</th>
-                      <th style="width: 12.5%">Add</th>
-                      <th style="width: 12.5%">Edit</th>
-                      <th style="width: 12.5%">Delete</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let module of modules; let i = index">
-                      <td>{{ i + 1 }}</td>
-                      <td>{{ module.name }}</td>
-                      <td class="text-center">
-                        <div class="form-check">
-                          <input class="form-check-input"
-                                 type="checkbox"
-                                 [checked]="isAllSelected(module.id!)"
-                                 (change)="handleCheckboxChange(module.id!, $event)">
-                        </div>
-                      </td>
-                      <td class="text-center">
-                        <div class="form-check">
-                          <input class="form-check-input"
-                                 type="checkbox"
-                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.View)"
-                                 (change)="togglePermission(module.id!, PermissionType.View)">
-                        </div>
-                      </td>
-                      <td class="text-center">
-                        <div class="form-check">
-                          <input class="form-check-input"
-                                 type="checkbox"
-                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Add)"
-                                 (change)="togglePermission(module.id!, PermissionType.Add)">
-                        </div>
-                      </td>
-                      <td class="text-center">
-                        <div class="form-check">
-                          <input class="form-check-input"
-                                 type="checkbox"
-                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Edit)"
-                                 (change)="togglePermission(module.id!, PermissionType.Edit)">
-                        </div>
-                      </td>
-                      <td class="text-center">
-                        <div class="form-check">
-                          <input class="form-check-input"
-                                 type="checkbox"
-                                 [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Delete)"
-                                 (change)="togglePermission(module.id!, PermissionType.Delete)">
-                        </div>
-                      </td>
-                    </tr>
-                    <tr *ngIf="modules.length === 0">
-                      <td colspan="6" class="text-center">No modules available</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="card card-outline card-info">
+                <div class="card-header">
+                  <h3 class="card-title">Module Permissions</h3>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                      <thead class="thead-light">
+                        <tr>
+                          <th style="width: 5%">Index</th>
+                          <th style="width: 30%">Module</th>
+                          <th style="width: 15%">Select All</th>
+                          <th style="width: 12.5%">View</th>
+                          <th style="width: 12.5%">Add</th>
+                          <th style="width: 12.5%">Edit</th>
+                          <th style="width: 12.5%">Delete</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let module of modules; let i = index">
+                          <td>{{ i + 1 }}</td>
+                          <td>{{ module.name }}</td>
+                          <td class="text-center">
+                            <div class="form-check">
+                              <input class="form-check-input"
+                                     type="checkbox"
+                                     [checked]="isAllSelected(module.id!)"
+                                     (change)="handleCheckboxChange(module.id!, $event)">
+                            </div>
+                          </td>
+                          <td class="text-center">
+                            <div class="form-check">
+                              <input class="form-check-input"
+                                     type="checkbox"
+                                     [checked]="modulePermissions.get(module.id!)?.get(PermissionType.View)"
+                                     (change)="togglePermission(module.id!, PermissionType.View)">
+                            </div>
+                          </td>
+                          <td class="text-center">
+                            <div class="form-check">
+                              <input class="form-check-input"
+                                     type="checkbox"
+                                     [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Add)"
+                                     (change)="togglePermission(module.id!, PermissionType.Add)">
+                            </div>
+                          </td>
+                          <td class="text-center">
+                            <div class="form-check">
+                              <input class="form-check-input"
+                                     type="checkbox"
+                                     [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Edit)"
+                                     (change)="togglePermission(module.id!, PermissionType.Edit)">
+                            </div>
+                          </td>
+                          <td class="text-center">
+                            <div class="form-check">
+                              <input class="form-check-input"
+                                     type="checkbox"
+                                     [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Delete)"
+                                     (change)="togglePermission(module.id!, PermissionType.Delete)">
+                            </div>
+                          </td>
+                        </tr>
+                        <tr *ngIf="modules.length === 0">
+                          <td colspan="7" class="text-center">No modules available</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <div class="row mt-3">
-            <div class="col-md-12">
-              <button type="submit"
-                      class="btn btn-primary"
-                      [disabled]="roleForm.invalid || loading">
-                <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
-                {{ isEditMode ? 'Update' : 'Save' }} Role
-              </button>
-              <button type="button"
-                      class="btn btn-secondary ml-2"
-                      (click)="resetForm()">
-                <i class="fas fa-times"></i> Cancel
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
+        </div>
+        <div class="card-footer">
+          <button type="submit"
+                  class="btn btn-primary"
+                  [disabled]="roleForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'roles', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+            <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
+            {{ isEditMode ? 'Update' : 'Save' }} Role
+          </button>
+          <button type="button"
+                  class="btn btn-default float-right"
+                  (click)="resetForm()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        </div>
+      </form>
     </div>
 
     <!-- Roles List Card -->
     <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Roles List</h3>
+        <div class="card-tools">
+          <div class="input-group input-group-sm" style="width: 250px;">
+            <input type="text"
+                   class="form-control float-right"
+                   placeholder="Search roles..."
+                   (input)="pageRequest.searchText = $any($event.target).value; loadRoles()">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-default">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Filters Row -->
+        <div class="row mb-3">
+          <!-- Page Size Selector -->
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Show entries:</label>
+              <select class="form-control" (change)="pageRequest.pageSize = +$any($event.target).value; pageRequest.pageNumber = 1; loadRoles()">
+                <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
+                <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
+                <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
+                <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-refresh fa-spin"></i>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="roles.length === 0 && !loading" class="alert alert-info">
+          <i class="icon fas fa-info"></i>
+          No roles found. Please add a new role.
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Created On</th>
+                <th style="width: 15%">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let role of roles">
+                <td>{{ role.name }}</td>
+                <td>{{ role.description }}</td>
+                <td>
+                  <span [ngClass]="['badge', role.isActive ? 'bg-success' : 'bg-danger']">
+                    {{ role.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>{{ role.createdOn | date: 'medium' }}</td>
+                <td>
+                  <button class="btn btn-sm btn-info mr-1" (click)="editRole(role)"
+                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Edit }">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deleteRole(role.id!)"
+                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Delete }">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="roles.length === 0">
+                <td colspan="5" class="text-center">No roles found</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-3" *ngIf="pagedResponse">
+          <div class="col-sm-12 col-md-5">
+            <div class="dataTables_info">
+              Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
+              to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
+              of {{ pagedResponse.totalCount }} entries
+            </div>
+          </div>
+          <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers float-right">
+              <app-pagination *ngIf="pagedResponse && pagedResponse.totalPages > 1"
+                              [currentPage]="pagedResponse.pageNumber"
+                              [totalPages]="pagedResponse.totalPages"
+                              (pageChange)="onPageChange($event)">
+              </app-pagination>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Content Header (Page header) -->
+<!--<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">{{ isEditMode ? 'Edit Role' : 'New Role' }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Roles</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>-->
+<!-- Main content -->
+<!--<section class="content">
+  <div class="container-fluid">-->
+<!-- Alert message if any -->
+<!--<div *ngIf="message"
+     [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+  <button type="button" class="close" (click)="message = null">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  <h5>
+    <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+    {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+  </h5>
+  {{ message.text }}
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="name">Role Name <span class="text-danger">*</span></label>
+            <input type="text"
+                   id="name"
+                   formControlName="name"
+                   class="form-control"
+                   [ngClass]="{'is-invalid': roleForm.get('name')?.touched && roleForm.get('name')?.errors}"
+                   placeholder="Enter role name">
+            <div *ngIf="roleForm.get('name')?.touched && roleForm.get('name')?.errors" class="invalid-feedback">
+              <span *ngIf="roleForm.get('name')?.errors?.['required']">Role name is required.</span>
+              <span *ngIf="roleForm.get('name')?.errors?.['maxlength']">Role name cannot exceed 100 characters.</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="isActive">Status</label>
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+              <label class="custom-control-label" for="isActive">Is Active</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control"
+                      id="description"
+                      formControlName="description"
+                      rows="2"
+                      placeholder="Enter role description"></textarea>
+            <div *ngIf="roleForm.get('description')?.touched && roleForm.get('description')?.errors" class="invalid-feedback">
+              <span *ngIf="roleForm.get('description')?.errors?.['maxlength']">Description cannot exceed 500 characters.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col-md-12">
+          <h4 class="mb-3">Module Permissions</h4>
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+              <thead class="thead-light">
+                <tr>
+                  <th style="width: 5%">Index</th>
+                  <th style="width: 30%">Module</th>
+                  <th style="width: 15%">Select All</th>
+                  <th style="width: 12.5%">View</th>
+                  <th style="width: 12.5%">Add</th>
+                  <th style="width: 12.5%">Edit</th>
+                  <th style="width: 12.5%">Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let module of modules; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ module.name }}</td>
+                  <td class="text-center">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             [checked]="isAllSelected(module.id!)"
+                             (change)="handleCheckboxChange(module.id!, $event)">
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             [checked]="modulePermissions.get(module.id!)?.get(PermissionType.View)"
+                             (change)="togglePermission(module.id!, PermissionType.View)">
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Add)"
+                             (change)="togglePermission(module.id!, PermissionType.Add)">
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Edit)"
+                             (change)="togglePermission(module.id!, PermissionType.Edit)">
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="form-check">
+                      <input class="form-check-input"
+                             type="checkbox"
+                             [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Delete)"
+                             (change)="togglePermission(module.id!, PermissionType.Delete)">
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="modules.length === 0">
+                  <td colspan="6" class="text-center">No modules available</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col-md-12">
+          <button type="submit"
+                  class="btn btn-primary"
+                  [disabled]="roleForm.invalid || loading" *appPermission="{ moduleRoute: 'roles', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+            <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
+            {{ isEditMode ? 'Update' : 'Save' }} Role
+          </button>
+          <button type="button"
+                  class="btn btn-secondary ml-2"
+                  (click)="resetForm()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>-->
+<!-- Roles List Card -->
+<!--<div class="card">
       <div class="card-header">
         <h3 class="card-title">Roles List</h3>
       </div>
@@ -223,4 +509,4 @@
       </div>
     </div>
   </div>
-</section>
+</section>-->

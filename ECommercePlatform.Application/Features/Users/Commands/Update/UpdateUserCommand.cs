@@ -15,8 +15,10 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
         public string? Email { get; init; }
         public string? Password { get; init; } // Optional for updates
         public string? PhoneNumber { get; init; }
-        public Gender? Gender { get; init; }
-        public DateOnly? DateOfBirth { get; init; }
+        //public Gender? Gender { get; init; }
+        //public DateOnly? DateOfBirth { get; init; }
+        public string? Gender { get; init; }
+        public string? DateOfBirth { get; init; }
         public string? Bio { get; init; }
         public List<Guid>? RoleIds { get; init; }
         public bool? IsActive { get; init; }

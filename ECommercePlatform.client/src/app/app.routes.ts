@@ -11,6 +11,7 @@ import { UserComponent } from './admin/user/user.component';
 import { PermissionGuard } from './guards/permission.guard';
 import { PermissionType } from './models/role.model';
 import { ModuleManagementComponent } from './admin/module-management/module-management.component';
+import { AccessDeniedComponent } from './shared/access-denied.component';
 
 // Custom matcher to catch malformed URLs
 function malformedUrlMatcher(url: UrlSegment[]) {
@@ -19,6 +20,7 @@ function malformedUrlMatcher(url: UrlSegment[]) {
   // Check if URL contains malformed encoding
   if (fullUrl.includes('%F') ||
     fullUrl.includes('%f') ||
+
     fullUrl.match(/%[0-9A-F]([^0-9A-F]|$)/i)) {
     return {
       consumed: url,
@@ -44,10 +46,16 @@ export const routes: Routes = [
   {
     path: 'admin',
     children: [
+
       {
         path: 'login',
         component: LoginComponent,
         title: 'Admin Login'
+      },
+      {
+        path: 'access-denied',
+        component: AccessDeniedComponent,
+        title: 'Access Denied'
       },
       {
         path: '',
@@ -59,7 +67,11 @@ export const routes: Routes = [
             component: DashboardComponent,
             title: 'Admin Dashboard',
             // Dashboard is exempt from specific permission checks
-            data: { exempt: true }
+            //data: { exempt: true }
+            data: {
+              moduleRoute: 'dashboard',
+              permission: PermissionType.View
+            }
           },
           {
             path: 'countries',
@@ -68,7 +80,10 @@ export const routes: Routes = [
             canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'countries',
-              permission: PermissionType.View
+              permission: [PermissionType.View,
+                PermissionType.Add,
+                PermissionType.Edit,
+                PermissionType.Delete]
             }
           },
           {

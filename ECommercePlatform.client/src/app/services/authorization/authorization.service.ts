@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
-import { Observable, of, map, catchError, shareReplay, BehaviorSubject, tap } from 'rxjs';
+import { Observable, of, map, catchError, shareReplay, BehaviorSubject, tap, forkJoin } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { PermissionType } from '../../models/role.model';
@@ -83,6 +83,7 @@ export class AuthorizationService {
         this.permissionsCache.set(cacheKey, hasPermission);
       }),
       catchError(() => {
+        console.error(`Error checking permission (${moduleRoute}:${permissionType}):`, Error);
         this.permissionsCache.set(cacheKey, false);
         return of(false);
       })
@@ -114,6 +115,64 @@ export class AuthorizationService {
       }
     });
     keysToDelete.forEach(key => this.permissionsCache.delete(key));
+  }
+
+  // Check if user has ANY permission for a module
+  public hasAnyPermission(moduleRoute: string): Observable<boolean> {
+    return forkJoin([
+      this.checkPermission(moduleRoute, PermissionType.View),
+      this.checkPermission(moduleRoute, PermissionType.Add),
+      this.checkPermission(moduleRoute, PermissionType.Edit),
+      this.checkPermission(moduleRoute, PermissionType.Delete)
+    ]).pipe(
+      map(results => results.some(result => result))
+    );
+  }
+
+  // Check if user has ALL listed permissions for a module
+  public hasAllPermissions(moduleRoute: string, permissions: PermissionType[]): Observable<boolean> {
+    if (permissions.length === 0) return of(false);
+
+    const checks = permissions.map(permission => this.checkPermission(moduleRoute, permission));
+    return forkJoin(checks).pipe(
+      map(results => results.every(result => result))
+    );
+  }
+
+  // Synchronous permission check that uses cached permissions
+  // Useful for rapid UI updates that don't need to wait for an API call
+  public hasPermissionSync(moduleRoute: string, permission: PermissionType): boolean {
+    if (this.isAdmin()) return true;
+
+    // Use cached permissions from the initial load
+    const cachedPermissions = this.getCachedPermissions();
+    const permissionKey = `${moduleRoute}:${this.permissionTypeToString(permission)}`;
+
+    return cachedPermissions.includes(permissionKey);
+  }
+
+  private getCachedPermissions(): string[] {
+    const cachedPermissions: string[] = [];
+    this.permissionsCache.forEach((hasPermission, key) => {
+      if (hasPermission) {
+        // Convert from cache key format (moduleRoute-permissionType) to permission string format (moduleRoute:permissionType)
+        const [moduleRoute, permType] = key.split('-');
+        if (moduleRoute && permType) {
+          cachedPermissions.push(`${moduleRoute}:${permType}`);
+        }
+      }
+    });
+    return cachedPermissions;
+  }
+
+  private permissionTypeToString(permission: PermissionType): string {
+    switch (permission) {
+      case PermissionType.View: return 'View';
+      case PermissionType.Add: return 'Add';
+      case PermissionType.Edit: return 'Edit';
+      case PermissionType.Delete: return 'Delete';
+      default: return '';
+    }
   }
 
   getCacheSize(): number {

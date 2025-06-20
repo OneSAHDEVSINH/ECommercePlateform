@@ -14,8 +14,10 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
         public required string Email { get; init; }
         public required string Password { get; init; }
         public string? PhoneNumber { get; init; }
-        public Gender Gender { get; init; } = Gender.Other;
-        public DateOnly? DateOfBirth { get; init; }
+        //public Gender Gender { get; init; }
+        public string? Gender { get; init; }
+        //public DateOnly? DateOfBirth { get; init; }
+        public string? DateOfBirth { get; init; }
         public string? Bio { get; init; }
         public List<Guid>? RoleIds { get; init; } = new();
         public bool IsActive { get; init; } = true;

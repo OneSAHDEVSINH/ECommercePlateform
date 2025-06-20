@@ -82,7 +82,8 @@
         </div>
         <!-- Card Footer -->
         <div class="card-footer">
-          <button type="submit" class="btn btn-primary" [disabled]="countryForm.invalid || loading">
+          <button type="submit" class="btn btn-primary" [disabled]="countryForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'countries', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
             <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} Country
           </button>
           <button type="button" class="btn btn-default float-right" (click)="resetForm()"
@@ -179,10 +180,12 @@
                 <td>{{ country.code }}</td>
                 <td>{{ country.createdOn | date:'medium' }}</td>
                 <td>
-                  <button class="btn btn-sm btn-info mr-1" (click)="editCountry(country)">
+                  <button class="btn btn-sm btn-info mr-1" (click)="editCountry(country)"
+                          *appPermission="{ moduleRoute: 'countries', type: PermissionType.Edit }">
                     <i class="fas fa-edit"></i> Edit
                   </button>
-                  <button class="btn btn-sm btn-danger" (click)="deleteCountry(country.id!)">
+                  <button class="btn btn-sm btn-danger" (click)="deleteCountry(country.id!)"
+                          *appPermission="{ moduleRoute: 'countries', type: PermissionType.Delete }">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>

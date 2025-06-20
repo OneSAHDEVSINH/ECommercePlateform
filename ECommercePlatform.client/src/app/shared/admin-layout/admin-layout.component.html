@@ -53,6 +53,60 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <!-- Sidebar Menu -->
+        <!--<nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+        <li class="nav-item">
+          <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>Dashboard</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/admin/countries" routerLinkActive="active" class="nav-link">
+            <i class="nav-icon fas fa-globe"></i>
+            <p>Countries</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/admin/states" routerLinkActive="active" class="nav-link">
+            <i class="nav-icon fas fa-map-marked-alt"></i>
+            <p>States</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/admin/cities" routerLinkActive="active" class="nav-link">
+            <i class="nav-icon fas fa-city"></i>
+            <p>Cities</p>
+          </a>
+        </li>-->
+        <!-- Add divider for access management section -->
+        <!--<li class="nav-header">ACCESS MANAGEMENT</li>-->
+        <!-- User Management -->
+        <!--<li class="nav-item" *appPermission="{ moduleRoute: 'admin/users', type: 'View' }">-->
+        <!--<li class="nav-item">
+        <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
+          <i class="nav-icon fas fa-users"></i>
+          <p>Users</p>
+        </a>
+      </li>-->
+        <!-- Role Management -->
+        <!--<li class="nav-item" *appPermission="{ moduleRoute: 'admin/roles', type: 'View' }">-->
+        <!--<li class="nav-item">
+            <a routerLink="/admin/roles" routerLinkActive="active" class="nav-link">
+              <i class="nav-icon fas fa-user-shield"></i>
+              <p>Roles & Permissions</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a routerLink="/admin/modules" routerLinkActive="active" class="nav-link">
+              <i class="nav-icon fas fa-puzzle-piece"></i>
+              <p>Modules</p>
+            </a>
+          </li>
+        </ul>
+      </nav>-->
+        <!-- Replace the current sidebar menu items with these permission-controlled versions -->
         <nav class="mt-2">
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
             <li class="nav-item">
@@ -61,46 +115,38 @@
                 <p>Dashboard</p>
               </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" *appPermission="{ moduleRoute: 'countries', type: PermissionType.View }">
               <a routerLink="/admin/countries" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-globe"></i>
                 <p>Countries</p>
               </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" *appPermission="{ moduleRoute: 'states', type: PermissionType.View }">
               <a routerLink="/admin/states" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-map-marked-alt"></i>
                 <p>States</p>
               </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" *appPermission="{ moduleRoute: 'cities', type: PermissionType.View }">
               <a routerLink="/admin/cities" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-city"></i>
                 <p>Cities</p>
               </a>
             </li>
-            <!-- Add divider for access management section -->
             <li class="nav-header">ACCESS MANAGEMENT</li>
-
-            <!-- User Management -->
-            <!--<li class="nav-item" *appPermission="{ moduleRoute: 'admin/users', type: 'View' }">-->
-            <li class="nav-item">
+            <li class="nav-item" *appPermission="{ moduleRoute: 'users', type: PermissionType.View }">
               <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-users"></i>
                 <p>Users</p>
               </a>
             </li>
-
-            <!-- Role Management -->
-            <!--<li class="nav-item" *appPermission="{ moduleRoute: 'admin/roles', type: 'View' }">-->
-            <li class="nav-item">
+            <li class="nav-item" *appPermission="{ moduleRoute: 'roles', type: PermissionType.View }">
               <a routerLink="/admin/roles" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-user-shield"></i>
                 <p>Roles & Permissions</p>
               </a>
             </li>
-
-            <li class="nav-item">
+            <li class="nav-item" *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
               <a routerLink="/admin/modules" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-puzzle-piece"></i>
                 <p>Modules</p>
@@ -112,7 +158,11 @@
       </div>
       <!-- /.sidebar -->
     </aside>
-
+    <div *ngIf="accessDeniedMessage" class="alert alert-danger alert-dismissible" style="margin: 15px;">
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true" (click)="accessDeniedMessage = null">&times;</button>
+      <h5><i class="icon fas fa-ban"></i> Access Denied!</h5>
+      {{ accessDeniedMessage }}
+    </div>
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
       <!-- Content Header (Page header) -->

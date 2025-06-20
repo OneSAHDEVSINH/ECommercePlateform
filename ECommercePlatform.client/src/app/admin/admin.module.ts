@@ -11,6 +11,7 @@ import { CityComponent } from './city/city.component';
 import { AdminLayoutComponent } from '../shared/admin-layout/admin-layout.component';
 import { RoleManagementComponent } from './role-management/role-management.component';
 import { UserComponent } from './user/user.component';
+import { AccessDeniedComponent } from '../shared/access-denied.component';
 
 @NgModule({
   imports: [
@@ -26,7 +27,8 @@ import { UserComponent } from './user/user.component';
     CityComponent,
     AdminLayoutComponent,
     UserComponent,
-    RoleManagementComponent
+    RoleManagementComponent,
+    AccessDeniedComponent
   ]
 })
 export class AdminModule { }

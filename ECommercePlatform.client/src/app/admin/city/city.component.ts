@@ -18,6 +18,8 @@ import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { ListService } from '../../services/general/list.service';
 import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+import { PermissionDirective } from '../../directives/permission.directive';
+import { PermissionType } from '../../models/role.model';
 
 
 @Component({
@@ -25,7 +27,7 @@ import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-ra
   templateUrl: './city.component.html',
   styleUrls: ['./city.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent, PermissionDirective]
 })
 export class CityComponent implements OnInit, OnDestroy {
   cities: City[] = [];
@@ -46,6 +48,7 @@ export class CityComponent implements OnInit, OnDestroy {
   selectedCountryIdFilter: string = 'all';
   filteredStates: State[] = [];
   allStates: State[] = [];
+  PermissionType = PermissionType;
 
   // Pagination properties
   pagedResponse: PagedResponse<City> | null = null;

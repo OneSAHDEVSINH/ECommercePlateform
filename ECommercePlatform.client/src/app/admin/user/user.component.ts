@@ -12,6 +12,9 @@ import { PaginationComponent } from '../../shared/pagination/pagination.componen
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { FormsModule } from '@angular/forms';
+import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
+import { ListService } from '../../services/general/list.service';
 
 @Component({
   selector: 'app-user',
@@ -24,7 +27,8 @@ import { FormsModule } from '@angular/forms';
     FormsModule,
     PaginationComponent,
     PermissionDirective,
-    RouterModule
+    RouterModule,
+    DateRangeFilterComponent
   ]
 })
 export class UserComponent implements OnInit, OnDestroy {
@@ -44,6 +48,10 @@ export class UserComponent implements OnInit, OnDestroy {
   Math = Math;
   rolesLoading: boolean = false;
 
+  // Filters
+  selectedRoleFilter: string = 'all';
+  selectedStatusFilter: string = 'all';
+
   // Pagination properties
   pagedResponse: PagedResponse<User> | null = null;
   pageRequest: PagedRequest = {
@@ -55,11 +63,15 @@ export class UserComponent implements OnInit, OnDestroy {
   };
 
   private subscriptions: Subscription[] = [];
+  private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
 
   constructor(
     private userService: UserService,
     private roleService: RoleService,
     private messageService: MessageService,
+    private dateFilterService: DateFilterService,
+    private listService: ListService,
     private fb: FormBuilder
   ) { }
 
@@ -73,10 +85,34 @@ export class UserComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(messageSub);
+
+    // Subscribe to search changes with debounce
+    this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
+      this.pageRequest.searchText = term;
+      this.pageRequest.pageNumber = 1; // Reset to first page when search changes
+      this.loadUsers();
+    });
+
+    // Subscribe to date range changes
+    this.dateRangeSubscription = this.dateFilterService.getDateRangeObservable()
+      .subscribe((dateRange: DateRange) => {
+        this.pageRequest.startDate = dateRange.startDate ? dateRange.startDate.toISOString() : null;
+        this.pageRequest.endDate = dateRange.endDate ? dateRange.endDate.toISOString() : null;
+        this.pageRequest.pageNumber = 1; // Reset to first page when date filter changes
+        this.loadUsers();
+      });
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+
+    if (this.dateRangeSubscription) {
+      this.dateRangeSubscription.unsubscribe();
+    }
   }
 
   private initForm(): void {
@@ -94,16 +130,16 @@ export class UserComponent implements OnInit, OnDestroy {
 
     // Set password validators based on mode
     this.updatePasswordValidators();
-    //// Only require password when creating a new user
-    //this.userForm.get('password')?.setValidators(
-    //  this.isEditMode ? [Validators.minLength(6), Validators.maxLength(100)] :
-    //    [Validators.required, Validators.minLength(6), Validators.maxLength(100)]
-    //);
-    //this.userForm.get('password')?.updateValueAndValidity();
   }
 
   loadUsers(): void {
     this.loading = true;
+
+    // Add role and status filters to request
+    const roleId = this.selectedRoleFilter === 'all' ? undefined : this.selectedRoleFilter;
+    const isActive = this.selectedStatusFilter === 'all' ? undefined :
+      this.selectedStatusFilter === 'active' ? true : false;
+
     const sub = this.userService.getPagedUsers(this.pageRequest).subscribe({
       next: (response) => {
         this.pagedResponse = response;
@@ -155,6 +191,10 @@ export class UserComponent implements OnInit, OnDestroy {
       ...this.userForm.value,
       roleIds: this.selectedRoles
     };
+
+    if (this.isEditMode && this.currentUserId) {
+      userData.id = this.currentUserId;
+    }
 
     // Remove empty password in edit mode
     if (this.isEditMode && !userData.password) {
@@ -346,16 +386,7 @@ export class UserComponent implements OnInit, OnDestroy {
 
   onSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.pageRequest.searchText = target.value;
-
-    // Reset to first page when searching
-    this.pageRequest.pageNumber = 1;
-
-    // Debounce search
-    clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => {
-      this.loadUsers();
-    }, 500);
+    this.listService.search(target.value);
   }
 
   onPageSizeChange(event: Event): void {
@@ -365,5 +396,17 @@ export class UserComponent implements OnInit, OnDestroy {
     this.loadUsers();
   }
 
-  private searchTimeout: any;
+  onRoleFilterChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.selectedRoleFilter = selectElement.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
+    this.loadUsers();
+  }
+
+  onStatusFilterChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.selectedStatusFilter = selectElement.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
+    this.loadUsers();
+  }
 }

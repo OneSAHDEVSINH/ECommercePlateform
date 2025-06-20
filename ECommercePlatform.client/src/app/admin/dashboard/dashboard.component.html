@@ -14,7 +14,6 @@
     </div>
   </div>
 </div>
-
 <!-- Main content -->
 <section class="content">
   <div class="container-fluid">
@@ -85,7 +84,7 @@
         <h5 class="mb-3">Quick Actions</h5>
       </div>
 
-      <div class="col-lg-4 col-md-6">
+      <div class="col-lg-4 col-md-6" *appPermission="{ moduleRoute: 'countries', type: PermissionType.View }">
         <div class="card card-primary card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -100,7 +99,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4 col-md-6">
+      <div class="col-lg-4 col-md-6" *appPermission="{ moduleRoute: 'states', type: PermissionType.View }">
         <div class="card card-success card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -115,7 +114,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4 col-md-6">
+      <div class="col-lg-4 col-md-6" *appPermission="{ moduleRoute: 'cities', type: PermissionType.View }">
         <div class="card card-warning card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -138,7 +137,7 @@
     </div>
 
     <!-- Users Management Card -->
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-4 col-md-6" *appPermission="{ moduleRoute: 'users', type: PermissionType.View }">
       <div class="card card-primary card-outline">
         <div class="card-body box-profile">
           <div class="text-center">
@@ -154,7 +153,7 @@
     </div>
 
     <!-- Roles Management Card -->
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-4 col-md-6" *appPermission="{ moduleRoute: 'roles', type: PermissionType.View }">
       <div class="card card-danger card-outline">
         <div class="card-body box-profile">
           <div class="text-center">
@@ -170,7 +169,7 @@
     </div>
 
     <!-- Add Module Management Card to Access Management section -->
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-4 col-md-6" *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
       <div class="card card-info card-outline">
         <div class="card-body box-profile">
           <div class="text-center">

@@ -1,24 +1,29 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
+import { PermissionDirective } from '../../directives/permission.directive';
+import { PermissionType } from '../../models/role.model';
 
 @Component({
   selector: 'app-admin-layout',
   templateUrl: './admin-layout.component.html',
   styleUrls: ['./admin-layout.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule, PermissionDirective]
 })
 export class AdminLayoutComponent implements OnInit {
   userName: string = 'Admin';
   currentTheme: string = 'light-mode';
   isUserDropdownOpen: boolean = false;
-  isModulesMenuOpen: boolean = false; // Add this property for modules menu
+  isModulesMenuOpen: boolean = false;
+  PermissionType = PermissionType;
+  accessDeniedMessage: string | null = null;
 
   constructor(
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
@@ -37,8 +42,28 @@ export class AdminLayoutComponent implements OnInit {
       this.currentTheme = savedTheme;
     }
 
+    // Handle access denied messages from query params
+    this.route.queryParams.subscribe(params => {
+      if (params['accessDenied']) {
+        const module = params['module'] || 'the requested page';
+        const permission = params['permission'] || 'required';
+        this.accessDeniedMessage = `Access denied: You don't have ${permission} permission for ${module}.`;
+
+        // Clear the message after 5 seconds
+        setTimeout(() => {
+          this.accessDeniedMessage = null;
+
+          // Clean up URL query params
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true
+          });
+        }, 5000);
+      }
+    });
     // Check if we're on a modules page to auto-open the menu
-    this.isModulesMenuOpen = this.router.url.includes('/admin/module');
+    this.isModulesMenuOpen = this.router.url.includes('/admin/modules');
   }
 
   toggleTheme(): void {

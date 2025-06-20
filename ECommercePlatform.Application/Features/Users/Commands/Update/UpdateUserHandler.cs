@@ -1,6 +1,7 @@
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Enums;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.Update
@@ -34,10 +35,21 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
                     user.FirstName = request.FirstName;
                 if (!string.IsNullOrEmpty(request.LastName))
                     user.LastName = request.LastName;
-                if (request.Gender.HasValue)
-                    user.Gender = request.Gender.Value;
-                if (request.DateOfBirth.HasValue)
-                    user.DateOfBirth = request.DateOfBirth.Value;
+
+                // Parse and update gender
+                if (!string.IsNullOrEmpty(request.Gender))
+                {
+                    if (Enum.TryParse<Gender>(request.Gender, true, out var gender))
+                        user.Gender = gender;
+                }
+
+                // Parse and update date of birth
+                if (!string.IsNullOrEmpty(request.DateOfBirth))
+                {
+                    if (DateTime.TryParse(request.DateOfBirth, out var dateTime))
+                        user.DateOfBirth = DateOnly.FromDateTime(dateTime);
+                }
+
                 if (request.PhoneNumber != null)
                     user.PhoneNumber = request.PhoneNumber;
                 if (request.Bio != null)
@@ -73,7 +85,10 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
                 {
                     // Remove existing roles
                     var currentRoles = await _unitOfWork.UserManager.GetRolesAsync(user);
-                    await _unitOfWork.UserManager.RemoveFromRolesAsync(user, currentRoles);
+                    if (currentRoles.Any())
+                    {
+                        await _unitOfWork.UserManager.RemoveFromRolesAsync(user, currentRoles);
+                    }
 
                     // Add new roles
                     foreach (var roleId in request.RoleIds)

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, UrlTree } from '@angular/router';
-import { Observable, map, catchError, of } from 'rxjs';
+import { Observable, map, catchError, of, forkJoin, mergeMap } from 'rxjs';
 import { AuthService } from '../services/auth/auth.service';
 import { AuthorizationService } from '../services/authorization/authorization.service';
 import { PermissionType } from '../models/role.model';
@@ -20,17 +20,14 @@ export class PermissionGuard implements CanActivate {
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
-    // Step 1: Check if the user is authenticated
+    // Steps 1-4 remain unchanged...
     if (!this.authService.isAuthenticated()) {
       return this.router.createUrlTree(['/admin/login'], {
         queryParams: { returnUrl: state.url }
       });
     }
 
-    // Step 2: Check if user has any role (per your requirement)
     if (!this.authService.hasAnyRole()) {
-      // User is authenticated but has no roles
-      console.warn('User has no assigned roles');
       return this.router.createUrlTree(['/admin/login'], {
         queryParams: {
           returnUrl: state.url,
@@ -39,12 +36,10 @@ export class PermissionGuard implements CanActivate {
       });
     }
 
-    // Step 3: Check if route is exempt from permission checks
     if (route.data['exempt'] === true) {
       return true;
     }
 
-    // Step 4: Super admin bypass
     if (this.authorizationService.isAdmin()) {
       return true;
     }
@@ -53,43 +48,126 @@ export class PermissionGuard implements CanActivate {
     const moduleRoute = route.data['moduleRoute'] || this.getModuleRouteFromUrl(state.url);
     const requiredPermission = route.data['permission'] as PermissionType || PermissionType.View;
 
-    // For routes without module specification, allow access
     if (!moduleRoute) {
       return true;
     }
 
-    // Check permission with the authorization service
+    // If requiredPermission is an array, check if user has ANY of them
+    if (Array.isArray(requiredPermission)) {
+      return this.checkForAnyPermission(moduleRoute, requiredPermission, state.url);
+    }
+
+    // Check primary permission first
     return this.authorizationService.checkPermission(moduleRoute, requiredPermission).pipe(
-      map(hasPermission => {
+      mergeMap(hasPermission => {
         if (hasPermission) {
-          return true;
+          return of(true);
         }
 
-        // No permission, redirect to dashboard
-        console.warn(`Access denied to ${moduleRoute}: Missing ${requiredPermission} permission`);
-        return this.router.createUrlTree(['/admin/dashboard'], {
+        // If primary permission check failed and it was View permission,
+        // check if user has any other permissions
+        if (requiredPermission === PermissionType.View) {
+          return this.checkForAnyPermission(moduleRoute, [
+            PermissionType.Add,
+            PermissionType.Edit,
+            PermissionType.Delete
+          ], state.url);
+        }
+
+        // Otherwise show access denied
+        console.warn(`Access denied to ${moduleRoute}: Missing ${this.getReadablePermissionType(requiredPermission)} permission`);
+
+        if (moduleRoute === 'dashboard') {
+          return of(this.router.createUrlTree(['/admin/login'], {
+            queryParams: {
+              accessDenied: 'true',
+              module: moduleRoute,
+              permission: this.getReadablePermissionType(requiredPermission)
+            }
+          }));
+        }
+
+        return of(this.router.createUrlTree(['/admin/access-denied'], {
           queryParams: {
             accessDenied: 'true',
             module: moduleRoute,
-            permission: requiredPermission
+            permission: this.getReadablePermissionType(requiredPermission),
+            returnUrl: state.url
           }
-        });
+        }));
       }),
       catchError(error => {
         console.error('Permission check failed:', error);
-        return of(this.router.createUrlTree(['/admin/dashboard']));
+        return of(this.router.createUrlTree(['/admin/access-denied'], {
+          queryParams: {
+            permissionError: 'true',
+            errorMessage: 'Error checking permissions'
+          }
+        }));
       })
     );
   }
 
-  private getModuleRouteFromUrl(url: string): string {
-    const segments = url.split('/').filter(segment => segment.length > 0);
+  // Helper method to check if user has ANY of the given permissions
+  private checkForAnyPermission(moduleRoute: string, permissions: PermissionType[], returnUrl: string): Observable<boolean | UrlTree> {
+    const permissionChecks$ = permissions.map(permission =>
+      this.authorizationService.checkPermission(moduleRoute, permission)
+    );
 
-    if (segments.length < 2) {
-      return '';
+    // If there are no permissions to check, deny access
+    if (permissionChecks$.length === 0) {
+      return of(this.router.createUrlTree(['/admin/access-denied'], {
+        queryParams: {
+          accessDenied: 'true',
+          module: moduleRoute,
+          permission: 'any',
+          returnUrl: returnUrl
+        }
+      }));
     }
 
-    // Return the module name (second segment after 'admin')
-    return segments[1];
+    return forkJoin(permissionChecks$).pipe(
+      map(results => {
+        const hasAnyPermission = results.some(result => result === true);
+
+        if (hasAnyPermission) {
+          return true;
+        }
+
+        return this.router.createUrlTree(['/admin/access-denied'], {
+          queryParams: {
+            accessDenied: 'true',
+            module: moduleRoute,
+            permission: 'any',
+            returnUrl: returnUrl
+          }
+        });
+      }),
+      catchError(error => {
+        console.error('Permission checks failed:', error);
+        return of(this.router.createUrlTree(['/admin/access-denied'], {
+          queryParams: {
+            permissionError: 'true',
+            errorMessage: 'Error checking permissions'
+          }
+        }));
+      })
+    );
+  }
+
+  // Other helper methods remain the same
+  private getReadablePermissionType(type: PermissionType): string {
+    switch (type) {
+      case PermissionType.View: return 'View';
+      case PermissionType.Add: return 'Add';
+      case PermissionType.Edit: return 'Edit';
+      case PermissionType.Delete: return 'Delete';
+      default: return 'access';
+    }
+  }
+
+  private getModuleRouteFromUrl(url: string): string {
+    const segments = url.split('/').filter(segment => segment.length > 0);
+    return segments.length < 2 ? '' : segments[1];
   }
 }

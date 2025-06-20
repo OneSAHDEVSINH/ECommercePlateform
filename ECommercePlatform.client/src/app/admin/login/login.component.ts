@@ -267,6 +267,24 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.authService.isAuthenticated() && this.authService.hasAnyRole()) {
       this.router.navigate([this.returnUrl]);
     }
+    this.route.queryParams.subscribe(params => {
+      if (params['accessDenied']) {
+        const module = params['module'] || 'the requested page';
+        const permission = params['permission'] || 'required';
+        this.errorMessage = `Access denied: You don't have ${permission} permission for ${module}.`;
+
+        // Clean up URL query params after displaying message
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+      setTimeout(() => {
+        this.errorMessage = '';
+      }, 2500);
+      this.loading = false;
+    });
   }
 
   // Add this new method
@@ -333,7 +351,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       next: (response) => {
         console.log('Login successful:', response);
 
-        // Check if user has any role (not just Admin)
+        // Check if user has any role
         if (this.authService.hasAnyRole()) {
           // Navigate to return URL or dashboard
           this.router.navigate([this.returnUrl]).catch(() => {
@@ -358,6 +376,9 @@ export class LoginComponent implements OnInit, OnDestroy {
         } else {
           this.errorMessage = 'Login failed. Please try again.';
         }
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 2500);
       }
     });
   }

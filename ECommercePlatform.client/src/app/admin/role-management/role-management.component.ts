@@ -322,4 +322,33 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     this.pageRequest.pageNumber = newPage;
     this.loadRoles();
   }
+
+  // Method for search
+  onSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.pageRequest.searchText = target.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page when searching
+    this.loadRoles();
+  }
+
+  // Method for page size change
+  onPageSizeChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.pageRequest.pageSize = Number(selectElement.value);
+    this.pageRequest.pageNumber = 1; // Reset to first page when changing page size
+    this.loadRoles();
+  }
+
+  // Method for sort change
+  onSortChange(column: string): void {
+    if (this.pageRequest.sortColumn === column) {
+      // Toggle direction if same column is clicked
+      this.pageRequest.sortDirection = this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Set new column and default to ascending
+      this.pageRequest.sortColumn = column;
+      this.pageRequest.sortDirection = 'asc';
+    }
+    this.loadRoles();
+  }
 }
