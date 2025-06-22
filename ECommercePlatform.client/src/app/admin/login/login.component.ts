@@ -283,7 +283,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
       setTimeout(() => {
         this.errorMessage = '';
-      }, 2500);
+      }, 25000);
       this.loading = false;
     });
   }

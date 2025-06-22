@@ -2,6 +2,7 @@ using ECommercePlatform.Application.Features.Auth.Commands.Login;
 using ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommercePlatform.API.Controllers
@@ -32,9 +33,11 @@ namespace ECommercePlatform.API.Controllers
                 }
 
                 // Return 403 for authorization failures (no roles)
-                if (result.Error.Contains("don't have any assigned roles"))
+                if (result.Error.Contains("don't have any assigned roles") ||
+                    result.Error.Contains("All your assigned roles are inactive"))
                 {
-                    return Forbid(result.Error);
+                    // Return a clean 403 Forbidden response with the error message in the body
+                    return StatusCode(StatusCodes.Status403Forbidden, new { message = result.Error });
                 }
 
                 // Return 400 for other errors
