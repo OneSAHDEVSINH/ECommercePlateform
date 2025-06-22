@@ -12,6 +12,9 @@ import { PaginationComponent } from '../../shared/pagination/pagination.componen
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { FormsModule } from '@angular/forms';
+import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
+import { ListService } from '../../services/general/list.service';
 
 @Component({
   selector: 'app-role-management',
@@ -24,7 +27,8 @@ import { FormsModule } from '@angular/forms';
     FormsModule,
     PaginationComponent,
     PermissionDirective,
-    RouterModule
+    RouterModule,
+    DateRangeFilterComponent
   ]
 })
 export class RoleManagementComponent implements OnInit, OnDestroy {
@@ -39,6 +43,9 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
   modulePermissions: Map<string, Map<PermissionType, boolean>> = new Map();
   Math = Math;
 
+  // Filter properties
+  selectedStatusFilter: string = 'all';
+
   // Pagination properties
   pagedResponse: PagedResponse<Role> | null = null;
   pageRequest: PagedRequest = {
@@ -50,12 +57,16 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
   };
 
   private subscriptions: Subscription[] = [];
+  private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
 
   constructor(
     private roleService: RoleService,
     private moduleService: ModuleService,
     private authService: AuthService,
     private messageService: MessageService,
+    private dateFilterService: DateFilterService,
+    private listService: ListService,
     private fb: FormBuilder
   ) { }
 
@@ -69,10 +80,34 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(messageSub);
+
+    // Subscribe to search changes with debounce
+    this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
+      this.pageRequest.searchText = term;
+      this.pageRequest.pageNumber = 1; // Reset to first page when search changes
+      this.loadRoles();
+    });
+
+    // Subscribe to date range changes
+    this.dateRangeSubscription = this.dateFilterService.getDateRangeObservable()
+      .subscribe((dateRange: DateRange) => {
+        this.pageRequest.startDate = dateRange.startDate ? dateRange.startDate.toISOString() : null;
+        this.pageRequest.endDate = dateRange.endDate ? dateRange.endDate.toISOString() : null;
+        this.pageRequest.pageNumber = 1; // Reset to first page when date filter changes
+        this.loadRoles();
+      });
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+
+    if (this.dateRangeSubscription) {
+      this.dateRangeSubscription.unsubscribe();
+    }
   }
 
   private initForm(): void {
@@ -85,6 +120,11 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
 
   loadRoles(): void {
     this.loading = true;
+
+    // Add status filter to request
+    const isActive = this.selectedStatusFilter === 'all' ? undefined :
+      this.selectedStatusFilter === 'active' ? true : false;
+
     const sub = this.roleService.getPagedRoles(this.pageRequest).subscribe({
       next: (response) => {
         this.pagedResponse = response;
@@ -291,16 +331,6 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getPermissionTypeFromString(permTypeStr: string): PermissionType | null {
-    switch (permTypeStr.toUpperCase()) {
-      case "View": return PermissionType.View;
-      case "Add": return PermissionType.Add;
-      case "Edit": return PermissionType.Edit;
-      case "Delete": return PermissionType.Delete;
-      default: return null;
-    }
-  }
-
   deleteRole(id: string): void {
     if (confirm('Are you sure you want to delete this role?')) {
       this.loading = true;
@@ -323,15 +353,11 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     this.loadRoles();
   }
 
-  // Method for search
   onSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.pageRequest.searchText = target.value;
-    this.pageRequest.pageNumber = 1; // Reset to first page when searching
-    this.loadRoles();
+    this.listService.search(target.value);
   }
 
-  // Method for page size change
   onPageSizeChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     this.pageRequest.pageSize = Number(selectElement.value);
@@ -339,7 +365,6 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     this.loadRoles();
   }
 
-  // Method for sort change
   onSortChange(column: string): void {
     if (this.pageRequest.sortColumn === column) {
       // Toggle direction if same column is clicked
@@ -349,6 +374,13 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
       this.pageRequest.sortColumn = column;
       this.pageRequest.sortDirection = 'asc';
     }
+    this.loadRoles();
+  }
+
+  onStatusFilterChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.selectedStatusFilter = selectElement.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
     this.loadRoles();
   }
 }

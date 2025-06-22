@@ -11,6 +11,9 @@ import { PaginationComponent } from '../../shared/pagination/pagination.componen
 import { PermissionDirective } from '../../directives/permission.directive';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { FormsModule } from '@angular/forms';
+import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
+import { ListService } from '../../services/general/list.service';
 
 @Component({
   selector: 'app-module-management',
@@ -23,7 +26,8 @@ import { FormsModule } from '@angular/forms';
     FormsModule,
     PaginationComponent,
     PermissionDirective,
-    RouterModule
+    RouterModule,
+    DateRangeFilterComponent
   ]
 })
 export class ModuleManagementComponent implements OnInit, OnDestroy {
@@ -36,6 +40,9 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
   PermissionType = PermissionType;
   Math = Math;
 
+  // Filter properties
+  selectedStatusFilter: string = 'all';
+
   // Pagination properties
   pagedResponse: PagedResponse<Module> | null = null;
   pageRequest: PagedRequest = {
@@ -47,11 +54,15 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
   };
 
   private subscriptions: Subscription[] = [];
+  private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
 
   constructor(
     private moduleService: ModuleService,
     private authorizationService: AuthorizationService,
     private messageService: MessageService,
+    private dateFilterService: DateFilterService,
+    private listService: ListService,
     private fb: FormBuilder
   ) { }
 
@@ -67,10 +78,34 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
     this.authorizationService.clearCache();
 
     this.subscriptions.push(messageSub);
+
+    // Subscribe to search changes with debounce
+    this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
+      this.pageRequest.searchText = term;
+      this.pageRequest.pageNumber = 1; // Reset to first page when search changes
+      this.loadModules();
+    });
+
+    // Subscribe to date range changes
+    this.dateRangeSubscription = this.dateFilterService.getDateRangeObservable()
+      .subscribe((dateRange: DateRange) => {
+        this.pageRequest.startDate = dateRange.startDate ? dateRange.startDate.toISOString() : null;
+        this.pageRequest.endDate = dateRange.endDate ? dateRange.endDate.toISOString() : null;
+        this.pageRequest.pageNumber = 1; // Reset to first page when date filter changes
+        this.loadModules();
+      });
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+
+    if (this.dateRangeSubscription) {
+      this.dateRangeSubscription.unsubscribe();
+    }
   }
 
   private initForm(): void {
@@ -86,6 +121,11 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
 
   loadModules(): void {
     this.loading = true;
+
+    // Add status filter to request
+    const isActive = this.selectedStatusFilter === 'all' ? undefined :
+      this.selectedStatusFilter === 'active' ? true : false;
+
     const sub = this.moduleService.getPagedModules(this.pageRequest).subscribe({
       next: (response) => {
         this.pagedResponse = response;
@@ -249,8 +289,13 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
 
   onSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.pageRequest.searchText = target.value;
-    this.pageRequest.pageNumber = 1; // Reset to first page on search
+    this.listService.search(target.value);
+  }
+
+  onStatusFilterChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.selectedStatusFilter = selectElement.value;
+    this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
     this.loadModules();
   }
 }

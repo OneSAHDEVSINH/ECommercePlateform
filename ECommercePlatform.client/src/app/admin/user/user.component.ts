@@ -1,20 +1,20 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { genderToString, stringToGender, User } from '../../models/user.model';
+import { Role, PermissionType } from '../../models/role.model';
+import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { UserService } from '../../services/user/user.service';
 import { RoleService } from '../../services/role/role.service';
 import { MessageService, Message } from '../../services/general/message.service';
-import { User } from '../../models/user.model';
-import { Role, PermissionType } from '../../models/role.model';
-import { Subscription } from 'rxjs';
-import { PaginationComponent } from '../../shared/pagination/pagination.component';
-import { PagedResponse, PagedRequest } from '../../models/pagination.model';
-import { PermissionDirective } from '../../directives/permission.directive';
-import { FormsModule } from '@angular/forms';
-import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
 import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
 import { ListService } from '../../services/general/list.service';
+import { PaginationComponent } from '../../shared/pagination/pagination.component';
+import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
+import { PermissionDirective } from '../../directives/permission.directive';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-user',
@@ -25,32 +25,29 @@ import { ListService } from '../../services/general/list.service';
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    PaginationComponent,
-    PermissionDirective,
     RouterModule,
-    DateRangeFilterComponent
+    PaginationComponent,
+    DateRangeFilterComponent,
+    PermissionDirective
   ]
 })
 export class UserComponent implements OnInit, OnDestroy {
   users: User[] = [];
-  roles: Role[] = [];
+  availableRoles: Role[] = [];
   userForm!: FormGroup;
   isEditMode: boolean = false;
   currentUserId: string | null = null;
   loading: boolean = false;
+  rolesLoading: boolean = false;
   message: Message | null = null;
 
-  // User roles assignment
+  // Selected roles for the user being edited/created
   selectedRoles: string[] = [];
-  availableRoles: Role[] = [];
 
-  PermissionType = PermissionType;
+  // Make Math available to template
   Math = Math;
-  rolesLoading: boolean = false;
-
-  // Filters
-  selectedRoleFilter: string = 'all';
-  selectedStatusFilter: string = 'all';
+  // Make PermissionType enum available to the template
+  PermissionType = PermissionType;
 
   // Pagination properties
   pagedResponse: PagedResponse<User> | null = null;
@@ -58,11 +55,12 @@ export class UserComponent implements OnInit, OnDestroy {
     pageNumber: 1,
     pageSize: 10,
     searchText: '',
-    sortColumn: 'email',
+    sortColumn: 'firstName',
     sortDirection: 'asc'
   };
 
-  private subscriptions: Subscription[] = [];
+  // Subscriptions for clean up
+  private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
   private dateRangeSubscription!: Subscription;
 
@@ -80,36 +78,36 @@ export class UserComponent implements OnInit, OnDestroy {
     this.loadUsers();
     this.loadRoles();
 
-    const messageSub = this.messageService.currentMessage.subscribe(message => {
+    // Subscribe to messages
+    this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
     });
 
-    this.subscriptions.push(messageSub);
-
-    // Subscribe to search changes with debounce
+    // Subscribe to search terms with debounce
     this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
       this.pageRequest.searchText = term;
       this.pageRequest.pageNumber = 1; // Reset to first page when search changes
       this.loadUsers();
     });
 
-    // Subscribe to date range changes
+    // Subscribe to date range filter
     this.dateRangeSubscription = this.dateFilterService.getDateRangeObservable()
       .subscribe((dateRange: DateRange) => {
         this.pageRequest.startDate = dateRange.startDate ? dateRange.startDate.toISOString() : null;
         this.pageRequest.endDate = dateRange.endDate ? dateRange.endDate.toISOString() : null;
-        this.pageRequest.pageNumber = 1; // Reset to first page when date filter changes
+        this.pageRequest.pageNumber = 1;
         this.loadUsers();
       });
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-
+    // Clean up subscriptions
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
     }
-
     if (this.dateRangeSubscription) {
       this.dateRangeSubscription.unsubscribe();
     }
@@ -120,27 +118,25 @@ export class UserComponent implements OnInit, OnDestroy {
       firstName: ['', [Validators.required, Validators.maxLength(50)]],
       lastName: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
-      password: ['', [Validators.minLength(6), Validators.maxLength(100)]],
+      password: ['', this.isEditMode ? [] : [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
       phoneNumber: ['', [Validators.maxLength(20)]],
       gender: [''],
-      dateOfBirth: [''],
+      dateOfBirth: [null],
       bio: ['', [Validators.maxLength(500)]],
       isActive: [true]
     });
-
-    // Set password validators based on mode
-    this.updatePasswordValidators();
   }
 
   loadUsers(): void {
     this.loading = true;
 
-    // Add role and status filters to request
-    const roleId = this.selectedRoleFilter === 'all' ? undefined : this.selectedRoleFilter;
-    const isActive = this.selectedStatusFilter === 'all' ? undefined :
-      this.selectedStatusFilter === 'active' ? true : false;
+    // Create a copy of the request with an additional parameter
+    const request = {
+      ...this.pageRequest,
+      includeRoles: true
+    };
 
-    const sub = this.userService.getPagedUsers(this.pageRequest).subscribe({
+    this.userService.getPagedUsers(request).subscribe({
       next: (response) => {
         this.pagedResponse = response;
         this.users = response.items;
@@ -148,34 +144,32 @@ export class UserComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading users:', error);
-        this.messageService.showMessage({
-          type: 'error',
-          text: error.error?.message || 'Failed to load users'
-        });
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load users';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
         this.loading = false;
       }
     });
-
-    this.subscriptions.push(sub);
   }
 
   loadRoles(): void {
     this.rolesLoading = true;
-    const sub = this.roleService.getRoles().subscribe({
+    this.roleService.getRoles().subscribe({
       next: (roles) => {
-        this.availableRoles = roles.filter(r => r.isActive);
+        this.availableRoles = roles;
         this.rolesLoading = false;
       },
       error: (error) => {
         console.error('Error loading roles:', error);
         this.messageService.showMessage({
           type: 'error',
-          text: error.error?.message || 'Failed to load roles'
+          text: 'Failed to load roles. Role assignment may not work properly.'
         });
         this.rolesLoading = false;
       }
     });
-    this.subscriptions.push(sub);
   }
 
   onSubmit(): void {
@@ -187,64 +181,63 @@ export class UserComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const userData = {
+    this.loading = true;
+
+    // Prepare user data from form
+    const userData: any = {
       ...this.userForm.value,
       roleIds: this.selectedRoles
     };
 
-    if (this.isEditMode && this.currentUserId) {
-      userData.id = this.currentUserId;
-    }
-
-    // Remove empty password in edit mode
+    // Handle empty password in edit mode
     if (this.isEditMode && !userData.password) {
       delete userData.password;
     }
 
-    this.loading = true;
-
     if (this.isEditMode && this.currentUserId) {
-      const sub = this.userService.updateUser(this.currentUserId, userData).subscribe({
+      userData.id = this.currentUserId;
+
+      this.userService.updateUser(this.currentUserId, userData).subscribe({
         next: () => {
           this.messageService.showMessage({
             type: 'success',
             text: 'User updated successfully'
           });
-          this.resetForm();
           this.loadUsers();
+          this.resetForm();
           this.loading = false;
         },
-        error: (error: any) => {
+        error: (error) => {
           console.error('Error updating user:', error);
-          this.messageService.showMessage({
-            type: 'error',
-            text: error.error?.message || 'Failed to update user'
-          });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to update user';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
-      this.subscriptions.push(sub);
     } else {
-      const sub = this.userService.createUser(userData).subscribe({
-        next: (user: User) => {
+      this.userService.createUser(userData).subscribe({
+        next: () => {
           this.messageService.showMessage({
             type: 'success',
             text: 'User created successfully'
           });
-          this.resetForm();
           this.loadUsers();
+          this.resetForm();
           this.loading = false;
         },
-        error: (error: any) => {
+        error: (error) => {
           console.error('Error creating user:', error);
-          this.messageService.showMessage({
-            type: 'error',
-            text: error.error?.message || 'Failed to create user'
-          });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to create user';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
-      this.subscriptions.push(sub);
     }
   }
 
@@ -252,80 +245,71 @@ export class UserComponent implements OnInit, OnDestroy {
     this.isEditMode = true;
     this.currentUserId = user.id || null;
 
-    // First, get the full user details with roles
-    if (user.id) {
+    if (this.currentUserId) {
       this.loading = true;
-      const sub = this.userService.getUserWithRoles(user.id).subscribe({
-        next: (fullUser) => {
+
+      // Fetch complete user details including roles
+      this.userService.getUserById(this.currentUserId).subscribe({
+        next: (userDetails) => {
+          // Reset form and update validators for password in edit mode
+          this.userForm.reset();
+          const passwordControl = this.userForm.get('password');
+          if (passwordControl) {
+            passwordControl.clearValidators();
+            passwordControl.updateValueAndValidity();
+          }
+
+          // Populate form with user data
           this.userForm.patchValue({
-            firstName: fullUser.firstName,
-            lastName: fullUser.lastName,
-            email: fullUser.email,
-            phoneNumber: fullUser.phoneNumber,
-            gender: fullUser.gender || '',
-            dateOfBirth: fullUser.dateOfBirth ? this.formatDateForInput(fullUser.dateOfBirth) : '',
-            bio: fullUser.bio || '',
-            isActive: fullUser.isActive
+            firstName: userDetails.firstName,
+            lastName: userDetails.lastName,
+            email: userDetails.email,
+            phoneNumber: userDetails.phoneNumber || '',
+            gender: genderToString(userDetails.gender),
+            dateOfBirth: userDetails.dateOfBirth ? new Date(userDetails.dateOfBirth).toISOString().split('T')[0] : null,
+            bio: userDetails.bio || '',
+            isActive: userDetails.isActive !== undefined ? userDetails.isActive : true
           });
 
-          // Clear password field
-          this.userForm.get('password')?.setValue('');
-          this.updatePasswordValidators();
-
           // Set selected roles
-          this.selectedRoles = fullUser.roles?.map(role => role.id).filter((id): id is string => id !== undefined) || [];
+          this.selectedRoles = userDetails.roles?.map(role => role.id || '') || [];
 
           this.loading = false;
+          // Scroll to top of form
           this.messageService.scrollToTop();
         },
         error: (error) => {
-          console.error('Error loading user details:', error);
-          this.messageService.showMessage({
-            type: 'error',
-            text: 'Failed to load user details'
-          });
+          console.error('Error fetching user details:', error);
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to fetch user details';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
-      this.subscriptions.push(sub);
     }
   }
 
-  // Helper method to format date for input
-  private formatDateForInput(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toISOString().split('T')[0];
-  }
-
-  deleteUser(id: string | undefined): void {
-    if (!id) {
-      this.messageService.showMessage({
-        type: 'error',
-        text: 'Cannot delete user: Invalid ID'
-      });
-      return;
-    }
-
+  deleteUser(id: string): void {
     if (confirm('Are you sure you want to delete this user?')) {
       this.loading = true;
-
       this.userService.deleteUser(id).subscribe({
         next: () => {
           this.messageService.showMessage({
             type: 'success',
             text: 'User deleted successfully'
           });
-          this.resetForm();
           this.loadUsers();
           this.loading = false;
         },
         error: (error) => {
           console.error('Error deleting user:', error);
-          this.messageService.showMessage({
-            type: 'error',
-            text: error.error?.message || 'Failed to delete user'
-          });
+          const errorMessage = error.error?.message ||
+            error.error?.title ||
+            error.message ||
+            'Failed to delete user';
+          this.messageService.showMessage({ type: 'error', text: errorMessage });
           this.loading = false;
         }
       });
@@ -333,25 +317,26 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.userForm.reset({
-      isActive: true,
-      gender: '',
-      dateOfBirth: ''
-    });
-    this.selectedRoles = [];
     this.isEditMode = false;
     this.currentUserId = null;
-    this.updatePasswordValidators();
+    this.selectedRoles = [];
+    this.userForm.reset({ isActive: true });
+
+    // Reset password validators
+    const passwordControl = this.userForm.get('password');
+    if (passwordControl) {
+      passwordControl.setValidators([
+        Validators.required,
+        Validators.minLength(6),
+        Validators.maxLength(100)
+      ]);
+      passwordControl.updateValueAndValidity();
+    }
   }
 
-  private updatePasswordValidators(): void {
-    const passwordControl = this.userForm.get('password');
-    if (this.isEditMode) {
-      passwordControl?.setValidators([Validators.minLength(6), Validators.maxLength(100)]);
-    } else {
-      passwordControl?.setValidators([Validators.required, Validators.minLength(6), Validators.maxLength(100)]);
-    }
-    passwordControl?.updateValueAndValidity();
+  // Role selection methods
+  isRoleSelected(roleId: string): boolean {
+    return this.selectedRoles.includes(roleId);
   }
 
   toggleRoleSelection(roleId: string): void {
@@ -363,50 +348,57 @@ export class UserComponent implements OnInit, OnDestroy {
     }
   }
 
-  isRoleSelected(roleId: string): boolean {
-    return this.selectedRoles.includes(roleId);
-  }
-
+  // Pagination methods
   onPageChange(page: number): void {
     this.pageRequest.pageNumber = page;
     this.loadUsers();
   }
 
+  onPageSizeChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.pageRequest.pageSize = Number(selectElement.value);
+    this.pageRequest.pageNumber = 1;
+    this.loadUsers();
+  }
+
+  // Sorting methods
   onSortChange(column: string): void {
     if (this.pageRequest.sortColumn === column) {
-      // Toggle sort direction if clicking on the same column
-      this.pageRequest.sortDirection = this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
+      this.pageRequest.sortDirection =
+        this.pageRequest.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
-      // Default to ascending for a new column
       this.pageRequest.sortColumn = column;
       this.pageRequest.sortDirection = 'asc';
     }
     this.loadUsers();
   }
 
-  onSearchChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.listService.search(target.value);
-  }
-
-  onPageSizeChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    this.pageRequest.pageSize = Number(selectElement.value);
-    this.pageRequest.pageNumber = 1; // Reset to first page
-    this.loadUsers();
-  }
-
+  // Filter methods
   onRoleFilterChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
-    this.selectedRoleFilter = selectElement.value;
-    this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
+    const roleId = selectElement.value;
+
+    // Reset to first page when filter changes
+    this.pageRequest.pageNumber = 1;
+
+    // Apply the role filter
     this.loadUsers();
   }
 
   onStatusFilterChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
-    this.selectedStatusFilter = selectElement.value;
-    this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
+    const status = selectElement.value;
+
+    // Reset to first page when filter changes
+    this.pageRequest.pageNumber = 1;
+
+    // Apply the status filter
     this.loadUsers();
+  }
+
+  // Search method
+  onSearchChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.listService.search(target.value);
   }
 }

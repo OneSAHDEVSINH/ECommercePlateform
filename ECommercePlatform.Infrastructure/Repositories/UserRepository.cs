@@ -147,22 +147,36 @@ namespace ECommercePlatform.Infrastructure.Repositories
 
         // Get paginated users
         public async Task<PagedResponse<User>> GetPagedUsersAsync(
-            PagedRequest request,
-            bool activeOnly = true,
-            CancellationToken cancellationToken = default)
+    PagedRequest request,
+    bool activeOnly = true,
+    bool includeRoles = true,
+    Guid? roleId = null,
+    CancellationToken cancellationToken = default)
         {
             // Create base filter
-            Expression<Func<User, bool>> baseFilter = activeOnly
-                ? u => u.IsActive && !u.IsDeleted
-                : u => !u.IsDeleted;
+            Expression<Func<User, bool>> baseFilter;
 
-            // Define a search function that also includes roles
-            static IQueryable<User> searchWithInclude(IQueryable<User> query, string? searchText)
+            if (roleId.HasValue)
             {
-                // First include related entities
-                var queryWithInclude = query
-                    .Include(u => u.UserRoles)
-                        .ThenInclude(ur => ur.Role);
+                baseFilter = activeOnly
+                    ? u => u.IsActive && !u.IsDeleted && u.UserRoles.Any(ur => ur.RoleId == roleId.Value)
+                    : u => !u.IsDeleted && u.UserRoles.Any(ur => ur.RoleId == roleId.Value);
+            }
+            else
+            {
+                baseFilter = activeOnly
+                    ? u => u.IsActive && !u.IsDeleted
+                    : u => !u.IsDeleted;
+            }
+
+            // Define a search function that also includes roles regardless of search text
+            IQueryable<User> searchWithInclude(IQueryable<User> query, string? searchText)
+            {
+                // Always include related entities if includeRoles is true
+                var queryWithInclude = includeRoles
+                    ? query.Include(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+                    : query;
 
                 // Then apply search if text is provided
                 if (!string.IsNullOrWhiteSpace(searchText))
@@ -179,27 +193,86 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 cancellationToken);
         }
 
-        // Get paginated user DTOs
         public async Task<PagedResponse<UserDto>> GetPagedUserDtosAsync(
-            PagedRequest request,
-            bool activeOnly = true,
-            CancellationToken cancellationToken = default)
+    PagedRequest request,
+    bool activeOnly = true,
+    bool includeRoles = true,
+    Guid? roleId = null,
+    CancellationToken cancellationToken = default)
         {
             var pagedEntities = await GetPagedUsersAsync(
                 request,
                 activeOnly,
+                includeRoles,
+                roleId,
                 cancellationToken);
 
-            // Map entities to DTOs
-            var dtos = pagedEntities.Items.Select(u => (UserDto)u).ToList();
-
-            return new PagedResponse<UserDto>
+            // Explicitly load roles if we need them
+            if (includeRoles)
             {
-                Items = dtos,
-                TotalCount = pagedEntities.TotalCount,
-                PageNumber = pagedEntities.PageNumber,
-                PageSize = pagedEntities.PageSize
-            };
+                var userIds = pagedEntities.Items.Select(u => u.Id).ToList();
+
+                // Eagerly load all roles for these users to ensure they're properly populated
+                var userRolesWithRoles = await _context.UserRoles
+                    .Include(ur => ur.Role)
+                    .Where(ur => userIds.Contains(ur.UserId) && !ur.IsDeleted && ur.IsActive && ur.Role.IsActive && !ur.Role.IsDeleted)
+                    .ToListAsync(cancellationToken);
+
+                // Group by user ID for easy lookup
+                var userRolesLookup = userRolesWithRoles
+                    .GroupBy(ur => ur.UserId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                // Create DTOs with explicit role loading
+                var dtos = pagedEntities.Items.Select(user =>
+                {
+                    var dto = (UserDto)user;
+
+                    // If roles should be included but are missing, use our lookup
+                    if (userRolesLookup.TryGetValue(user.Id, out var userRoles) && (dto.Roles == null || !dto.Roles.Any()))
+                    {
+                        dto = new UserDto
+                        {
+                            Id = user.Id,
+                            FirstName = user.FirstName,
+                            LastName = user.LastName,
+                            Email = user.Email,
+                            PhoneNumber = user.PhoneNumber,
+                            Gender = user.Gender,
+                            DateOfBirth = user.DateOfBirth,
+                            Bio = user.Bio,
+                            IsActive = user.IsActive,
+                            CreatedOn = user.CreatedOn,
+                            Roles = userRoles
+                                .Where(ur => ur.Role != null)
+                                .Select(ur => (RoleDto)ur.Role!)
+                                .ToList()
+                        };
+                    }
+
+                    return dto;
+                }).ToList();
+
+                return new PagedResponse<UserDto>
+                {
+                    Items = dtos,
+                    TotalCount = pagedEntities.TotalCount,
+                    PageNumber = pagedEntities.PageNumber,
+                    PageSize = pagedEntities.PageSize
+                };
+            }
+            else
+            {
+                // Basic mapping without roles
+                var dtos = pagedEntities.Items.Select(u => (UserDto)u).ToList();
+                return new PagedResponse<UserDto>
+                {
+                    Items = dtos,
+                    TotalCount = pagedEntities.TotalCount,
+                    PageNumber = pagedEntities.PageNumber,
+                    PageSize = pagedEntities.PageSize
+                };
+            }
         }
 
         // Get paginated user list DTOs (simplified version for lists)
@@ -211,6 +284,8 @@ namespace ECommercePlatform.Infrastructure.Repositories
             var pagedEntities = await GetPagedUsersAsync(
                 request,
                 activeOnly,
+                includeRoles: false,
+                roleId: null, // Explicitly pass null for the roleId parameter
                 cancellationToken);
 
             // Map entities to list DTOs

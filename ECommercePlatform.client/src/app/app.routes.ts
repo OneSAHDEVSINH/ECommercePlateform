@@ -52,16 +52,22 @@ export const routes: Routes = [
         component: LoginComponent,
         title: 'Admin Login'
       },
-      {
-        path: 'access-denied',
-        component: AccessDeniedComponent,
-        title: 'Access Denied'
-      },
+      //{
+      //  path: 'access-denied',
+      //  component: AccessDeniedComponent,
+      //  title: 'Access Denied'
+      //},
       {
         path: '',
         component: AdminLayoutComponent,
         canActivate: [PermissionGuard],
         children: [
+          {
+            path: 'access-denied',
+            component: AccessDeniedComponent,
+            title: 'Access Denied',
+            data: { exempt: true }
+          },
           {
             path: 'dashboard',
             component: DashboardComponent,

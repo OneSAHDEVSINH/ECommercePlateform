@@ -11,9 +11,9 @@ import { CommonModule } from '@angular/common';
 export class PaginationComponent implements OnChanges {
   @Input() totalPages: number = 0;
   @Input() currentPage: number = 1;
-  @Input() totalCount: number = 0;  // Add this property
-  @Input() pageSize: number = 10;    // Add this property
-  @Input() pageNumber: number = 1;   // Add this property
+  @Input() totalCount: number = 0;
+  @Input() pageSize: number = 10;
+  @Input() pageNumber: number = 1; 
   @Output() pageChange = new EventEmitter<number>();
 
   pages: number[] = [];
@@ -22,11 +22,6 @@ export class PaginationComponent implements OnChanges {
     // If totalCount and pageSize are provided, calculate totalPages
     if (this.totalCount > 0 && this.pageSize > 0) {
       this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-    }
-
-    // Use pageNumber if provided, otherwise use currentPage
-    if (this.pageNumber > 0) {
-      this.currentPage = this.pageNumber;
     }
 
     this.generatePagination();

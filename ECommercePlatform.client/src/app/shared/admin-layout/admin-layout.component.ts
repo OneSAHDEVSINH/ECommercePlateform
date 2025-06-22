@@ -47,7 +47,7 @@ export class AdminLayoutComponent implements OnInit {
       if (params['accessDenied']) {
         const module = params['module'] || 'the requested page';
         const permission = params['permission'] || 'required';
-        this.accessDeniedMessage = `Access denied: You don't have ${permission} permission for ${module}.`;
+        //this.accessDeniedMessage = `Access denied: You don't have ${permission} permission for ${module}.`;
 
         // Clear the message after 5 seconds
         setTimeout(() => {

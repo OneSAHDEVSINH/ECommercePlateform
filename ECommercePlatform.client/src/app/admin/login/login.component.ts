@@ -269,9 +269,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
     this.route.queryParams.subscribe(params => {
       if (params['accessDenied']) {
+        this.loading = false;
         const module = params['module'] || 'the requested page';
         const permission = params['permission'] || 'required';
-        this.errorMessage = `Access denied: You don't have ${permission} permission for ${module}.`;
+        //this.errorMessage = `Access denied: You don't have ${permission} permission for ${module}.`;
 
         // Clean up URL query params after displaying message
         this.router.navigate([], {

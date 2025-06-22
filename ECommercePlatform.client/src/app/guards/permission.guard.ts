@@ -20,6 +20,11 @@ export class PermissionGuard implements CanActivate {
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
 
+    // Special case: always allow access to the access-denied page
+    if (state.url.includes('/admin/access-denied')) {
+      return true;
+    }
+
     // Steps 1-4 remain unchanged...
     if (!this.authService.isAuthenticated()) {
       return this.router.createUrlTree(['/admin/login'], {

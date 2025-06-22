@@ -109,7 +109,7 @@
         <!-- Replace the current sidebar menu items with these permission-controlled versions -->
         <nav class="mt-2">
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-            <li class="nav-item">
+            <li class="nav-item" *appPermission="{ moduleRoute: 'dashboard', type: PermissionType.View }">
               <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-tachometer-alt"></i>
                 <p>Dashboard</p>

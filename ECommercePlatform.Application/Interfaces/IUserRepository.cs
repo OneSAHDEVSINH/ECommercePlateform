@@ -26,11 +26,15 @@ namespace ECommercePlatform.Application.Interfaces
         Task<PagedResponse<User>> GetPagedUsersAsync(
             PagedRequest request,
             bool activeOnly = true,
+            bool includeRoles = true,
+            Guid? roleId = null,
             CancellationToken cancellationToken = default);
 
         Task<PagedResponse<UserDto>> GetPagedUserDtosAsync(
             PagedRequest request,
             bool activeOnly = true,
+            bool includeRoles = true,
+            Guid? roleId = null,
             CancellationToken cancellationToken = default);
 
         Task<PagedResponse<UserListDto>> GetPagedUserListDtosAsync(

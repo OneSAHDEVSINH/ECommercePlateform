@@ -17,6 +17,8 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetPagedUsers
                 var pagedResponse = await _unitOfWork.Users.GetPagedUserDtosAsync(
                     request,
                     request.ActiveOnly,
+                    request.IncludeRoles,
+                    request.RoleId,
                     cancellationToken);
 
                 return AppResult<PagedResponse<UserDto>>.Success(pagedResponse);

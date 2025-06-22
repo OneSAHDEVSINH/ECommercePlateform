@@ -17,10 +17,32 @@ export interface User {
 }
 
 export enum Gender {
-  Male = 'Male',
-  Female = 'Female',
-  Other = 'Other'
+  Male = 0,
+  Female = 1,
+  Other = 2
 }
+
+// Helper functions for consistent conversion
+export const genderToString = (gender: Gender | number | string | undefined): string => {
+  if (gender === undefined || gender === null) return '';
+
+  switch (Number(gender)) {
+    case Gender.Male: return 'Male';
+    case Gender.Female: return 'Female';
+    case Gender.Other: return 'Other';
+    default: return '';
+  }
+};
+
+export const stringToGender = (gender: string | undefined): Gender => {
+  if (!gender) return Gender.Other;
+
+  switch (gender.toLowerCase()) {
+    case 'male': return Gender.Male;
+    case 'female': return Gender.Female;
+    default: return Gender.Other;
+  }
+};
 
 export interface LoginResponse {
   token: string;
