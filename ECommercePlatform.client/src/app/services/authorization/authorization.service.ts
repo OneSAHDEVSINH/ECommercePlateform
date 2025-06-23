@@ -59,6 +59,17 @@ export class AuthorizationService {
     }
   }
 
+
+  hasViewOrAddPermission(moduleRoute: string): boolean {
+    return this.hasPermission(moduleRoute, PermissionType.View) ||
+      this.hasPermission(moduleRoute, PermissionType.Add);
+  }
+
+  hasAddOrEditPermission(moduleRoute: string): boolean {
+    return this.hasPermission(moduleRoute, PermissionType.Add) ||
+      this.hasPermission(moduleRoute, PermissionType.Edit);
+  }
+
   checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
     const cacheKey = `${moduleRoute}-${permissionType}`;
 

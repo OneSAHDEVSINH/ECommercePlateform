@@ -43,10 +43,33 @@ export class AuthInterceptor implements HttpInterceptor {
           });
           this.authService.logout();
         } else if (error.status === 403) {
+          // Get the exact error format to understand what's being returned
+          console.log('403 Forbidden error:', error);
+
+          let errorMessage = 'You don\'t have permission to access this resource.';
+
+          // Check for common error response patterns
+          if (error.error) {
+            if (typeof error.error === 'string') {
+              errorMessage = error.error;
+            } else if (error.error.message) {
+              errorMessage = error.error.message;
+            } else if (error.error.title) {
+              errorMessage = error.error.title;
+            }
+          }
+
+          // Show the user a clean error message
           this.messageService.showMessage({
             type: 'error',
-            text: 'You don\'t have permission to access this resource.'
+            text: errorMessage
           });
+
+          // Redirect to the access-denied page if needed
+          // (Uncomment if you prefer redirection)
+          // this.router.navigate(['/access-denied']);
+
+          return throwError(() => error);
         } else if (error.status === 0) {
           this.messageService.showMessage({
             type: 'error',

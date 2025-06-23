@@ -42,6 +42,13 @@
       </ul>
     </nav>
     <!-- /.navbar -->
+    <div *ngIf="permissionError" class="permission-alert">
+      <div class="alert alert-warning alert-dismissible">
+        <button type="button" class="close" (click)="dismissPermissionError()">×</button>
+        <h5><i class="icon fas fa-exclamation-triangle"></i> Permission Required</h5>
+        {{ permissionError.message }}
+      </div>
+    </div>
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
@@ -106,47 +113,62 @@
           </li>
         </ul>
       </nav>-->
-        <!-- Replace the current sidebar menu items with these permission-controlled versions -->
         <nav class="mt-2">
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-            <li class="nav-item" *appPermission="{ moduleRoute: 'dashboard', type: PermissionType.View }">
+            <!-- Use the new hasViewOrAddPermission method for menu items -->
+            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddPermission('dashboard')">
               <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-tachometer-alt"></i>
                 <p>Dashboard</p>
               </a>
             </li>
-            <li class="nav-item" *appPermission="{ moduleRoute: 'countries', type: PermissionType.View }">
+
+            <!-- Only show QUICK ACTIONS header if at least one quick action item has permission -->
+            <li class="nav-header" *ngIf="authorizationService.hasViewOrAddPermission('countries') ||
+                                         authorizationService.hasViewOrAddPermission('states') ||
+                                         authorizationService.hasViewOrAddPermission('cities')">
+              QUICK ACTIONS
+            </li>
+
+            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddPermission('countries')">
               <a routerLink="/admin/countries" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-globe"></i>
                 <p>Countries</p>
               </a>
             </li>
-            <li class="nav-item" *appPermission="{ moduleRoute: 'states', type: PermissionType.View }">
+            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddPermission('states')">
               <a routerLink="/admin/states" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-map-marked-alt"></i>
                 <p>States</p>
               </a>
             </li>
-            <li class="nav-item" *appPermission="{ moduleRoute: 'cities', type: PermissionType.View }">
+            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddPermission('cities')">
               <a routerLink="/admin/cities" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-city"></i>
                 <p>Cities</p>
               </a>
             </li>
-            <li class="nav-header">ACCESS MANAGEMENT</li>
-            <li class="nav-item" *appPermission="{ moduleRoute: 'users', type: PermissionType.View }">
+
+            <!-- Only show ACCESS MANAGEMENT header if at least one access management item has permission -->
+            <li class="nav-header" *ngIf="authorizationService.hasViewOrAddPermission('users') ||
+                                         authorizationService.hasViewOrAddPermission('roles') ||
+                                         authorizationService.hasViewOrAddPermission('modules')">
+              ACCESS MANAGEMENT
+            </li>
+
+            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddPermission('users')">
               <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-users"></i>
                 <p>Users</p>
               </a>
             </li>
-            <li class="nav-item" *appPermission="{ moduleRoute: 'roles', type: PermissionType.View }">
+            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddPermission('roles')">
               <a routerLink="/admin/roles" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-user-shield"></i>
                 <p>Roles & Permissions</p>
               </a>
             </li>
-            <li class="nav-item" *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
+            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddPermission('modules')">
               <a routerLink="/admin/modules" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-puzzle-piece"></i>
                 <p>Modules</p>

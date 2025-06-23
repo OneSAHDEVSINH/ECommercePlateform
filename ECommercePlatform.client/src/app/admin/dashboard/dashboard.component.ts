@@ -4,22 +4,23 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
+import { AuthorizationService } from '../../services/authorization/authorization.service';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, PermissionDirective]
+  imports: [CommonModule, RouterModule]
 })
 export class DashboardComponent implements OnInit {
   userName: string = '';
-  //route: any;
   accessDeniedMessage: string | null = null;
   PermissionType = PermissionType;
 
   constructor(
     private authService: AuthService,
+    public authorizationService: AuthorizationService,
     private router: Router,
     private route: ActivatedRoute
   ) { }

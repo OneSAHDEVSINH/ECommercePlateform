@@ -32,7 +32,7 @@
     </div>
 
     <!-- Country Form Card -->
-    <div class="card card-primary">
+    <div class="card card-primary" *ngIf="authorizationService.hasAddOrEditPermission('countries')">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Country' : 'Add New Country' }}</h3>
       </div>
@@ -99,7 +99,7 @@
     </div>
 
     <!-- Countries List Card -->
-    <div class="card">
+    <div class="card" *appPermission="{ moduleRoute: 'countries', type: PermissionType.View }">
       <div class="card-header">
         <h3 class="card-title">Countries List</h3>
         <div class="card-tools">

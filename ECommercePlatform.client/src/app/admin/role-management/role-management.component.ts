@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
 import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
 import { ListService } from '../../services/general/list.service';
+import { AuthorizationService } from '../../services/authorization/authorization.service';
 
 @Component({
   selector: 'app-role-management',
@@ -67,6 +68,7 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private dateFilterService: DateFilterService,
     private listService: ListService,
+    public authorizationService: AuthorizationService,
     private fb: FormBuilder
   ) { }
 
@@ -183,10 +185,16 @@ export class RoleManagementComponent implements OnInit, OnDestroy {
     const modulePerms = this.modulePermissions.get(moduleId);
     if (modulePerms) {
       const currentValue = modulePerms.get(permType) || false;
+
+      // Toggle the selected permission
       modulePerms.set(permType, !currentValue);
+
+      // If turning ON Edit or Delete permissions, automatically turn ON View permission
+      if (!currentValue && (permType === PermissionType.Edit || permType === PermissionType.Delete)) {
+        modulePerms.set(PermissionType.View, true);
+      }
     }
   }
-
   toggleAllPermissionsForModule(moduleId: string, checked: boolean): void {
     const modulePerms = this.modulePermissions.get(moduleId);
     if (modulePerms) {

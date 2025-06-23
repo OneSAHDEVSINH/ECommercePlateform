@@ -8,6 +8,7 @@ import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 @Injectable({
   providedIn: 'root'
 })
+
 export class UserService {
   private apiUrl = `${environment.apiUrl}/user`;
 
@@ -18,26 +19,11 @@ export class UserService {
       .pipe(catchError(this.handleError));
   }
 
-  //getPagedUsers(request: PagedRequest): Observable<PagedResponse<User>> {
-  //  return this.http.get<PagedResponse<User>>(`${this.apiUrl}/paged`, {
-  //    params: { ...request as any }
-  //  }).pipe(catchError(this.handleError));
-  //}
-
   getPagedUsers(request: PagedRequest, roleId?: string, activeOnly?: boolean, includeRoles: boolean = true): Observable<PagedResponse<User>> {
     let params: any = {
       ...request,
       includeRoles: includeRoles
     };
-
-    //// Add date range parameters if they exist
-    //if (request.startDate) {
-    //  params = params.set('startDate', request.startDate);
-    //}
-
-    //if (request.endDate) {
-    //  params = params.set('endDate', request.endDate);
-    //}
 
     if (roleId && roleId !== 'all') {
       params.roleId = roleId;

@@ -6,6 +6,10 @@ export interface Module {
   icon?: string;
   displayOrder?: number;
   isActive?: boolean;
+  createdOn?: Date;
+  createdBy?: string;
+  modifiedOn?: Date;
+  modifiedBy?: string;
   permissions?: Permission[];
 }
 

@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Helpers;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Models;
@@ -168,6 +169,19 @@ namespace ECommercePlatform.Infrastructure.Repositories
             Expression<Func<Module, bool>> baseFilter = activeOnly
                 ? m => m.IsActive && !m.IsDeleted
                 : m => !m.IsDeleted;
+
+            // Apply date filtering if provided
+            if (request.StartDate.HasValue)
+            {
+                var startDate = request.StartDate.Value;
+                baseFilter = baseFilter.And(m => m.CreatedOn >= startDate);
+            }
+
+            if (request.EndDate.HasValue)
+            {
+                var endDate = request.EndDate.Value;
+                baseFilter = baseFilter.And(m => m.CreatedOn <= endDate);
+            }
 
             // Define a search function that also includes permissions
             static IQueryable<Module> searchWithInclude(IQueryable<Module> query, string? searchText)

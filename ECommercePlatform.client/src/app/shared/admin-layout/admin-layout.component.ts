@@ -4,13 +4,15 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
+import { AuthorizationService } from '../../services/authorization/authorization.service';
+import { PermissionNotificationService, PermissionError } from '../../services/general/permission-notification.service';
 
 @Component({
   selector: 'app-admin-layout',
   templateUrl: './admin-layout.component.html',
   styleUrls: ['./admin-layout.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, PermissionDirective]
+  imports: [CommonModule, RouterModule]
 })
 export class AdminLayoutComponent implements OnInit {
   userName: string = 'Admin';
@@ -19,11 +21,14 @@ export class AdminLayoutComponent implements OnInit {
   isModulesMenuOpen: boolean = false;
   PermissionType = PermissionType;
   accessDeniedMessage: string | null = null;
+  permissionError: PermissionError | null = null;
 
   constructor(
     public authService: AuthService,
+    public authorizationService: AuthorizationService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private permissionNotificationService: PermissionNotificationService
   ) { }
 
   ngOnInit(): void {
@@ -41,6 +46,11 @@ export class AdminLayoutComponent implements OnInit {
     if (savedTheme) {
       this.currentTheme = savedTheme;
     }
+
+    // Subscribe to permission errors
+    this.permissionNotificationService.error$.subscribe(error => {
+      this.permissionError = error;
+    });
 
     // Handle access denied messages from query params
     this.route.queryParams.subscribe(params => {
@@ -80,6 +90,10 @@ export class AdminLayoutComponent implements OnInit {
   // Add method to toggle modules dropdown menu
   toggleModulesMenu(): void {
     this.isModulesMenuOpen = !this.isModulesMenuOpen;
+  }
+
+  dismissPermissionError(): void {
+    this.permissionNotificationService.clearError();
   }
 
   @HostListener('document:click')

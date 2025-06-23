@@ -4,6 +4,7 @@ import { Observable, map, catchError, of, forkJoin, mergeMap } from 'rxjs';
 import { AuthService } from '../services/auth/auth.service';
 import { AuthorizationService } from '../services/authorization/authorization.service';
 import { PermissionType } from '../models/role.model';
+import { PermissionNotificationService } from '../services/general/permission-notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,8 @@ import { PermissionType } from '../models/role.model';
 export class PermissionGuard implements CanActivate {
   constructor(
     private authService: AuthService,
-    private authorizationService: AuthorizationService,
+    public authorizationService: AuthorizationService,
+    private permissionNotificationService: PermissionNotificationService,
     private router: Router
   ) { }
 
@@ -80,26 +82,31 @@ export class PermissionGuard implements CanActivate {
         }
 
         // Otherwise show access denied
-        console.warn(`Access denied to ${moduleRoute}: Missing ${this.getReadablePermissionType(requiredPermission)} permission`);
+        //console.warn(`Access denied to ${moduleRoute}: Missing ${this.getReadablePermissionType(requiredPermission)} permission`);
 
-        if (moduleRoute === 'dashboard') {
-          return of(this.router.createUrlTree(['/admin/login'], {
-            queryParams: {
-              accessDenied: 'true',
-              module: moduleRoute,
-              permission: this.getReadablePermissionType(requiredPermission)
-            }
-          }));
-        }
+        //if (moduleRoute === 'dashboard') {
+        //  return of(this.router.createUrlTree(['/admin/login'], {
+        //    queryParams: {
+        //      accessDenied: 'true',
+        //      module: moduleRoute,
+        //      permission: this.getReadablePermissionType(requiredPermission)
+        //    }
+        //  }));
+        //}
 
-        return of(this.router.createUrlTree(['/admin/access-denied'], {
-          queryParams: {
-            accessDenied: 'true',
-            module: moduleRoute,
-            permission: this.getReadablePermissionType(requiredPermission),
-            returnUrl: state.url
-          }
-        }));
+        //return of(this.router.createUrlTree(['/admin/access-denied'], {
+        //  queryParams: {
+        //    accessDenied: 'true',
+        //    module: moduleRoute,
+        //    permission: this.getReadablePermissionType(requiredPermission),
+        //    returnUrl: state.url
+        //  }
+        //}));
+        this.permissionNotificationService.showPermissionError(
+          moduleRoute,
+          this.getReadablePermissionType(requiredPermission)
+        );
+        return of(false);
       }),
       catchError(error => {
         console.error('Permission check failed:', error);

@@ -15,6 +15,7 @@ import { PaginationComponent } from '../../shared/pagination/pagination.componen
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { AuthorizationService } from '../../services/authorization/authorization.service';
 
 @Component({
   selector: 'app-user',
@@ -70,6 +71,7 @@ export class UserComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private dateFilterService: DateFilterService,
     private listService: ListService,
+    public authorizationService: AuthorizationService,
     private fb: FormBuilder
   ) { }
 

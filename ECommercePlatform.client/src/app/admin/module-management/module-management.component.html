@@ -32,7 +32,7 @@
     </div>
 
     <!-- Module Form Card -->
-    <div class="card card-primary">
+    <div class="card card-primary" *ngIf="authorizationService.hasAddOrEditPermission('modules')">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Module' : 'Add New Module' }}</h3>
       </div>
@@ -159,7 +159,7 @@
     </div>
 
     <!-- Module List Card -->
-    <div class="card">
+    <div class="card" *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
       <div class="card-header">
         <h3 class="card-title">Module List</h3>
         <div class="card-tools">
@@ -170,7 +170,7 @@
         <!-- Filters Row -->
         <div class="row mb-3">
           <!-- Status Filter -->
-          <div class="col-md-3">
+          <!--<div class="col-md-3">
             <div class="form-group">
               <label>Filter by Status:</label>
               <select class="form-control" (change)="onStatusFilterChange($event)">
@@ -179,7 +179,7 @@
                 <option value="inactive">Inactive</option>
               </select>
             </div>
-          </div>
+          </div>-->
 
           <!-- Search Box -->
           <div class="col-md-6">
@@ -249,6 +249,11 @@
                   <i *ngIf="pageRequest.sortColumn === 'isActive'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
+                <th class="sortable" (click)="onSortChange('createdOn')">
+                  Created On
+                  <i *ngIf="pageRequest.sortColumn === 'createdOn'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
                 <th style="width: 150px">Actions</th>
               </tr>
             </thead>
@@ -269,6 +274,7 @@
                     {{ module.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
+                <td>{{ module.createdOn | date:'medium' }}</td>
                 <td>
                   <button class="btn btn-sm btn-info mr-1"
                           (click)="editModule(module)"

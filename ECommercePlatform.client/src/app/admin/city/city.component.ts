@@ -20,7 +20,7 @@ import { DateFilterService, DateRange } from '../../services/general/date-filter
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
-
+import { AuthorizationService } from '../../services/authorization/authorization.service';
 
 @Component({
   selector: 'app-city',
@@ -60,12 +60,12 @@ export class CityComponent implements OnInit, OnDestroy {
     sortDirection: 'asc'
   };
     
-
   constructor(
     private cityService: CityService,
     private stateService: StateService,
     private countryService: CountryService,
     private authService: AuthService,
+    public authorizationService: AuthorizationService,
     private messageService: MessageService,
     private listService: ListService,
     private dateFilterService: DateFilterService,

@@ -59,7 +59,7 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
 
   constructor(
     private moduleService: ModuleService,
-    private authorizationService: AuthorizationService,
+    public authorizationService: AuthorizationService,
     private messageService: MessageService,
     private dateFilterService: DateFilterService,
     private listService: ListService,
@@ -134,10 +134,11 @@ export class ModuleManagementComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading modules:', error);
-        this.messageService.showMessage({
-          type: 'error',
-          text: error.error?.message || 'Failed to load modules'
-        });
+        const errorMessage = error.error?.message ||
+          error.error?.title ||
+          error.message ||
+          'Failed to load modules';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
         this.loading = false;
       }
     });

@@ -16,7 +16,7 @@ import { DateFilterService, DateRange } from '../../services/general/date-filter
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
 import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
-
+import { AuthorizationService } from '../../services/authorization/authorization.service';
 
 @Component({
   selector: 'app-country',
@@ -56,6 +56,7 @@ export class CountryComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private listService: ListService,
     private dateFilterService: DateFilterService,
+    public authorizationService: AuthorizationService,
     private fb: FormBuilder
   ) { }
 

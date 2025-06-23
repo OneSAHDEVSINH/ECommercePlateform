@@ -32,7 +32,7 @@
     </div>
 
     <!-- City Form Card -->
-    <div class="card card-primary">
+    <div class="card card-primary" *ngIf="authorizationService.hasAddOrEditPermission('cities')">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit City' : 'Add New City' }}</h3>
       </div>
@@ -117,7 +117,7 @@
     </div>
 
     <!-- Cities List Card -->
-    <div class="card">
+    <div class="card" *appPermission="{ moduleRoute: 'cities', type: PermissionType.View }">
       <div class="card-header">
         <h3 class="card-title">Cities List</h3>
         <div class="card-tools">
@@ -194,7 +194,7 @@
         </div>
 
         <!-- Data Table -->
-        <div class="table-responsive" *ngIf="cities.length > 0">
+        <div class="table-responsive" *ngIf="cities.length > 0" >
           <table class="table table-bordered table-striped">
             <thead>
               <tr>

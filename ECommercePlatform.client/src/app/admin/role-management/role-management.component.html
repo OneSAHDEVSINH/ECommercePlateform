@@ -32,7 +32,7 @@
     </div>
 
     <!-- Role Form Card -->
-    <div class="card card-primary">
+    <div class="card card-primary" *ngIf="authorizationService.hasAddOrEditPermission('roles')">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Role' : 'Add New Role' }}</h3>
       </div>
@@ -168,15 +168,19 @@
           </button>
           <button type="button"
                   class="btn btn-default float-right"
-                  (click)="resetForm()">
+                  (click)="resetForm()" *ngIf="isEditMode">
             <i class="fas fa-times"></i> Cancel
+          </button>
+          <button type="button" class="btn btn-default float-right mr-2" (click)="resetForm()"
+                  *ngIf="!isEditMode && (roleForm.get('name')?.touched || roleForm.get('description')?.touched || roleForm.dirty)">
+            <i class="fas fa-redo"></i> Reset
           </button>
         </div>
       </form>
     </div>
 
     <!-- Roles List Card -->
-    <div class="card">
+    <div class="card" *appPermission="{ moduleRoute: 'roles', type: PermissionType.View }">
       <div class="card-header">
         <h3 class="card-title">Roles List</h3>
         <div class="card-tools">
@@ -187,7 +191,7 @@
         <!-- Filters Row -->
         <div class="row mb-3">
           <!-- Status Filter -->
-          <div class="col-md-3">
+          <!--<div class="col-md-3">
             <div class="form-group">
               <label>Filter by Status:</label>
               <select class="form-control" (change)="onStatusFilterChange($event)">
@@ -196,7 +200,7 @@
                 <option value="inactive">Inactive</option>
               </select>
             </div>
-          </div>
+          </div>-->
 
           <!-- Search Box -->
           <div class="col-md-6">

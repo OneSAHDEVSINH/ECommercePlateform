@@ -5,6 +5,7 @@ import { filter } from 'rxjs/operators';
 import { PermissionType } from '../models/role.model';
 import { AuthorizationService } from '../services/authorization/authorization.service';
 import { AuthService } from '../services/auth/auth.service';
+import { PermissionNotificationService } from '../services/general/permission-notification.service';
 
 @Directive({
   selector: '[appPermission]',
@@ -19,8 +20,9 @@ export class PermissionDirective implements OnInit, OnDestroy {
   constructor(
     private templateRef: TemplateRef<any>,
     private viewContainer: ViewContainerRef,
-    private authorizationService: AuthorizationService,
-    private authService: AuthService
+    public authorizationService: AuthorizationService,
+    private authService: AuthService,
+    private permissionNotificationService: PermissionNotificationService
   ) { }
 
   ngOnInit() {
@@ -55,6 +57,29 @@ export class PermissionDirective implements OnInit, OnDestroy {
       this.hasView = true;
     } else if (!hasPermission && this.hasView) {
       this.clearView();
+    }
+  }
+
+  private addInteractionNotification(element: HTMLElement, moduleRoute: string, permissionType: PermissionType): void {
+    element.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.permissionNotificationService.showPermissionError(
+        moduleRoute,
+        this.permissionTypeToString(permissionType)
+      );
+    });
+  }
+
+  // Helper method
+  private permissionTypeToString(type: PermissionType): string {
+    switch (type) {
+      case PermissionType.View: return 'View';
+      case PermissionType.Add: return 'Add';
+      case PermissionType.Edit: return 'Edit';
+      case PermissionType.Delete: return 'Delete';
+      default: return 'access';
     }
   }
 
