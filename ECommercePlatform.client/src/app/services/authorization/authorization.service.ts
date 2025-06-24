@@ -48,10 +48,12 @@ export class AuthorizationService {
     switch (permissionType) {
       case PermissionType.View:
         return modulePermission.canView;
-      case PermissionType.Add:
-        return modulePermission.canAdd;
-      case PermissionType.Edit:
-        return modulePermission.canEdit;
+      //case PermissionType.Add:
+      //  return modulePermission.canAdd;
+      //case PermissionType.Edit:
+      //  return modulePermission.canEdit;
+      case PermissionType.AddEdit:
+        return modulePermission.canAddEdit;
       case PermissionType.Delete:
         return modulePermission.canDelete;
       default:
@@ -60,14 +62,14 @@ export class AuthorizationService {
   }
 
 
-  hasViewOrAddPermission(moduleRoute: string): boolean {
+  hasViewOrAddEditPermission(moduleRoute: string): boolean {
     return this.hasPermission(moduleRoute, PermissionType.View) ||
-      this.hasPermission(moduleRoute, PermissionType.Add);
+      this.hasPermission(moduleRoute, PermissionType.AddEdit);
   }
 
-  hasAddOrEditPermission(moduleRoute: string): boolean {
-    return this.hasPermission(moduleRoute, PermissionType.Add) ||
-      this.hasPermission(moduleRoute, PermissionType.Edit);
+  hasDeleteOrAddEditPermission(moduleRoute: string): boolean {
+    return this.hasPermission(moduleRoute, PermissionType.Delete) ||
+      this.hasPermission(moduleRoute, PermissionType.AddEdit);
   }
 
   checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
@@ -132,8 +134,9 @@ export class AuthorizationService {
   public hasAnyPermission(moduleRoute: string): Observable<boolean> {
     return forkJoin([
       this.checkPermission(moduleRoute, PermissionType.View),
-      this.checkPermission(moduleRoute, PermissionType.Add),
-      this.checkPermission(moduleRoute, PermissionType.Edit),
+      //this.checkPermission(moduleRoute, PermissionType.Add),
+      //this.checkPermission(moduleRoute, PermissionType.Edit),
+      this.checkPermission(moduleRoute, PermissionType.AddEdit),
       this.checkPermission(moduleRoute, PermissionType.Delete)
     ]).pipe(
       map(results => results.some(result => result))
@@ -179,8 +182,9 @@ export class AuthorizationService {
   private permissionTypeToString(permission: PermissionType): string {
     switch (permission) {
       case PermissionType.View: return 'View';
-      case PermissionType.Add: return 'Add';
-      case PermissionType.Edit: return 'Edit';
+      //case PermissionType.Add: return 'Add';
+      //case PermissionType.Edit: return 'Edit';
+      case PermissionType.AddEdit: return 'AddEdit';
       case PermissionType.Delete: return 'Delete';
       default: return '';
     }

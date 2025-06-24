@@ -29,8 +29,9 @@ namespace ECommercePlatform.Application.DTOs
                         ModuleId = g.Key.ModuleId,
                         ModuleName = g.Key.Name,
                         CanView = g.First().CanView,
-                        CanAdd = g.First().CanAdd,
-                        CanEdit = g.First().CanEdit,
+                        //CanAdd = g.First().CanAdd,
+                        //CanEdit = g.First().CanEdit,
+                        CanAddEdit = g.First().CanAddEdit,
                         CanDelete = g.First().CanDelete
                     })
                     .ToList()
@@ -74,8 +75,9 @@ namespace ECommercePlatform.Application.DTOs
         public Guid ModuleId { get; init; }
         public string? ModuleName { get; init; }
         public bool CanView { get; init; }
-        public bool CanAdd { get; init; }
-        public bool CanEdit { get; init; }
+        //public bool CanAdd { get; init; }
+        //public bool CanEdit { get; init; }
+        public bool CanAddEdit { get; init; }
         public bool CanDelete { get; init; }
     }
 
@@ -97,7 +99,8 @@ namespace ECommercePlatform.Application.DTOs
                 Description = role.Description,
                 IsActive = role.IsActive,
                 PermissionCount = role.RolePermissions?
-                    .Where(rp => rp.CanView || rp.CanAdd || rp.CanEdit || rp.CanDelete)
+                    //.Where(rp => rp.CanView || rp.CanAdd || rp.CanEdit || rp.CanDelete)
+                    .Where(rp => rp.CanView || rp.CanAddEdit || rp.CanDelete)
                     .Count() ?? 0,
                 CreatedOn = role.CreatedOn
             };

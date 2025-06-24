@@ -87,8 +87,7 @@ export const routes: Routes = [
             data: {
               moduleRoute: 'countries',
               permission: [PermissionType.View,
-                PermissionType.Add,
-                PermissionType.Edit,
+                PermissionType.AddEdit,
                 PermissionType.Delete]
             }
           },

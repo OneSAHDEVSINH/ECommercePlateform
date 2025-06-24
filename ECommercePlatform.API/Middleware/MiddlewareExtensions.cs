@@ -13,5 +13,10 @@ namespace ECommercePlatform.API.Middleware
         {
             return builder.UseMiddleware<ValidationMiddleware>();
         }
+
+        public static IApplicationBuilder UsePermissionMiddleware(this IApplicationBuilder builder)
+        {
+            return builder.UseMiddleware<PermissionMiddleware>();
+        }
     }
 }

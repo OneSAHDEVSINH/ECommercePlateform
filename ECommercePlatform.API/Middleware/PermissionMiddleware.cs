@@ -6,14 +6,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace ECommercePlatform.API.Middleware
 {
-    public class PermissionMiddleware
+    public class PermissionMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
-
-        public PermissionMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+        private readonly RequestDelegate _next = next;
 
         public async Task InvokeAsync(HttpContext context, IAuthorizationService authorizationService)
         {
@@ -58,14 +53,6 @@ namespace ECommercePlatform.API.Middleware
             }
 
             await _next(context);
-        }
-    }
-
-    public static class PermissionMiddlewareExtensions
-    {
-        public static IApplicationBuilder UsePermissionMiddleware(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<PermissionMiddleware>();
         }
     }
 }

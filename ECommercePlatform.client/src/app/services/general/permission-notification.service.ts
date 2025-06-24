@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { MessageService } from './message.service';
 
 export interface PermissionError {
   module: string;
@@ -13,16 +14,25 @@ export interface PermissionError {
 })
 export class PermissionNotificationService {
   private errorSubject = new BehaviorSubject<PermissionError | null>(null);
-
   public error$ = this.errorSubject.asObservable();
+  private clearErrorTimeout: any;
 
-  /**
-   * Show a permission error message
-   */
+  constructor(private messageService: MessageService) { }
+
   showPermissionError(module: string, permission: string, customMessage?: string): void {
+    // Clear any existing error first
+    this.clearError();
+
     const message = customMessage ||
       `You don't have ${permission} permission for ${module}.`;
 
+    // Use the regular message service for console errors with a longer timeout
+    this.messageService.showMessage(
+      { type: 'warning', text: message },
+      5000 // Longer timeout for permission errors
+    );
+
+    // Also track in our specialized service
     this.errorSubject.next({
       module,
       permission,
@@ -30,14 +40,20 @@ export class PermissionNotificationService {
       timestamp: new Date()
     });
 
-    // Auto-clear after 5 seconds
-    setTimeout(() => this.clearError(), 5000);
+    // Auto-clear after 5 seconds - make sure this timeout works
+    if (this.clearErrorTimeout) {
+      clearTimeout(this.clearErrorTimeout);
+    }
+
+    this.clearErrorTimeout = setTimeout(() => {
+      this.clearError();
+    }, 5000);
   }
 
-  /**
-   * Clear the current error
-   */
   clearError(): void {
+    if (this.clearErrorTimeout) {
+      clearTimeout(this.clearErrorTimeout);
+    }
     this.errorSubject.next(null);
   }
 }

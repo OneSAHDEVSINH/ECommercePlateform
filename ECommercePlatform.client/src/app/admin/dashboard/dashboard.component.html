@@ -76,14 +76,14 @@
     </div>
   </div>-->
     <!-- Alternative Card Design (if prefer cards over small-boxes) -->
-    <div class="row mt-4" *ngIf="authorizationService.hasViewOrAddPermission('countries') ||
-                            authorizationService.hasViewOrAddPermission('states') ||
-                            authorizationService.hasViewOrAddPermission('cities')">
+    <div class="row mt-4" *ngIf="authorizationService.hasViewOrAddEditPermission('countries') ||
+                        authorizationService.hasViewOrAddEditPermission('states') ||
+                        authorizationService.hasViewOrAddEditPermission('cities')">
       <div class="col-12">
         <h5 class="mb-3">Quick Actions</h5>
       </div>
 
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddPermission('countries')">
+      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddEditPermission('countries')">
         <div class="card card-primary card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -98,7 +98,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddPermission('states')">
+      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddEditPermission('states')">
         <div class="card card-success card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -113,7 +113,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddPermission('cities')">
+      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddEditPermission('cities')">
         <div class="card card-warning card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -130,15 +130,15 @@
     </div>
 
     <!-- Add below the existing Cards section -->
-    <div class="row mt-4" *ngIf="authorizationService.hasViewOrAddPermission('users') ||
-                            authorizationService.hasViewOrAddPermission('roles') ||
-                            authorizationService.hasViewOrAddPermission('modules')">
+    <div class="row mt-4" *ngIf="authorizationService.hasViewOrAddEditPermission('users') ||
+                            authorizationService.hasViewOrAddEditPermission('roles') ||
+                            authorizationService.hasViewOrAddEditPermission('modules')">
       <div class="col-12">
         <h5 class="mb-3">Access Management</h5>
       </div>
 
       <!-- Users Management Card -->
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddPermission('users')">
+      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddEditPermission('users')">
         <div class="card card-primary card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -154,7 +154,7 @@
       </div>
 
       <!-- Roles Management Card -->
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddPermission('roles')">
+      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddEditPermission('roles')">
         <div class="card card-danger card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -170,7 +170,7 @@
       </div>
 
       <!-- Add Module Management Card to Access Management section -->
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddPermission('modules')">
+      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewOrAddEditPermission('modules')">
         <div class="card card-info card-outline">
           <div class="card-body box-profile">
             <div class="text-center">

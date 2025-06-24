@@ -115,7 +115,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [HasPermission("Users", "Add")]
+        [HasPermission("Users", "AddEdit")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserCommand command)
         {
             var result = await _mediator.Send(command);
@@ -127,7 +127,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("Users", "Edit")]
+        [HasPermission("Users", "AddEdit")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserCommand command)
         {
             if (id != command.Id)

@@ -32,7 +32,7 @@
     </div>
 
     <!-- User Form Card -->
-    <div class="card card-primary" *ngIf="authorizationService.hasAddOrEditPermission('users')">
+    <div class="card card-primary" *appPermission="{ moduleRoute: 'users', type: PermissionType.AddEdit }">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit User' : 'Add New User' }}</h3>
       </div>
@@ -231,7 +231,7 @@
           <button type="submit"
                   class="btn btn-primary"
                   [disabled]="userForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'users', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+                  *appPermission="{ moduleRoute: 'users', type: PermissionType.AddEdit }">
             <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
             {{ isEditMode ? 'Update' : 'Add' }} User
           </button>
@@ -351,7 +351,7 @@
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
-                <th style="width: 150px">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -371,7 +371,7 @@
                 <td>{{ user.createdOn | date:'medium' }} </td>
                 <td>
                   <button class="btn btn-sm btn-info mr-1" (click)="editUser(user)"
-                          *appPermission="{ moduleRoute: 'users', type: PermissionType.Edit }">
+                          *appPermission="{ moduleRoute: 'users', type: PermissionType.AddEdit }">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="user.id && deleteUser(user.id)"

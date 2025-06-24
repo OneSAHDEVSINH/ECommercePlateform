@@ -55,7 +55,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [HasPermission("Roles", "Add")]
+        [HasPermission("Roles", "AddEdit")]
         public async Task<IActionResult> Create([FromBody] CreateRoleCommand command)
         {
             if (command == null)
@@ -72,7 +72,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("Roles", "Edit")]
+        [HasPermission("Roles", "AddEdit")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRoleCommand command)
         {
             if (id != command.Id)

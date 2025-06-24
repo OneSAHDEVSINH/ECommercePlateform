@@ -20,7 +20,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        [HasPermission("states", "View")]
+        [HasPermission("States", "View")]
         public async Task<IActionResult> GetAllStates()
         {
             var result = await _mediator.Send(new GetAllStatesQuery());
@@ -32,7 +32,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        [HasPermission("states", "View")]
+        [HasPermission("States", "View")]
         public async Task<IActionResult> GetPagedStates([FromQuery] GetPagedStatesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -44,7 +44,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [HasPermission("states", "View")]
+        [HasPermission("States", "View")]
         public async Task<IActionResult> GetStateById(Guid id)
         {
             var result = await _mediator.Send(new GetStateByIdQuery(id));
@@ -57,7 +57,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpPost]
         //[Authorize(Roles = "Admin")]
-        [HasPermission("states", "Add")]
+        [HasPermission("States", "AddEdit")]
         public async Task<IActionResult> CreateState([FromBody] CreateStateCommand command)
         {
             var result = await _mediator.Send(command);
@@ -70,7 +70,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpPut("{id}")]
         //[Authorize(Roles = "Admin")]
-        [HasPermission("states", "Edit")]
+        [HasPermission("States", "AddEdit")]
         public async Task<IActionResult> UpdateState(Guid id, [FromBody] UpdateStateCommand command)
         {
             if (id != command.Id)
@@ -88,7 +88,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpDelete("{id}")]
         //[Authorize(Roles = "Admin")]
-        [HasPermission("states", "Delete")]
+        [HasPermission("States", "Delete")]
         public async Task<IActionResult> DeleteState(Guid id)
         {
             var result = await _mediator.Send(new DeleteStateCommand(id));
@@ -102,7 +102,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("ByCountry/{countryId}")]
-        [HasPermission("states", "View")]
+        [HasPermission("States", "View")]
         public async Task<IActionResult> GetStatesByCountry(Guid countryId)
         {
             var result = await _mediator.Send(new GetStatesByCountryQuery(countryId));

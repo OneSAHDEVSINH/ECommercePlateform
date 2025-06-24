@@ -125,8 +125,9 @@ namespace ECommercePlatform.API.Controllers
                     permissions = new
                     {
                         canView = true,
-                        canAdd = true,
-                        canEdit = true,
+                        //canAdd = true,
+                        //canEdit = true,
+                        canAddEdit = true,
                         canDelete = true
                     }
                 }));
@@ -151,8 +152,9 @@ namespace ECommercePlatform.API.Controllers
                         permissions = new
                         {
                             canView = permission.CanView,
-                            canAdd = permission.CanAdd,
-                            canEdit = permission.CanEdit,
+                            //canAdd = permission.CanAdd,
+                            //canEdit = permission.CanEdit,
+                            canAddEdit = permission.CanAddEdit,
                             canDelete = permission.CanDelete
                         }
                     };

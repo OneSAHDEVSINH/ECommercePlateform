@@ -70,8 +70,9 @@ namespace ECommercePlatform.Application.Features.Roles.Queries.GetRolesByModule
                     ModuleId = g.Key.ModuleId,
                     ModuleName = g.Key.Name,
                     CanView = g.First().CanView,
-                    CanAdd = g.First().CanAdd,
-                    CanEdit = g.First().CanEdit,
+                    //CanAdd = g.First().CanAdd,
+                    //CanEdit = g.First().CanEdit,
+                    CanAddEdit = g.First().CanAddEdit,
                     CanDelete = g.First().CanDelete
                 })
                 .ToList();

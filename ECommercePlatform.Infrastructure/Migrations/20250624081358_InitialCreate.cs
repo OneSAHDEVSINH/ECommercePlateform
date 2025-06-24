@@ -224,8 +224,7 @@ namespace ECommercePlatform.Infrastructure.Migrations
                     RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ModuleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CanView = table.Column<bool>(type: "bit", nullable: false),
-                    CanAdd = table.Column<bool>(type: "bit", nullable: false),
-                    CanEdit = table.Column<bool>(type: "bit", nullable: false),
+                    CanAddEdit = table.Column<bool>(type: "bit", nullable: false),
                     CanDelete = table.Column<bool>(type: "bit", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -684,16 +683,16 @@ namespace ECommercePlatform.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "RolePermissions",
-                columns: new[] { "Id", "CanAdd", "CanDelete", "CanEdit", "CanView", "CreatedBy", "CreatedOn", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "ModuleId", "RoleId" },
+                columns: new[] { "Id", "CanAddEdit", "CanDelete", "CanView", "CreatedBy", "CreatedOn", "IsActive", "IsDeleted", "ModifiedBy", "ModifiedOn", "ModuleId", "RoleId" },
                 values: new object[,]
                 {
-                    { new Guid("12d57212-45ac-4420-a202-7ff04de2709e"), true, true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("d5c05957-17e5-46f7-b32d-be1d81e317ae"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
-                    { new Guid("33eb3761-ce64-4720-9e0f-434887d40261"), true, true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("4ea6364a-7f9e-4b3b-a138-bb9caa2653a7"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
-                    { new Guid("4cf71f31-fb3f-4960-a352-4d29299b5d6f"), true, true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("52136bb4-ee50-4175-9b40-836cac5d587c"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
-                    { new Guid("86acd9e0-16f1-474f-a85d-a4bdbbf27e8c"), true, true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("24203e63-035e-4119-9e6a-27b2ccbf5c79"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
-                    { new Guid("b2cdafc8-599b-45b5-ac32-fb84b0c896a5"), true, true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("a095a01d-9e88-4570-bdfd-9e0bc05f14f4"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
-                    { new Guid("d28f26b6-55d1-45a4-a69b-7d26a293d945"), true, true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("f86a8772-d8e8-4256-9a17-453a9a65015f"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
-                    { new Guid("e536a58d-09a3-4a69-8436-5725bf7ffbad"), true, true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("9a3d7141-4e96-4a5a-b1c5-b6b757abc0e7"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") }
+                    { new Guid("12d57212-45ac-4420-a202-7ff04de2709e"), true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("d5c05957-17e5-46f7-b32d-be1d81e317ae"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("33eb3761-ce64-4720-9e0f-434887d40261"), true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("4ea6364a-7f9e-4b3b-a138-bb9caa2653a7"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("4cf71f31-fb3f-4960-a352-4d29299b5d6f"), true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("52136bb4-ee50-4175-9b40-836cac5d587c"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("86acd9e0-16f1-474f-a85d-a4bdbbf27e8c"), true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("24203e63-035e-4119-9e6a-27b2ccbf5c79"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("b2cdafc8-599b-45b5-ac32-fb84b0c896a5"), true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("a095a01d-9e88-4570-bdfd-9e0bc05f14f4"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("d28f26b6-55d1-45a4-a69b-7d26a293d945"), true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("f86a8772-d8e8-4256-9a17-453a9a65015f"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") },
+                    { new Guid("e536a58d-09a3-4a69-8436-5725bf7ffbad"), true, true, true, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, "System", new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new Guid("9a3d7141-4e96-4a5a-b1c5-b6b757abc0e7"), new Guid("d4de1b4d-b43b-4a55-b47a-1e92e71c3143") }
                 });
 
             migrationBuilder.InsertData(

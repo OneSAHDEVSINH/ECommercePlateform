@@ -35,7 +35,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             return await _context.Set<T>()
-                .OrderByDescending(e => EF.Property<object>(e, "CreatedOn"))
+                .OrderBy(e => EF.Property<object>(e, "CreatedOn"))
                 .AsNoTracking()
                 .ToListAsync();
         }

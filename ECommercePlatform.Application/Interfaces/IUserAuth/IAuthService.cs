@@ -5,6 +5,6 @@ namespace ECommercePlatform.Application.Interfaces.IUserAuth
     public interface IAuthService
     {
         Task<AuthResultDto> LoginAsync(LoginDto loginDto);
-        Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId); // ADD THIS
+        Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId);
     }
 }

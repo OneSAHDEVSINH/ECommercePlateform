@@ -479,7 +479,7 @@ namespace ECommercePlatform.Infrastructure
                 SecurityStamp = "f7426c48-c7c4-4c44-a30c-adcb4d1c8636",
                 ConcurrencyStamp = "6e8b9d2c-79f8-4c0d-8c5b-b7e3d2e0fcc8",
                 // Pre-computed password hash for "Admin@123" - fixed for seeding purposes only
-                PasswordHash = "AQAAAAIAAYagAAAAELST0qdl0q97wkBBDJGfpJbVjWOLG22r8WQZlTKUeeoQQbPsQj0rr9bvBUEJnk9Blw=="
+                PasswordHash = "AQAAAAIAAYagAAAAEByw51YzuzngglBl/L2IhnXzbcYD217ogwcvO0NTporKYSbAUtKe7NOeNIHr4vzYKA=="
             };
 
             modelBuilder.Entity<User>().HasData(superAdmin);
@@ -561,8 +561,9 @@ namespace ECommercePlatform.Infrastructure
                     RoleId = adminRoleId,
                     ModuleId = module.Id,
                     CanView = true,
-                    CanAdd = true,
-                    CanEdit = true,
+                    //CanAdd = true,
+                    //CanEdit = true,
+                    CanAddEdit = true,
                     CanDelete = true,
                     IsActive = true,
                     CreatedBy = "System",

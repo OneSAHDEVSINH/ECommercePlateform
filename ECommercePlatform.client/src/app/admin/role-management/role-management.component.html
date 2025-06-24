@@ -32,7 +32,7 @@
     </div>
 
     <!-- Role Form Card -->
-    <div class="card card-primary" *ngIf="authorizationService.hasAddOrEditPermission('roles')">
+    <div class="card card-primary" *appPermission="{ moduleRoute: 'roles', type: PermissionType.AddEdit }">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Role' : 'Add New Role' }}</h3>
       </div>
@@ -94,11 +94,12 @@
                       <thead class="thead-light">
                         <tr>
                           <th style="width: 5%">Index</th>
-                          <th style="width: 30%">Module</th>
+                          <th style="width: 20%">Module</th>
                           <th style="width: 15%">Select All</th>
                           <th style="width: 12.5%">View</th>
-                          <th style="width: 12.5%">Add</th>
-                          <th style="width: 12.5%">Edit</th>
+                          <!--<th style="width: 12.5%">Add</th>
+                          <th style="width: 12.5%">Edit</th>-->
+                          <th style="width: 12.5%">Add/Edit</th>
                           <th style="width: 12.5%">Delete</th>
                         </tr>
                       </thead>
@@ -122,7 +123,7 @@
                                      (change)="togglePermission(module.id!, PermissionType.View)">
                             </div>
                           </td>
-                          <td class="text-center">
+                          <!--<td class="text-center">
                             <div class="form-check">
                               <input class="form-check-input"
                                      type="checkbox"
@@ -136,6 +137,15 @@
                                      type="checkbox"
                                      [checked]="modulePermissions.get(module.id!)?.get(PermissionType.Edit)"
                                      (change)="togglePermission(module.id!, PermissionType.Edit)">
+                            </div>
+                          </td>-->
+                          <td class="text-center">
+                            <div class="form-check">
+                              <input class="form-check-input"
+                                     type="checkbox"
+                                     [checked]="modulePermissions.get(module.id!)?.get(PermissionType.AddEdit)"
+                                     (change)="togglePermission(module.id!, PermissionType.AddEdit)">
+                              <!--<label class="form-check-label">Add/Edit</label>-->
                             </div>
                           </td>
                           <td class="text-center">
@@ -162,7 +172,7 @@
           <button type="submit"
                   class="btn btn-primary"
                   [disabled]="roleForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'roles', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+                  *appPermission="{ moduleRoute: 'roles', type: PermissionType.AddEdit }">
             <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
             {{ isEditMode ? 'Update' : 'Save' }} Role
           </button>
@@ -268,7 +278,7 @@
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
-                <th style="width: 150px">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -283,7 +293,7 @@
                 <td>{{ role.createdOn | date: 'medium' }}</td>
                 <td>
                   <button class="btn btn-sm btn-info mr-1" (click)="editRole(role)"
-                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Edit }">
+                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.AddEdit }">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deleteRole(role.id!)"

@@ -17,8 +17,9 @@ namespace ECommercePlatform.Application.DTOs
     {
         public required string ModuleName { get; init; }
         public bool CanView { get; init; }
-        public bool CanAdd { get; init; }
-        public bool CanEdit { get; init; }
+        //public bool CanAdd { get; init; }
+        //public bool CanEdit { get; init; }
+        public bool CanAddEdit { get; init; }
         public bool CanDelete { get; init; }
     }
 }

@@ -96,8 +96,9 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 roleId,
                 p.ModuleId,
                 p.CanView,
-                p.CanAdd,
-                p.CanEdit,
+                //p.CanAdd,
+                //p.CanEdit,
+                p.CanAddEdit,
                 p.CanDelete
             ));
 

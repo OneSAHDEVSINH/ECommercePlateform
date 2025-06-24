@@ -326,19 +326,21 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommercePlatform API V1");
-        c.RoutePrefix = string.Empty; // To serve Swagger UI at root
-        //c.RoutePrefix = "swagger";
-    });
 }
 else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommercePlatform API V1");
+    //c.RoutePrefix = string.Empty; // To serve Swagger UI at root
+    //c.RoutePrefix = "swagger";
+});
+
 //if (!app.Environment.IsDevelopment())
 //{
 //    app.UseSpaStaticFiles();

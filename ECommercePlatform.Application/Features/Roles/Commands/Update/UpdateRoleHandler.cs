@@ -57,8 +57,9 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Update
                             role.Id,
                             perm.ModuleId,
                             perm.CanView,
-                            perm.CanAdd,
-                            perm.CanEdit,
+                            //perm.CanAdd,
+                            //perm.CanEdit,
+                            perm.CanAddEdit,
                             perm.CanDelete
                         );
 

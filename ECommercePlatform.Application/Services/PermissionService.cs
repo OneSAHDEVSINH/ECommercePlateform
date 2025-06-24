@@ -29,8 +29,9 @@ namespace ECommercePlatform.Application.Services
             return permission.ToLower() switch
             {
                 "view" => rolePermissions.Any(rp => rp.CanView),
-                "add" => rolePermissions.Any(rp => rp.CanAdd),
-                "edit" => rolePermissions.Any(rp => rp.CanEdit),
+                //"add" => rolePermissions.Any(rp => rp.CanAdd),
+                //"edit" => rolePermissions.Any(rp => rp.CanEdit),
+                "addedit" => rolePermissions.Any(rp => rp.CanAddEdit),
                 "delete" => rolePermissions.Any(rp => rp.CanDelete),
                 _ => false
             };
@@ -59,8 +60,9 @@ namespace ECommercePlatform.Application.Services
                 {
                     ModuleName = g.Key.Name,
                     CanView = g.Any(rp => rp.CanView),
-                    CanAdd = g.Any(rp => rp.CanAdd),
-                    CanEdit = g.Any(rp => rp.CanEdit),
+                    //CanAdd = g.Any(rp => rp.CanAdd),
+                    //CanEdit = g.Any(rp => rp.CanEdit),
+                    CanAddEdit = g.Any(rp => rp.CanAddEdit),
                     CanDelete = g.Any(rp => rp.CanDelete)
                 })
                 .ToList();
@@ -82,10 +84,12 @@ namespace ECommercePlatform.Application.Services
             {
                 if (permission.CanView)
                     claims.Add($"{permission.ModuleName}:View");
-                if (permission.CanAdd)
-                    claims.Add($"{permission.ModuleName}:Add");
-                if (permission.CanEdit)
-                    claims.Add($"{permission.ModuleName}:Edit");
+                //if (permission.CanAdd)
+                //    claims.Add($"{permission.ModuleName}:Add");
+                //if (permission.CanEdit)
+                //    claims.Add($"{permission.ModuleName}:Edit");
+                if (permission.CanAddEdit)
+                    claims.Add($"{permission.ModuleName}:AddEdit");
                 if (permission.CanDelete)
                     claims.Add($"{permission.ModuleName}:Delete");
             }

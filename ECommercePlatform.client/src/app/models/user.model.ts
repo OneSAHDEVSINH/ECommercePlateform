@@ -58,7 +58,8 @@ export interface LoginRequest {
 export interface UserPermissionDto {
   moduleName: string;
   canView: boolean;
-  canAdd: boolean;
-  canEdit: boolean;
+  //canAdd: boolean;
+  //canEdit: boolean;
+  canAddEdit: boolean;
   canDelete: boolean;
 }

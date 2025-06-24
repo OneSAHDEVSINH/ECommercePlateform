@@ -20,7 +20,7 @@ namespace ECommercePlatform.API.Controllers
         private readonly IMediator _mediator = mediator;
 
         [HttpGet]
-        [HasPermission("cities", "View")]
+        [HasPermission("Cities", "View")]
         public async Task<IActionResult> GetAllCities()
         {
             var result = await _mediator.Send(new GetAllCitiesQuery());
@@ -32,7 +32,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("paged")]
-        [HasPermission("cities", "View")]
+        [HasPermission("Cities", "View")]
         public async Task<IActionResult> GetPagedCities([FromQuery] GetPagedCitiesQuery query)
         {
             var result = await _mediator.Send(query);
@@ -44,7 +44,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [HasPermission("cities", "View")]
+        [HasPermission("Cities", "View")]
         public async Task<IActionResult> GetCityById(Guid id)
         {
             var result = await _mediator.Send(new GetCityByIdQuery(id));
@@ -57,7 +57,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpPost]
         //[Authorize(Roles = "Admin")]
-        [HasPermission("cities", "Add")]
+        [HasPermission("Cities", "AddEdit")]
         public async Task<IActionResult> CreateCity([FromBody] CreateCityCommand command)
         {
             var result = await _mediator.Send(command);
@@ -70,7 +70,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpPut("{id}")]
         //[Authorize(Roles = "Admin")]
-        [HasPermission("cities", "Edit")]
+        [HasPermission("Cities", "AddEdit")]
         public async Task<IActionResult> UpdateCity(Guid id, [FromBody] UpdateCityCommand command)
         {
             if (id != command.Id)
@@ -88,7 +88,7 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpDelete("{id}")]
         //[Authorize(Roles = "Admin")]
-        [HasPermission("cities", "Delete")]
+        [HasPermission("Cities", "Delete")]
         public async Task<IActionResult> DeleteCity(Guid id)
         {
             var result = await _mediator.Send(new DeleteCityCommand(id));
@@ -102,7 +102,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpGet("ByState/{stateId}")]
-        [HasPermission("cities", "View")]
+        [HasPermission("Cities", "View")]
         public async Task<IActionResult> GetCitiesByState(Guid stateId)
         {
             var result = await _mediator.Send(new GetCitiesByStateQuery(stateId));

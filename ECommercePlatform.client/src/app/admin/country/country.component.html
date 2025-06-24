@@ -32,7 +32,7 @@
     </div>
 
     <!-- Country Form Card -->
-    <div class="card card-primary" *ngIf="authorizationService.hasAddOrEditPermission('countries')">
+    <div class="card card-primary" *appPermission="{ moduleRoute: 'countries', type: PermissionType.AddEdit }">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Country' : 'Add New Country' }}</h3>
       </div>
@@ -83,7 +83,7 @@
         <!-- Card Footer -->
         <div class="card-footer">
           <button type="submit" class="btn btn-primary" [disabled]="countryForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'countries', type: isEditMode ? PermissionType.Edit : PermissionType.Add }">
+                  *appPermission="{ moduleRoute: 'countries', type: PermissionType.AddEdit }">
             <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} Country
           </button>
           <button type="button" class="btn btn-default float-right" (click)="resetForm()"
@@ -171,7 +171,7 @@
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
-                <th style="width: 150px">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -181,7 +181,7 @@
                 <td>{{ country.createdOn | date:'medium' }}</td>
                 <td>
                   <button class="btn btn-sm btn-info mr-1" (click)="editCountry(country)"
-                          *appPermission="{ moduleRoute: 'countries', type: PermissionType.Edit }">
+                          *appPermission="{ moduleRoute: 'countries', type: PermissionType.AddEdit }">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deleteCountry(country.id!)"

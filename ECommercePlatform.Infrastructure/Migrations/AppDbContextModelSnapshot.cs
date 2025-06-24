@@ -814,13 +814,10 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("CanAdd")
+                    b.Property<bool>("CanAddEdit")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanDelete")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CanEdit")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanView")
@@ -866,9 +863,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("e536a58d-09a3-4a69-8436-5725bf7ffbad"),
-                            CanAdd = true,
+                            CanAddEdit = true,
                             CanDelete = true,
-                            CanEdit = true,
                             CanView = true,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -882,9 +878,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("12d57212-45ac-4420-a202-7ff04de2709e"),
-                            CanAdd = true,
+                            CanAddEdit = true,
                             CanDelete = true,
-                            CanEdit = true,
                             CanView = true,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -898,9 +893,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("4cf71f31-fb3f-4960-a352-4d29299b5d6f"),
-                            CanAdd = true,
+                            CanAddEdit = true,
                             CanDelete = true,
-                            CanEdit = true,
                             CanView = true,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -914,9 +908,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("33eb3761-ce64-4720-9e0f-434887d40261"),
-                            CanAdd = true,
+                            CanAddEdit = true,
                             CanDelete = true,
-                            CanEdit = true,
                             CanView = true,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -930,9 +923,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("d28f26b6-55d1-45a4-a69b-7d26a293d945"),
-                            CanAdd = true,
+                            CanAddEdit = true,
                             CanDelete = true,
-                            CanEdit = true,
                             CanView = true,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -946,9 +938,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("86acd9e0-16f1-474f-a85d-a4bdbbf27e8c"),
-                            CanAdd = true,
+                            CanAddEdit = true,
                             CanDelete = true,
-                            CanEdit = true,
                             CanView = true,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -962,9 +953,8 @@ namespace ECommercePlatform.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("b2cdafc8-599b-45b5-ac32-fb84b0c896a5"),
-                            CanAdd = true,
+                            CanAddEdit = true,
                             CanDelete = true,
-                            CanEdit = true,
                             CanView = true,
                             CreatedBy = "System",
                             CreatedOn = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),

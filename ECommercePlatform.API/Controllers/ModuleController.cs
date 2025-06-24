@@ -68,7 +68,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPost]
-        [HasPermission("Modules", "Add")]
+        [HasPermission("Modules", "AddEdit")]
         public async Task<IActionResult> CreateModule([FromBody] CreateModuleCommand command)
         {
             var result = await _mediator.Send(command);
@@ -80,7 +80,7 @@ namespace ECommercePlatform.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HasPermission("Modules", "Edit")]
+        [HasPermission("Modules", "AddEdit")]
         public async Task<IActionResult> UpdateModule(Guid id, [FromBody] UpdateModuleCommand command)
         {
             if (id != command.Id)

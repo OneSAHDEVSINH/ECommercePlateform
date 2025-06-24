@@ -75,8 +75,9 @@ export class PermissionGuard implements CanActivate {
         // check if user has any other permissions
         if (requiredPermission === PermissionType.View) {
           return this.checkForAnyPermission(moduleRoute, [
-            PermissionType.Add,
-            PermissionType.Edit,
+            //PermissionType.Add,
+            //PermissionType.Edit,
+            PermissionType.AddEdit,
             PermissionType.Delete
           ], state.url);
         }
@@ -121,39 +122,91 @@ export class PermissionGuard implements CanActivate {
   }
 
   // Helper method to check if user has ANY of the given permissions
+  //private checkForAnyPermission(moduleRoute: string, permissions: PermissionType[], returnUrl: string): Observable<boolean | UrlTree> {
+  //  const permissionChecks$ = permissions.map(permission =>
+  //    this.authorizationService.checkPermission(moduleRoute, permission)
+  //  );
+
+  //  // If there are no permissions to check, deny access
+  //  if (permissionChecks$.length === 0) {
+  //    return of(this.router.createUrlTree(['/admin/access-denied'], {
+  //      queryParams: {
+  //        accessDenied: 'true',
+  //        module: moduleRoute,
+  //        permission: 'any',
+  //        returnUrl: returnUrl
+  //      }
+  //    }));
+  //  }
+
+  //  return forkJoin(permissionChecks$).pipe(
+  //    map(results => {
+  //      const hasAnyPermission = results.some(result => result === true);
+
+  //      if (hasAnyPermission) {
+  //        return true;
+  //      }
+
+  //      return this.router.createUrlTree(['/admin/access-denied'], {
+  //        queryParams: {
+  //          accessDenied: 'true',
+  //          module: moduleRoute,
+  //          permission: 'any',
+  //          returnUrl: returnUrl
+  //        }
+  //      });
+  //    }),
+  //    catchError(error => {
+  //      console.error('Permission checks failed:', error);
+  //      return of(this.router.createUrlTree(['/admin/access-denied'], {
+  //        queryParams: {
+  //          permissionError: 'true',
+  //          errorMessage: 'Error checking permissions'
+  //        }
+  //      }));
+  //    })
+  //  );
+  //}
+
   private checkForAnyPermission(moduleRoute: string, permissions: PermissionType[], returnUrl: string): Observable<boolean | UrlTree> {
-    const permissionChecks$ = permissions.map(permission =>
-      this.authorizationService.checkPermission(moduleRoute, permission)
-    );
-
-    // If there are no permissions to check, deny access
-    if (permissionChecks$.length === 0) {
-      return of(this.router.createUrlTree(['/admin/access-denied'], {
-        queryParams: {
-          accessDenied: 'true',
-          module: moduleRoute,
-          permission: 'any',
-          returnUrl: returnUrl
-        }
-      }));
-    }
-
-    return forkJoin(permissionChecks$).pipe(
-      map(results => {
-        const hasAnyPermission = results.some(result => result === true);
-
-        if (hasAnyPermission) {
-          return true;
+    // First check if this module exists/is accessible to the user at all
+    return this.authorizationService.hasAnyPermission(moduleRoute).pipe(
+      mergeMap(hasAnyModulePermission => {
+        // If user has no permissions at all for this module, redirect to access denied
+        if (!hasAnyModulePermission) {
+          return of(this.router.createUrlTree(['/admin/access-denied'], {
+            queryParams: {
+              accessDenied: 'true',
+              module: moduleRoute,
+              permission: 'any',
+              returnUrl: returnUrl
+            }
+          }));
         }
 
-        return this.router.createUrlTree(['/admin/access-denied'], {
-          queryParams: {
-            accessDenied: 'true',
-            module: moduleRoute,
-            permission: 'any',
-            returnUrl: returnUrl
-          }
-        });
+        // Otherwise check for the specific permissions requested
+        const permissionChecks$ = permissions.map(permission =>
+          this.authorizationService.checkPermission(moduleRoute, permission)
+        );
+
+        return forkJoin(permissionChecks$).pipe(
+          map(results => {
+            const hasAnyPermission = results.some(result => result === true);
+
+            if (hasAnyPermission) {
+              return true;
+            } else {
+              // User has some permissions for this module but not the required ones
+              // Show a notification instead of redirecting
+              this.permissionNotificationService.showPermissionError(
+                moduleRoute,
+                'appropriate',
+                `You need additional permissions to access this ${moduleRoute} feature`
+              );
+              return false;
+            }
+          })
+        );
       }),
       catchError(error => {
         console.error('Permission checks failed:', error);
@@ -171,8 +224,9 @@ export class PermissionGuard implements CanActivate {
   private getReadablePermissionType(type: PermissionType): string {
     switch (type) {
       case PermissionType.View: return 'View';
-      case PermissionType.Add: return 'Add';
-      case PermissionType.Edit: return 'Edit';
+      //case PermissionType.Add: return 'Add';
+      //case PermissionType.Edit: return 'Edit';
+      case PermissionType.AddEdit: return 'AddEdit';
       case PermissionType.Delete: return 'Delete';
       default: return 'access';
     }
