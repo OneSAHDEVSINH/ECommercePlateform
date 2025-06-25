@@ -10,7 +10,6 @@ using ECommercePlatform.Application.Mappings;
 using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Infrastructure;
-using ECommercePlatform.Infrastructure.Repositories;
 using ECommercePlatform.Server;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -86,11 +85,12 @@ builder.Services.RegisterRepositories(); // Register all repositories using the 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Register services
-//builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddScoped<IAuthService, IdentityAuthService>(); // Use IdentityAuthService instead
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -128,7 +128,8 @@ builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizat
 
 // Configure Authorization
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("Permission", policy => {
+    .AddPolicy("Permission", policy =>
+    {
         policy.RequireAuthenticatedUser();
         policy.AddRequirements(new PermissionRequirement("module", "action"));
     })
@@ -137,49 +138,8 @@ builder.Services.AddAuthorizationBuilder()
         .Build());
 
 
-//builder.Services.AddAuthorizationBuilder()
-//    // Define the "Permission" policy
-//    .AddPolicy("Permission", policy =>
-//    {
-//        policy.Requirements.Add(new PermissionRequirement("", ""));
-//    })
-//    // Set default policy that requires authentication
-//    .SetDefaultPolicy(new AuthorizationPolicyBuilder()
-//        .RequireAuthenticatedUser()
-//        .Build());
-
 builder.Services.AddCors();
 
-//To ignore databse warning datateti,e now admin seed from here. use anly one either from here or from AppDbContext.
-//.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
-// Add JWT Authentication
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//    .AddJwtBearer(options =>
-//    {
-//        options.TokenValidationParameters = new TokenValidationParameters
-//        {
-//            ValidateIssuer = true,
-//            ValidateAudience = true,
-//            ValidateLifetime = true,
-//            ValidateIssuerSigningKey = true,
-//            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-//            ValidAudience = builder.Configuration["Jwt:Audience"],
-//            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-//                builder.Configuration["Jwt:Key"] ?? "YourTemporarySecretKeyForDevelopment12345"))
-//        };
-//    });
-
-//builder.Services.AddCors(options =>
-//{
-//    options.AddDefaultPolicy(
-//        policy =>
-//        {
-//            policy.AllowAnyOrigin()
-//            .AllowAnyHeader()
-//            .AllowAnyMethod();
-//        });
-//});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
@@ -225,12 +185,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddProblemDetails();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-//builder.Services.AddOpenApi();
-//builder.Services.AddSpaStaticFiles(configuration =>
-//{
-//    configuration.RootPath = "ClientApp/dist";
-//});
+
 var app = builder.Build();
 
 // Apply migrations at startup
@@ -337,22 +292,8 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommercePlatform API V1");
-    //c.RoutePrefix = string.Empty; // To serve Swagger UI at root
-    //c.RoutePrefix = "swagger";
 });
 
-//if (!app.Environment.IsDevelopment())
-//{
-//    app.UseSpaStaticFiles();
-//}
-//app.UseSpa(spa =>
-//{
-//    spa.Options.SourcePath = "ClientApp";
-//    if (app.Environment.IsDevelopment())
-//    {
-//        spa.UseProxyToSpaDevelopmentServer("http://localhost:4200");
-//    }
-//});
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");

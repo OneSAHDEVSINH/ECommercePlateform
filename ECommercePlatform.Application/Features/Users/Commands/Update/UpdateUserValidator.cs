@@ -48,7 +48,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
 
             When(x => !string.IsNullOrEmpty(x.PhoneNumber), () =>
             {
-                RuleFor(x => x.PhoneNumber!)
+                RuleFor(x => x.PhoneNumber!.Trim())
                     .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters");
             });
 

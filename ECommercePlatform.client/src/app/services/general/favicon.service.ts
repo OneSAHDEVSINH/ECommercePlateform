@@ -31,6 +31,12 @@ export class FaviconService {
       this.faviconPath = 'states.png';
     } else if (url === '/admin/cities') {
       this.faviconPath = 'cities.png';
+    } else if (url === '/admin/modules') {
+      this.faviconPath = 'modules.png';
+    } else if (url === '/admin/roles') {
+      this.faviconPath = 'roles.png';
+    } else if (url === '/admin/users') {
+      this.faviconPath = 'users.png';
     } else {
       this.faviconPath = 'favicon.ico'; // Default favicon
     }

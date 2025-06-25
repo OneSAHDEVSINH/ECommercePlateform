@@ -117,7 +117,7 @@
     </div>
 
     <!-- States List Card -->
-    <div class="card" *appPermission="{ moduleRoute: 'roles', type: PermissionType.View }">
+    <div class="card" *appPermission="{ moduleRoute: 'states', type: PermissionType.View }">
       <div class="card-header">
         <h3 class="card-title">States List</h3>
         <div class="card-tools">
@@ -205,7 +205,7 @@
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
-                <th>Actions</th>
+                <th *ngIf="authorizationService.hasDeleteOrAddEditPermission('states')">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -214,7 +214,7 @@
                 <td>{{ state.code }}</td>
                 <td>{{ getCountryName(state.countryId) }}</td>
                 <td>{{ state.createdOn | date:'medium' }}</td>
-                <td>
+                <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('states')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editState(state)"
                           *appPermission="{ moduleRoute: 'states', type: PermissionType.AddEdit }">
                     <i class="fas fa-edit"></i> Edit
@@ -252,192 +252,3 @@
     </div>
   </div>
 </section>
-
-
-
-
-<!--<head>
-  <meta name="description" content="Admin State CRUD">
-</head>
-
-<div class="admin-container">-->
-<!--<app-navbar></app-navbar>-->
-<!-- Main content area -->
-<!--<main class="main-content">-->
-<!-- Top navigation bar -->
-<!--<header class="topbar">
-  <div class="topbar-title">
-    <h2>Manage States</h2>
-  </div>
-</header>-->
-<!-- Content area -->
-<!--<div class="content">-->
-<!-- Alert message if any -->
-<!--<div *ngIf="message" [ngClass]="['alert', message.type === 'success' ? 'alert-success' : 'alert-danger']">
-  {{ message.text }}
-  <button class="alert-close" (click)="message = null">&times;</button>
-</div>-->
-<!-- State Form -->
-<!--<div class="form-container">
-  <h3>{{ isEditMode ? 'Edit State' : 'Add New State' }}</h3>
-
-  <form [formGroup]="stateForm" (ngSubmit)="onSubmit()" class="data-form">
-    <div class="form-group">
-      <label for="countryId">Country</label>
-      <select id="countryId"
-              formControlName="countryId"
-              class="form-control"
-              [ngClass]="{'is-invalid': stateForm.get('countryId')?.touched && stateForm.get('countryId')?.errors}">
-        <option value="">Select Country</option>
-        <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
-      </select>
-      <div *ngIf="stateForm.get('countryId')?.touched && stateForm.get('countryId')?.errors" class="error-message">
-        <div *ngIf="stateForm.get('countryId')?.errors?.['required']">Country is required</div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="name">State Name</label>
-      <input type="text"
-             id="name"
-             formControlName="name"
-             class="form-control"
-             [ngClass]="{'is-invalid': stateForm.get('name')?.touched && stateForm.get('name')?.errors}">
-      <div *ngIf="stateForm.get('name')?.touched && stateForm.get('name')?.errors" class="error-message">
-        <div *ngIf="stateForm.get('name')?.errors?.['required']">State name is required</div>
-        <div *ngIf="stateForm.get('name')?.errors?.['maxlength']">State name must be less than 100 characters</div>
-        <div *ngIf="stateForm.get('name')?.errors?.['whitespace']">State name cannot contain only whitespace</div>
-        <div *ngIf="stateForm.get('name')?.errors?.['lettersOnly']">State name can only contain letters and spaces</div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="code">State Code</label>
-      <input type="text"
-             id="code"
-             formControlName="code"
-             class="form-control"
-             [ngClass]="{'is-invalid': stateForm.get('code')?.touched && stateForm.get('code')?.errors}">
-      <div *ngIf="stateForm.get('code')?.touched && stateForm.get('code')?.errors" class="error-message">
-        <div *ngIf="stateForm.get('code')?.errors?.['required']">State code is required</div>
-        <div *ngIf="stateForm.get('code')?.errors?.['maxlength']">State code must be less than 10 characters</div>
-        <div *ngIf="stateForm.get('code')?.errors?.['whitespace']">State code cannot contain only whitespace</div>
-        <div *ngIf="stateForm.get('code')?.errors?.['lettersOnly']">State code can only contain letters and spaces</div>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" class="btn-primary" [disabled]="stateForm.invalid || loading">
-        {{ isEditMode ? 'Update' : 'Add' }} State
-      </button>
-      <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
-      <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode && (stateForm.get('countryId')?.touched || stateForm.get('name')?.touched || stateForm.get('code')?.touched)">Reset</button>
-    </div>
-  </form>
-</div>-->
-<!-- States list -->
-<!--<div class="table-container">
-  <div class="table-header">
-    <h3>States List</h3>
-
-    <app-date-range-filter></app-date-range-filter>
-
-    <div class="filter-controls">
-      <label for="countryFilter">Filter by Country:</label>
-      <select id="countryFilter"
-              class="form-control"
-              (change)="onCountryFilterChange($event)">
-        <option value="all">All Countries</option>
-        <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
-      </select>
-    </div>
-
-
-    <div class="list-controls">
-      <div class="search-box">
-        <input type="text"
-               placeholder="Search states..."
-               (input)="onSearch($event)"
-               [value]="pageRequest.searchText || ''"
-               class="search-input">
-        <i class="search-icon">🔍</i>
-      </div>
-
-      <div class="page-size-selector">
-        Show
-        <select (change)="onPageSizeChange($event)">
-          <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
-          <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
-          <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
-          <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
-        </select>
-        entries
-      </div>
-    </div>
-  </div>
-
-<div *ngIf="loading" class="loading-indicator">Loading...</div>
-
-<div *ngIf="states.length === 0 && !loading" class="no-data">
-  No states found. Please add a new state.
-</div>
-
-<table *ngIf="states.length > 0" class="data-table">
-  <thead>
-    <tr>
-      <th (click)="onSortChange('name')" class="sortable">
-        Name
-        <span *ngIf="pageRequest.sortColumn === 'name'" class="sort-indicator">
-          {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
-        </span>
-      </th>
-      <th (click)="onSortChange('code')" class="sortable">
-        Code
-        <span *ngIf="pageRequest.sortColumn === 'code'" class="sort-indicator">
-          {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
-        </span>
-      </th>
-      <th (click)="onSortChange('country')" class="sortable">
-        Country
-        <span *ngIf="pageRequest.sortColumn === 'country'" class="sort-indicator">
-          {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
-        </span>
-      </th>
-      <th (click)="onSortChange('createdOn')" class="sortable">
-        Created On
-        <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
-          {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
-        </span>
-      </th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let state of states">
-      <td>{{ state.name }}</td>
-      <td>{{ state.code }}</td>
-      <td>{{ getCountryName(state.countryId) }}</td>
-      <td>{{ state.createdOn | date:'medium' }}</td>
-      <td class="actions">
-        <button class="btn-edit" (click)="editState(state)">Edit</button>
-        <button class="btn-delete" (click)="deleteState(state.id!)">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>-->
-<!-- Pagination component -->
-<!--<app-pagination *ngIf="pagedResponse && pagedResponse.totalPages > 1"
-                [totalPages]="pagedResponse.totalPages"
-                [currentPage]="pagedResponse.pageNumber"
-                (pageChange)="onPageChange($event)">
-</app-pagination>-->
-<!-- Pagination info -->
-<!--<div *ngIf="pagedResponse && states.length > 0" class="pagination-info">
-        Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
-        to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
-        of {{ pagedResponse.totalCount }} entries
-        </div>
-      </div>
-    </div>
-  </main>
-</div>-->

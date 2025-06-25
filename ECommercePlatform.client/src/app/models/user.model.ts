@@ -14,6 +14,7 @@ export interface User {
   bio?: string;
   createdOn?: Date;
   modifiedOn?: Date;
+  claims?: any[];
 }
 
 export enum Gender {
@@ -58,8 +59,6 @@ export interface LoginRequest {
 export interface UserPermissionDto {
   moduleName: string;
   canView: boolean;
-  //canAdd: boolean;
-  //canEdit: boolean;
   canAddEdit: boolean;
   canDelete: boolean;
 }

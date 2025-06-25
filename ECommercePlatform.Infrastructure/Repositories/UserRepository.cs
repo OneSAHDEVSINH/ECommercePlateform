@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Helpers;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -9,43 +10,15 @@ using System.Linq.Expressions;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
-    public class UserRepository(AppDbContext context) : GenericRepository<User>(context), IUserRepository
+    public class UserRepository(AppDbContext context, ISuperAdminService superAdminService, ICurrentUserService currentUserService) : GenericRepository<User>(context), IUserRepository
     {
+        private readonly ISuperAdminService _superAdminService = superAdminService;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
+
         public async Task<User?> FindUserByEmailAsync(string email)
         {
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
-        }
-
-        public async Task<User?> FindUserByEmailAndPasswordAsync(string email, string password)
-        {
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password && !u.IsDeleted);
-        }
-
-        public async Task<User?> FindUserWithRolesByEmailAsync(string email)
-        {
-            return await _context.Users
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
-        }
-
-        public async Task<bool> IsEmailUniqueAsync(string email)
-        {
-            return !await _context.Users
-                .AnyAsync(u => u.Email != null &&
-                              u.Email.ToLower().Trim() == email.ToLower().Trim() &&
-                              !u.IsDeleted);
-        }
-
-        public async Task<bool> IsEmailUniqueAsync(string email, Guid excludeUserId)
-        {
-            return !await _context.Users
-                .AnyAsync(u => u.Email != null &&
-                              u.Email.ToLower().Trim() == email.ToLower().Trim() &&
-                              u.Id != excludeUserId &&
-                              !u.IsDeleted);
         }
 
         public new async Task<User?> GetByIdAsync(Guid id)
@@ -84,26 +57,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> AnyAsync(Expression<Func<User, bool>> predicate)
-        {
-            return await _context.Users.AnyAsync(predicate);
-        }
-
-        public IQueryable<User> AsQueryable()
-        {
-            return _context.Users.AsQueryable();
-        }
-
-        public async Task DeleteByUserIdAsync(Guid userId)
-        {
-            var userRoles = await _context.UserRoles
-                .Where(ur => ur.UserId == userId)
-                .ToListAsync();
-
-            _context.UserRoles.RemoveRange(userRoles);
-            await _context.SaveChangesAsync();
-        }
-
         // Combined validation method that returns a Result object
         public Task<Result<string>> EnsureEmailIsUniqueAsync(string email, Guid? excludeId = null)
         {
@@ -132,6 +85,34 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 });
         }
 
+        // Combined validation method that returns a Result object
+        public Task<Result<string>> EnsurePhoneIsUniqueAsync(string phone, Guid? excludeId = null)
+        {
+            return Result.Success(phone)
+                // Validate email is not empty
+                .Ensure(e => !string.IsNullOrEmpty(e?.Trim()), "Phone Number cannot be null or empty.")
+                // Normalize the input
+                .Map(e => e.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedPhone =>
+                {
+                    var query = _context.Users.Where(u =>
+                        u.PhoneNumber != null &&
+                        u.PhoneNumber.ToLower().Trim() == normalizedPhone &&
+                        !u.IsDeleted);
+
+                    // Apply ID exclusion if provided
+                    if (excludeId.HasValue)
+                        query = query.Where(u => u.Id != excludeId.Value);
+
+                    var exists = await query.AnyAsync();
+
+                    return exists
+                        ? Result.Failure<string>($"User with phone number \"{phone}\" already exists.")
+                        : Result.Success(normalizedPhone);
+                });
+        }
+
         // Search function for users
         private static IQueryable<User> ApplyUserSearch(IQueryable<User> query, string searchText)
         {
@@ -156,6 +137,28 @@ namespace ECommercePlatform.Infrastructure.Repositories
         {
             // Create base filter
             Expression<Func<User, bool>> baseFilter;
+
+            // Check if current user is the superadmin
+            var currentUserIdStr = _currentUserService.UserId;
+            var isSuperAdminViewing = false;
+
+            if (!string.IsNullOrEmpty(currentUserIdStr) && Guid.TryParse(currentUserIdStr, out var currentUserId))
+            {
+                var currentUser = await _context.Users.FindAsync(currentUserId);
+                if (currentUser != null)
+                {
+                    isSuperAdminViewing = _superAdminService.IsSuperAdminEmail(currentUser.Email);
+                }
+            }
+
+            // If not viewed by superadmin, exclude the superadmin account from results
+            if (!isSuperAdminViewing)
+            {
+                var superAdminEmail = "admin@admin.com"; // This should match the configured superadmin email
+                baseFilter = activeOnly
+                    ? u => u.IsActive && !u.IsDeleted && u.Email != superAdminEmail
+                    : u => !u.IsDeleted && u.Email != superAdminEmail;
+            }
 
             if (roleId.HasValue)
             {

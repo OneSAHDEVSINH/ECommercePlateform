@@ -30,6 +30,16 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
                     user.UserName = request.Email;
                 }
 
+                // Check email uniqueness if changing
+                if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
+                {
+                    var phoneResult = await _unitOfWork.Users.EnsurePhoneIsUniqueAsync(request.PhoneNumber, request.Id);
+                    if (phoneResult.IsFailure)
+                        return AppResult<UserDto>.Failure(phoneResult.Error);
+
+                    user.PhoneNumber = request.PhoneNumber;
+                }
+
                 // Update user properties
                 if (!string.IsNullOrEmpty(request.FirstName))
                     user.FirstName = request.FirstName;

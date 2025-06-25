@@ -1,11 +1,13 @@
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IUserAuth;
+using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommercePlatform.Infrastructure
 {
-    public class UnitOfWork(AppDbContext context, UserManager<User> UserManager, RoleManager<Role> RoleManager, SignInManager<User> SignInManager) : IUnitOfWork, IDisposable
+    public class UnitOfWork(AppDbContext context, UserManager<User> UserManager, RoleManager<Role> RoleManager, SignInManager<User> SignInManager, ISuperAdminService superAdminService, ICurrentUserService currentUserService) : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _context = context;
         private ICountryRepository? _countryRepository;
@@ -20,10 +22,12 @@ namespace ECommercePlatform.Infrastructure
         private readonly UserManager<User> _userManager = UserManager;
         private readonly RoleManager<Role> _roleManager = RoleManager;
         private readonly SignInManager<User> _signInManager = SignInManager;
+        private readonly ISuperAdminService _superAdminService = superAdminService;
+        private readonly ICurrentUserService _currentUserService = currentUserService;
 
         public ICountryRepository Countries => _countryRepository ??= new CountryRepository(_context);
 
-        public IUserRepository Users => _userRepository ??= new UserRepository(_context);
+        public IUserRepository Users => _userRepository ??= new UserRepository(_context, _superAdminService, _currentUserService);
 
         public IStateRepository States => _stateRepository ??= new StateRepository(_context);
 

@@ -20,6 +20,11 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                 if (emailResult.IsFailure)
                     return AppResult<UserDto>.Failure(emailResult.Error);
 
+                // Validate phone uniqueness
+                var phoneResult = await _unitOfWork.Users.EnsurePhoneIsUniqueAsync(request.PhoneNumber!);
+                if (phoneResult.IsFailure)
+                    return AppResult<UserDto>.Failure(phoneResult.Error);
+
                 // Parse gender
                 Gender gender = Gender.Other;
                 if (!string.IsNullOrEmpty(request.Gender))

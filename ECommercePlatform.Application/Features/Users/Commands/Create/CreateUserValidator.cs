@@ -35,7 +35,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                 .MinimumLength(6).WithMessage("Password must be at least 6 characters")
                 .MaximumLength(100).WithMessage("Password must not exceed 100 characters");
 
-            RuleFor(x => x.PhoneNumber)
+            RuleFor(x => x.PhoneNumber!.Trim())
                 .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters")
                 .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
 

@@ -38,12 +38,3 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
         }
     }
 }
-
-//Old method without using C Sharp Functional Extension
-
-//var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
-//if (city == null)
-//    return AppResult.Failure($"City with ID {request.Id} not found");
-
-//await _unitOfWork.Cities.DeleteAsync(city);
-//return AppResult.Success();

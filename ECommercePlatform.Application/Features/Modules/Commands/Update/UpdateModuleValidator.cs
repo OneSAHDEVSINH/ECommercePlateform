@@ -32,11 +32,11 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
 
             When(x => !string.IsNullOrEmpty(x.Description), () =>
             {
-                RuleFor(x => x.Description)
+                RuleFor(x => x.Description!.Trim())
                     .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
             });
 
-            When(x => !string.IsNullOrEmpty(x.Icon), () =>
+            When(x => !string.IsNullOrEmpty(x.Icon!.Trim()), () =>
             {
                 RuleFor(x => x.Icon)
                     .MaximumLength(100).WithMessage("Icon class must not exceed 100 characters.");
@@ -45,7 +45,7 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
             When(x => x.DisplayOrder.HasValue, () =>
             {
                 RuleFor(x => x.DisplayOrder!.Value)
-                    .GreaterThanOrEqualTo(0).WithMessage("Display order must be a non-negative number.");
+                    .GreaterThanOrEqualTo(1).WithMessage("Display order must be a non-negative number except zero.");
             });
         }
     }

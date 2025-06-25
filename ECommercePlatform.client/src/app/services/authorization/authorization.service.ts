@@ -11,6 +11,8 @@ import { PermissionType } from '../../models/role.model';
 export class AuthorizationService {
   private apiUrl = `${environment.apiUrl}/authorization`;
   private permissionsCache = new Map<string, boolean>();
+  private readonly CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes in milliseconds
+  private permissionCacheExpiry = new Map<string, number>();
 
   constructor(
     private authService: AuthService,
@@ -26,7 +28,14 @@ export class AuthorizationService {
 
   // Add this method
   isAdmin(): boolean {
-    return this.authService.isSuperAdmin();
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return false;
+
+    // Super admin bypass - always considered admin
+    if (this.authService.isSuperAdmin()) return true;
+
+    // Check for Admin role
+    return currentUser.roles?.some(role => role.name === 'Admin') || false;
   }
 
   hasPermission(moduleRoute: string, permissionType: PermissionType): boolean {
@@ -48,10 +57,6 @@ export class AuthorizationService {
     switch (permissionType) {
       case PermissionType.View:
         return modulePermission.canView;
-      //case PermissionType.Add:
-      //  return modulePermission.canAdd;
-      //case PermissionType.Edit:
-      //  return modulePermission.canEdit;
       case PermissionType.AddEdit:
         return modulePermission.canAddEdit;
       case PermissionType.Delete:
@@ -60,7 +65,6 @@ export class AuthorizationService {
         return false;
     }
   }
-
 
   hasViewOrAddEditPermission(moduleRoute: string): boolean {
     return this.hasPermission(moduleRoute, PermissionType.View) ||
@@ -73,7 +77,19 @@ export class AuthorizationService {
   }
 
   checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
+
+    // If user is superadmin, always return true without checking cache
+    if (this.authService.isSuperAdmin()) {
+      return of(true);
+    }
+
     const cacheKey = `${moduleRoute}-${permissionType}`;
+
+    // Check if cache exists and is still valid
+    const cacheExpiry = this.permissionCacheExpiry.get(cacheKey);
+    if (this.permissionsCache.has(cacheKey) && cacheExpiry && cacheExpiry > Date.now()) {
+      return of(this.permissionsCache.get(cacheKey)!);
+    }
 
     // Check memory cache first
     if (this.permissionsCache.has(cacheKey)) {
@@ -84,6 +100,7 @@ export class AuthorizationService {
     const hasLocalPermission = this.hasPermission(moduleRoute, permissionType);
     if (hasLocalPermission) {
       this.permissionsCache.set(cacheKey, true);
+      this.permissionCacheExpiry.set(cacheKey, Date.now() + this.CACHE_MAX_AGE);
       return of(true);
     }
 
@@ -94,10 +111,12 @@ export class AuthorizationService {
       map(result => result.hasPermission),
       tap(hasPermission => {
         this.permissionsCache.set(cacheKey, hasPermission);
+        this.permissionCacheExpiry.set(cacheKey, Date.now() + this.CACHE_MAX_AGE);
       }),
       catchError(() => {
         console.error(`Error checking permission (${moduleRoute}:${permissionType}):`, Error);
         this.permissionsCache.set(cacheKey, false);
+        this.permissionCacheExpiry.set(cacheKey, Date.now() + this.CACHE_MAX_AGE);
         return of(false);
       })
     );
@@ -118,7 +137,7 @@ export class AuthorizationService {
     }
   }
 
-  // Optionally, add these helper methods for better cache management
+  // Optionally, helper methods for better cache management
   clearCacheForModule(moduleRoute: string): void {
     // Clear all cached permissions for a specific module
     const keysToDelete: string[] = [];
@@ -134,8 +153,6 @@ export class AuthorizationService {
   public hasAnyPermission(moduleRoute: string): Observable<boolean> {
     return forkJoin([
       this.checkPermission(moduleRoute, PermissionType.View),
-      //this.checkPermission(moduleRoute, PermissionType.Add),
-      //this.checkPermission(moduleRoute, PermissionType.Edit),
       this.checkPermission(moduleRoute, PermissionType.AddEdit),
       this.checkPermission(moduleRoute, PermissionType.Delete)
     ]).pipe(
@@ -182,8 +199,6 @@ export class AuthorizationService {
   private permissionTypeToString(permission: PermissionType): string {
     switch (permission) {
       case PermissionType.View: return 'View';
-      //case PermissionType.Add: return 'Add';
-      //case PermissionType.Edit: return 'Edit';
       case PermissionType.AddEdit: return 'AddEdit';
       case PermissionType.Delete: return 'Delete';
       default: return '';
@@ -199,126 +214,3 @@ export class AuthorizationService {
     return this.permissionsCache.has(cacheKey);
   }
 }
-
-//@Injectable({
-//  providedIn: 'root'
-//})
-//export class AuthorizationService {
-//  private apiUrl = `${environment.apiUrl}/authorization`;
-//  private cachedPermissions: Record<string, boolean> = {};
-//  private permissionsCache$ = new BehaviorSubject<string[]>([]);
-//  private isAdmin$ = new BehaviorSubject<boolean>(false);
-//  private permissionsLoaded = false;
-
-//  constructor(
-//    private authService: AuthService,
-//    private http: HttpClient
-//  ) {
-//    // Clear permissions cache when user logs out
-//    this.authService.authStateChange$.subscribe(isLoggedIn => {
-//      if (!isLoggedIn) {
-//        this.cachedPermissions = {};
-//        this.permissionsCache$.next([]);
-//        this.isAdmin$.next(false);
-//        this.permissionsLoaded = false;
-//      } else if (!this.permissionsLoaded) {
-//        // Load permissions when user logs in
-//        this.loadUserPermissions();
-//      }
-//    });
-//  }
-
-//  private loadUserPermissions() {
-//    if (!this.authService.isAuthenticated()) return;
-
-//    this.http.get<{ permissions: string[], isAdmin: boolean }>(`${this.apiUrl}/user-permissions`)
-//      .pipe(
-//        tap(result => {
-//          this.permissionsCache$.next(result.permissions);
-//          this.isAdmin$.next(result.isAdmin);
-//          this.permissionsLoaded = true;
-
-//          // Pre-populate the cache with known permissions
-//          result.permissions.forEach(perm => {
-//            const [moduleRoute, permType] = perm.split(':');
-//            const cacheKey = `${moduleRoute}-${permType}`;
-//            this.cachedPermissions[cacheKey] = true;
-//          });
-//        }),
-//        catchError(error => {
-//          console.error('Failed to load user permissions', error);
-//          return of({ permissions: [], isAdmin: false });
-//        })
-//      )
-//      .subscribe();
-//  }
-
-//  checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
-//    const cacheKey = `${moduleRoute}-${permissionType}`;
-
-//    // Return cached result if available
-//    if (this.cachedPermissions[cacheKey] !== undefined) {
-//      return of(this.cachedPermissions[cacheKey]);
-//    }
-
-//    // For super admin, always allow access
-//    if (this.isAdmin$.getValue()) {
-//      this.cachedPermissions[cacheKey] = true;
-//      return of(true);
-//    }
-
-//    // Check against stored permissions
-//    const permissionKey = `${moduleRoute}:${permissionType}`;
-//    const hasPermission = this.permissionsCache$.getValue().includes(permissionKey);
-
-//    if (hasPermission) {
-//      this.cachedPermissions[cacheKey] = true;
-//      return of(true);
-//    }
-
-//    // If we don't have this permission in our cache and user isn't admin, check server
-//    return this.http.get<boolean>(`${this.apiUrl}/check`, {
-//      params: {
-//        moduleRoute,
-//        permissionType
-//      }
-//    }).pipe(
-//      map(hasPermission => {
-//        this.cachedPermissions[cacheKey] = hasPermission;
-//        return hasPermission;
-//      }),
-//      shareReplay(1),
-//      catchError(error => {
-//        console.warn(`Permission check error for ${moduleRoute}-${permissionType}:`, error);
-//        this.cachedPermissions[cacheKey] = false;
-//        return of(false);
-//      })
-//    );
-//  }
-
-//  hasViewPermission(moduleRoute: string): Observable<boolean> {
-//    return this.checkPermission(moduleRoute, PermissionType.View);
-//  }
-
-//  hasCreatePermission(moduleRoute: string): Observable<boolean> {
-//    return this.checkPermission(moduleRoute, PermissionType.Add);
-//  }
-
-//  hasEditPermission(moduleRoute: string): Observable<boolean> {
-//    return this.checkPermission(moduleRoute, PermissionType.Edit);
-//  }
-
-//  hasDeletePermission(moduleRoute: string): Observable<boolean> {
-//    return this.checkPermission(moduleRoute, PermissionType.Delete);
-//  }
-
-//  clearCache(): void {
-//    this.cachedPermissions = {};
-//    this.permissionsLoaded = false;
-//    this.loadUserPermissions();
-//  }
-
-//  get isAdmin(): boolean {
-//    return this.isAdmin$.getValue();
-//  }
-//}

@@ -1,0 +1,317 @@
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Manage Modules</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a routerLink="/admin/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Modules</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <!-- Alert message if any -->
+    <div *ngIf="message"
+         [ngClass]="['alert', 'alert-dismissible', message.type === 'success' ? 'alert-success' : 'alert-danger']">
+      <button type="button" class="close" (click)="message = null">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5>
+        <i [class]="message.type === 'success' ? 'icon fas fa-check' : 'icon fas fa-ban'"></i>
+        {{ message.type === 'success' ? 'Success!' : 'Error!' }}
+      </h5>
+      {{ message.text }}
+    </div>
+
+    <!-- Module Form Card -->
+    <div class="card card-primary" *appPermission="{ moduleRoute: 'modules', type: PermissionType.AddEdit }">
+      <div class="card-header">
+        <h3 class="card-title">{{ isEditMode ? 'Edit Module' : 'Add New Module' }}</h3>
+      </div>
+      <form [formGroup]="moduleForm" (ngSubmit)="onSubmit()">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="name">Module Name</label>
+                <input type="text"
+                       id="name"
+                       formControlName="name"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': moduleForm.get('name')?.touched && moduleForm.get('name')?.errors}"
+                       placeholder="Enter module name">
+                <span *ngIf="moduleForm.get('name')?.touched && moduleForm.get('name')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('name')?.errors?.['required']">Module name is required</span>
+                  <span *ngIf="moduleForm.get('name')?.errors?.['maxlength']">Module name cannot exceed 100 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="route">Route</label>
+                <input type="text"
+                       id="route"
+                       formControlName="route"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': moduleForm.get('route')?.touched && moduleForm.get('route')?.errors}"
+                       placeholder="Enter route (e.g., 'countries')">
+                <span *ngIf="moduleForm.get('route')?.touched && moduleForm.get('route')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('route')?.errors?.['required']">Route is required</span>
+                  <span *ngIf="moduleForm.get('route')?.errors?.['maxlength']">Route cannot exceed 50 characters</span>
+                  <span *ngIf="moduleForm.get('route')?.errors?.['pattern']">Route must contain only lowercase letters, numbers, and hyphens</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="icon">Icon CSS Class</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-icons"></i></span>
+                  </div>
+                  <input type="text"
+                         id="icon"
+                         formControlName="icon"
+                         class="form-control"
+                         [ngClass]="{'is-invalid': moduleForm.get('icon')?.touched && moduleForm.get('icon')?.errors}"
+                         placeholder="e.g., 'fas fa-users'">
+                </div>
+                <span *ngIf="moduleForm.get('icon')?.touched && moduleForm.get('icon')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('icon')?.errors?.['maxlength']">Icon class cannot exceed 50 characters</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="displayOrder">Display Order</label>
+                <input type="number"
+                       id="displayOrder"
+                       formControlName="displayOrder"
+                       class="form-control"
+                       min="0"
+                       [ngClass]="{'is-invalid': moduleForm.get('displayOrder')?.touched && moduleForm.get('displayOrder')?.errors}">
+                <span *ngIf="moduleForm.get('displayOrder')?.touched && moduleForm.get('displayOrder')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('displayOrder')?.errors?.['required']">Display order is required</span>
+                  <span *ngIf="moduleForm.get('displayOrder')?.errors?.['min']">Display order must be a positive number</span>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch mt-2">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control"
+                          id="description"
+                          formControlName="description"
+                          rows="3"
+                          [ngClass]="{'is-invalid': moduleForm.get('description')?.touched && moduleForm.get('description')?.errors}"
+                          placeholder="Enter module description"></textarea>
+                <span *ngIf="moduleForm.get('description')?.touched && moduleForm.get('description')?.errors"
+                      class="error invalid-feedback">
+                  <span *ngIf="moduleForm.get('description')?.errors?.['maxlength']">Description cannot exceed 500 characters</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button type="submit"
+                  class="btn btn-primary"
+                  [disabled]="moduleForm.invalid || loading"
+                  *appPermission="{ moduleRoute: 'modules', type: PermissionType.AddEdit }">
+            <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
+            {{ isEditMode ? 'Update' : 'Add' }} Module
+          </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+                  *ngIf="isEditMode">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button type="button" class="btn btn-default float-right mr-2" (click)="resetForm()"
+                  *ngIf="!isEditMode && moduleForm.dirty">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Module List Card -->
+    <div class="card" *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
+      <div class="card-header">
+        <h3 class="card-title">Module List</h3>
+        <div class="card-tools">
+          <app-date-range-filter></app-date-range-filter>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Filters Row -->
+        <div class="row mb-3">
+          <!-- Status Filter -->
+          <!--<div class="col-md-3">
+            <div class="form-group">
+              <label>Filter by Status:</label>
+              <select class="form-control" (change)="onStatusFilterChange($event)">
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>-->
+
+          <!-- Search Box -->
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Search:</label>
+              <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Search modules..."
+                       (input)="onSearchChange($event)"
+                       [value]="pageRequest.searchText || ''">
+                <div class="input-group-append">
+                  <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page Size Selector -->
+          <div class="col-md-3">
+            <div class="form-group">
+              <label>Show entries:</label>
+              <select class="form-control" (change)="onPageSizeChange($event)">
+                <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
+                <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
+                <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
+                <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div *ngIf="loading" class="overlay">
+          <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+        </div>
+
+        <!-- No Data Message -->
+        <div *ngIf="modules.length === 0 && !loading" class="alert alert-info">
+          <i class="icon fas fa-info"></i>
+          No modules found. Please add a new module or adjust your search criteria.
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-responsive" *ngIf="modules.length > 0">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th class="sortable" (click)="onSortChange('name')">
+                  Name
+                  <i *ngIf="pageRequest.sortColumn === 'name'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th class="sortable" (click)="onSortChange('route')">
+                  Route
+                  <i *ngIf="pageRequest.sortColumn === 'route'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th class="sortable" (click)="onSortChange('displayOrder')">
+                  Display Order
+                  <i *ngIf="pageRequest.sortColumn === 'displayOrder'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th>Icon</th>
+                <th class="sortable" (click)="onSortChange('isActive')">
+                  Status
+                  <i *ngIf="pageRequest.sortColumn === 'isActive'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th class="sortable" (click)="onSortChange('createdOn')">
+                  Created On
+                  <i *ngIf="pageRequest.sortColumn === 'createdOn'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th *ngIf="authorizationService.hasDeleteOrAddEditPermission('modules')">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!modules || modules.length === 0">
+                <td colspan="6" class="text-center">No records found</td>
+              </tr>
+              <tr *ngFor="let module of modules">
+                <td>{{ module.name }}</td>
+                <td><code>{{ module.route }}</code></td>
+                <td>{{ module.displayOrder }}</td>
+                <td>
+                  <i [class]="module.icon || 'fas fa-cube'" title="{{ module.icon }}"></i>
+                  <small class="text-muted ml-2">{{ module.icon }}</small>
+                </td>
+                <td>
+                  <span [class]="module.isActive ? 'badge badge-success' : 'badge badge-danger'">
+                    {{ module.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td>{{ module.createdOn | date:'medium' }}</td>
+                <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('modules')">
+                  <button class="btn btn-sm btn-info mr-1"
+                          (click)="editModule(module)"
+                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.AddEdit }">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <button class="btn btn-sm btn-danger"
+                          (click)="deleteModule(module.id)"
+                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.Delete }">
+                    <i class="fas fa-trash"></i> Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-3" *ngIf="pagedResponse">
+          <div class="col-sm-12 col-md-5">
+            <div class="dataTables_info">
+              Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
+              to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
+              of {{ pagedResponse.totalCount }} entries
+            </div>
+          </div>
+          <div class="col-sm-12 col-md-7">
+            <div class="dataTables_paginate paging_simple_numbers float-right">
+              <app-pagination *ngIf="pagedResponse.totalPages > 1"
+                              [totalPages]="pagedResponse.totalPages"
+                              [currentPage]="pagedResponse.pageNumber"
+                              (pageChange)="onPageChange($event)">
+              </app-pagination>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -24,7 +24,7 @@ namespace ECommercePlatform.API.Middleware.Authorization
             return Task.CompletedTask;
         }
 
-        private bool IsSuperAdmin(ClaimsPrincipal user)
+        private static bool IsSuperAdmin(ClaimsPrincipal user)
         {
             // Check for SuperAdmin role or claim
             return user.IsInRole("SuperAdmin") ||

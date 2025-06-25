@@ -1,13 +1,14 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Services;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser
 {
-    public class AssignRolesToUserHandler(IUnitOfWork unitOfWork) : IRequestHandler<AssignRolesToUserCommand, AppResult>
+    public class AssignRolesToUserHandler(IUnitOfWork unitOfWork, ISuperAdminService superAdminService) : IRequestHandler<AssignRolesToUserCommand, AppResult>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-
+        private readonly ISuperAdminService _superAdminService = superAdminService;
         public async Task<AppResult> Handle(AssignRolesToUserCommand request, CancellationToken cancellationToken)
         {
             try
@@ -16,6 +17,14 @@ namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUse
                 var user = await _unitOfWork.UserManager.FindByIdAsync(request.UserId.ToString());
                 if (user == null)
                     return AppResult.Failure($"User with ID {request.UserId} not found.");
+
+                // Check if this is a super admin user
+                bool isSuperAdmin = _superAdminService.IsSuperAdminEmail(user.Email);
+
+                // Prevent removing all roles from a super admin
+                if (isSuperAdmin && request.RoleIds.Count == 0)
+                    return AppResult.Failure($"Cannot remove all roles from a super admin user.");
+
 
                 // Get current roles
                 var currentRoles = await _unitOfWork.UserManager.GetRolesAsync(user);

@@ -23,16 +23,16 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Create
                 .Must(route => RouteRegex.IsMatch(route))
                     .WithMessage("Route must be URL-friendly (lowercase letters, numbers, and hyphens only).");
 
-            RuleFor(x => x.Description)
+            RuleFor(x => x.Description!.Trim())
                 .MaximumLength(500).WithMessage("Description must not exceed 500 characters.")
                 .When(x => !string.IsNullOrEmpty(x.Description));
 
-            RuleFor(x => x.Icon)
+            RuleFor(x => x.Icon!.Trim())
                 .MaximumLength(100).WithMessage("Icon class must not exceed 100 characters.")
                 .When(x => !string.IsNullOrEmpty(x.Icon));
 
             RuleFor(x => x.DisplayOrder)
-                .GreaterThanOrEqualTo(0).WithMessage("Display order must be a non-negative number.");
+                .GreaterThanOrEqualTo(1).WithMessage("Display order must be a non-negative number except 0.");
         }
     }
 }

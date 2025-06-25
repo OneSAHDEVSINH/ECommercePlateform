@@ -351,7 +351,7 @@
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
-                <th>Actions</th>
+                <th *ngIf="authorizationService.hasDeleteOrAddEditPermission('users')">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -369,7 +369,7 @@
                   </span>
                 </td>
                 <td>{{ user.createdOn | date:'medium' }} </td>
-                <td>
+                <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('users')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editUser(user)"
                           *appPermission="{ moduleRoute: 'users', type: PermissionType.AddEdit }">
                     <i class="fas fa-edit"></i> Edit

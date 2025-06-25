@@ -69,7 +69,9 @@ export class AuthService {
             isActive: response.user.isActive !== undefined ? response.user.isActive : true, // Fix here
             phoneNumber: response.user.phoneNumber,
             bio: response.user.bio,
-            createdOn: response.user.createdOn
+            createdOn: response.user.createdOn,
+            // Parse and store claims from token
+            claims: this.parseClaimsFromToken(response.token)
           };
 
           // Store user and permissions
@@ -91,6 +93,28 @@ export class AuthService {
           } as LoginResponse;
         })
       );
+  }
+
+  private parseClaimsFromToken(token: string): any[] {
+    try {
+      const decodedToken: any = jwtDecode(token);
+
+      // Convert JWT claims to claim objects
+      const claims = [];
+      for (const key in decodedToken) {
+        if (key !== 'exp' && key !== 'iat' && key !== 'nbf' && key !== 'iss' && key !== 'aud') {
+          claims.push({
+            type: key,
+            value: decodedToken[key]
+          });
+        }
+      }
+
+      return claims;
+    } catch (error) {
+      console.error('Error parsing JWT claims:', error);
+      return [];
+    }
   }
 
   logout(): void {
@@ -125,249 +149,51 @@ export class AuthService {
     }
   }
 
-  hasAnyRole(): boolean {
-    const user = this.currentUserSubject.value;
-    return !!(user?.roles && user.roles.length > 0);
+  isSuperAdmin(): boolean {
+    const currentUser = this.currentUserSubject.getValue();
+    if (!currentUser) return false;
+
+    // Method 1: Check SuperAdmin claim from JWT
+    const isSuperAdminClaim = currentUser.claims?.some(
+      claim => claim.type === 'SuperAdmin' && claim.value === 'true'
+    ) ?? false;
+
+    // Method 2: Check email (fallback approach)
+    const isSuperAdminEmail =
+      typeof currentUser.email === 'string' &&
+      currentUser.email.toLowerCase() === 'admin@admin.com';
+
+    // Either method confirms SuperAdmin status
+    return isSuperAdminClaim || isSuperAdminEmail;
   }
 
-  isSuperAdmin(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
+  hasAnyRole(): boolean {
+    const currentUser = this.currentUserSubject.value;
+    // If no user is logged in, return false
+    if (!currentUser) return false;
 
-    try {
-      const decodedToken: any = jwtDecode(token);
-      return decodedToken.SuperAdmin === 'true' ||
-        decodedToken.role === 'SuperAdmin';
-    } catch {
-      return false;
-    }
+    // If user is SuperAdmin, they can continue regardless of roles
+    if (this.isSuperAdmin()) return true;
+
+    // For regular users, check if they have any roles
+    return !!(currentUser.roles && currentUser.roles.length > 0);
   }
 
   getUserPermissions(): UserPermissionDto[] {
     return this.permissionsSubject.value;
   }
+
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.getValue();
+  }
+
+  updatePermissionsData(permissions: UserPermissionDto[]): void {
+    // Update permissions in memory
+    this.permissionsSubject.next(permissions);
+
+    // Update permissions in localStorage
+    localStorage.setItem('userPermissions', JSON.stringify(permissions));
+
+    console.log('Permissions updated:', permissions.length);
+  }
 }
-
-//@Injectable({
-//  providedIn: 'root'
-//})
-//export class AuthService {
-//  private currentUserSubject = new BehaviorSubject<User | null>(null);
-//  public currentUser$ = this.currentUserSubject.asObservable();
-
-//  // Authentication state change subject
-//  private authStateChangeSubject = new BehaviorSubject<boolean>(false);
-//  public authStateChange$ = this.authStateChangeSubject.asObservable();
-
-//  private apiUrl = environment.apiUrl;
-//  //private apiUrl = '/Auth';
-//  //private apiUrl = 'https://localhost:44362/Auth';
-
-
-//  // Development mode flag - REMOVE IN PRODUCTION
-//  private devMode = false;
-
-//  constructor(private http: HttpClient) {
-//    // Check if user is already logged in on initialization
-//    this.loadCurrentUser();
-
-//    // Auto-login for development - REMOVE IN PRODUCTION
-//    if (this.devMode && !this.currentUserSubject.value) {
-//      this.simulateLogin();
-//    }
-//  }
-
-//  // Development only - REMOVE IN PRODUCTION
-//  private simulateLogin(): void {
-//    const mockUser: User = {
-//      id: '1',
-//      firstName: 'Admin',
-//      lastName: 'User',
-//      email: 'admin@admin.com',
-//      //role: UserRole.Admin,
-//      roles: [{ name: 'Admin' } as Role],
-//      isActive: true
-//    };
-
-//    localStorage.setItem('token', 'fake-jwt-token');
-//    localStorage.setItem('currentUser', JSON.stringify(mockUser));
-//    this.currentUserSubject.next(mockUser);
-//    this.authStateChangeSubject.next(true);
-//    console.warn('DEV MODE: Auto-login enabled. Remove before production!');
-//  }
-
-//  login(credentials: LoginRequest): Observable<LoginResponse> {
-//    // For development - REMOVE IN PRODUCTION
-//    if (this.devMode) {
-//      const mockUser: User = {
-//        id: '1',
-//        firstName: 'Admin',
-//        lastName: 'User',
-//        email: credentials.email,
-//        //role: UserRole.Admin,
-//        roles: [{ name: 'Admin' } as Role],
-//        isActive: true
-//      };
-
-//      const response: LoginResponse = {
-//        token: 'fake-jwt-token',
-//        user: mockUser
-//      };
-
-//      localStorage.setItem('token', response.token);
-//      localStorage.setItem('currentUser', JSON.stringify(response.user));
-//      this.currentUserSubject.next(response.user);
-//      this.authStateChangeSubject.next(true);
-//      return of(response);
-//    }
-
-
-//    // Real implementation for production
-//    return this.http.post<LoginResponse>(`${this.apiUrl}/Auth/login`, credentials)
-//      .pipe(
-//        tap(response => {
-//          console.log('Raw API response:', response);
-
-//          // Store token in local storage
-//          localStorage.setItem('token', response.token);
-
-//          // Check if user data exists in the response
-//          if (response.user) {
-//            // Create a properly formatted user object
-//            const user: User = {
-//              id: response.user.id,
-//              firstName: response.user.firstName || '',
-//              lastName: response.user.lastName || '',
-//              email: response.user.email || '',
-//              roles: response.user.roles || [],
-//              isActive: response.user.isActive || true
-//            };
-
-//            // Store user data
-//            localStorage.setItem('currentUser', JSON.stringify(response.user));
-
-//            // Update current user subject
-//            this.currentUserSubject.next(user);
-//            this.authStateChangeSubject.next(true);
-//          } else {
-//            // Extract user info from the JWT token
-//            try {
-//              const decodedToken: any = jwtDecode(response.token);
-
-//              // Create a minimal user object from token claims
-//              const userFromToken: User = {
-//                id: decodedToken.nameid || '',
-//                email: decodedToken.email || '',
-//                firstName: '',
-//                lastName: '',
-//                roles: [{ name: decodedToken.role }],
-//                isActive: true
-//              };
-
-//              // Store and use this user data
-//              localStorage.setItem('currentUser', JSON.stringify(userFromToken));
-//              this.currentUserSubject.next(userFromToken);
-//              this.authStateChangeSubject.next(true);
-//            } catch (error) {
-//              console.error('Error decoding JWT token:', error);
-//              // Re-throw to trigger error handler
-//              throw new Error('Unable to retrieve user information');
-//            }
-//          }
-//        })
-//      );
-//  }
-
-//  logout(): void {
-//    // Remove token and user data from local storage
-//    localStorage.removeItem('token');
-//    localStorage.removeItem('currentUser');
-
-//    // Update current user subject
-//    this.currentUserSubject.next(null);
-//    this.authStateChangeSubject.next(false);
-//  }
-
-//  private loadCurrentUser(): void {
-//    const userJson = localStorage.getItem('currentUser');
-//    if (userJson) {
-//      const user = JSON.parse(userJson) as User;
-//      this.currentUserSubject.next(user);
-//      this.authStateChangeSubject.next(true);
-//    } else {
-//      this.authStateChangeSubject.next(false);
-//    }
-//  }
-
-//  getToken(): string | null {
-//    return localStorage.getItem('token');
-//  }
-
-//  isAuthenticated(): boolean {
-//    return !!this.getToken();
-//  }
-
-//  isAdmin(): boolean {
-//    const user = this.currentUserSubject.value;
-//    if (!user || !user.roles) return false;
-
-//    // Check if user has the Admin role
-//    return user.roles.some((role: Role) => role.name === 'Admin');
-//  }
-
-//  isSuperAdmin(): boolean {
-//    // First check if user is admin at all
-//    if (!this.isAdmin()) return false;
-
-//    // Then check for SuperAdmin claim in the token
-//    const token = this.getToken();
-//    if (!token) return false;
-
-//    try {
-//      const decodedToken: any = jwtDecode(token);
-//      return decodedToken.SuperAdmin === 'true';
-//    } catch (error) {
-//      console.error('Error decoding JWT token:', error);
-//      return false;
-//    }
-//  }
-
-//  // Check if user has permission
-//  hasPermission(moduleRoute: string, permissionType: PermissionType): boolean {
-//    // This is a placeholder. Implement your actual permission check logic
-//    // For now, returning true to make development easier
-//    return true;
-//  }
-
-//  // Get users with paging (or use a separate UserService)
-//  getUsers(pageRequest: PagedRequest): Observable<PagedResponse<User>> {
-//    return this.http.get<PagedResponse<User>>(`${this.apiUrl}/users`, {
-//      params: { ...pageRequest as any }
-//    });
-//  }
-
-//  // Create user
-//  createUser(userData: User): Observable<User> {
-//    return this.http.post<User>(`${this.apiUrl}/users`, userData);
-//  }
-
-//  // Update user
-//  updateUser(userId: string, userData: User): Observable<void> {
-//    return this.http.put<void>(`${this.apiUrl}/users/${userId}`, userData);
-//  }
-
-//  // Delete user
-//  deleteUser(userId: string): Observable<void> {
-//    return this.http.delete<void>(`${this.apiUrl}/users/${userId}`);
-//  }
-
-//  // Development mode methods
-//  enableDevMode(enable: boolean): void {
-//    this.devMode = enable;
-//    console.log(`Dev mode ${enable ? 'enabled' : 'disabled'}`);
-//  }
-
-//  isDevMode(): boolean {
-//    return this.devMode;
-//  }
-//}

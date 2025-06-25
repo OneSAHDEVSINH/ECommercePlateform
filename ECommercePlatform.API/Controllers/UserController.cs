@@ -5,10 +5,8 @@ using ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser;
 using ECommercePlatform.Application.Features.Users.Commands.ChangePassword;
 using ECommercePlatform.Application.Features.Users.Commands.Create;
 using ECommercePlatform.Application.Features.Users.Commands.Delete;
-using ECommercePlatform.Application.Features.Users.Commands.RemoveAvatar;
 using ECommercePlatform.Application.Features.Users.Commands.Update;
 using ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile;
-using ECommercePlatform.Application.Features.Users.Commands.UploadAvatar;
 using ECommercePlatform.Application.Features.Users.Queries.GetAllUsers;
 using ECommercePlatform.Application.Features.Users.Queries.GetCurrentUserProfile;
 using ECommercePlatform.Application.Features.Users.Queries.GetPagedUsers;
@@ -19,7 +17,6 @@ using ECommercePlatform.Application.Features.Users.Queries.GetUserWithRoles;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 

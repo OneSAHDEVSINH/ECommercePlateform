@@ -9,7 +9,6 @@ import { CountryService } from '../../services/country/country.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { MessageService, Message } from '../../services/general/message.service';
 import { Subscription } from 'rxjs';
-import { NavbarComponent } from '../navbar/navbar.component';
 import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
@@ -268,27 +267,6 @@ export class StateComponent implements OnInit, OnDestroy {
     this.selectedCountryId = countryId;
     this.pageRequest.pageNumber = 1; // Reset to first page when changing filter
     this.loadStates(); // Use the main loadStates method which supports pagination and search
-    //if (!countryId || countryId === 'all') {
-    //  this.loadStates();
-    //  return;
-    //}
-
-    //this.loading = true;
-    //this.stateService.getStatesByCountry(countryId).subscribe({
-    //  next: (states) => {
-    //    this.states = states;
-    //    this.loading = false;
-    //  },
-    //  error: (error) => {
-    //    console.error('Error loading states by country:', error);
-    //    const errorMessage = error.error?.message ||
-    //      error.error?.title ||
-    //      error.message ||
-    //      'Failed to load states for the selected country';
-    //    this.messageService.showMessage({ type: 'error', text: errorMessage });
-    //    this.loading = false;
-    //  }
-    //});
   }
 
   // Helper method to get user identifier for creation/modification tracking

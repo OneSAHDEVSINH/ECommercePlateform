@@ -7,7 +7,6 @@ import { CountryService } from '../../services/country/country.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { MessageService, Message } from '../../services/general/message.service';
 import { Subscription } from 'rxjs';
-import { NavbarComponent } from "../navbar/navbar.component";
 import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';

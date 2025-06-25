@@ -44,6 +44,7 @@ export class UserComponent implements OnInit, OnDestroy {
 
   // Selected roles for the user being edited/created
   selectedRoles: string[] = [];
+  selectedRoleId: string = 'all';
 
   // Make Math available to template
   Math = Math;
@@ -132,16 +133,26 @@ export class UserComponent implements OnInit, OnDestroy {
   loadUsers(): void {
     this.loading = true;
 
-    // Create a copy of the request with an additional parameter
+    // Create a copy of the request with additional parameters
     const request = {
       ...this.pageRequest,
       includeRoles: true
     };
 
-    this.userService.getPagedUsers(request).subscribe({
+    this.userService.getPagedUsers(
+      request,
+      this.selectedRoleId !== 'all' ? this.selectedRoleId : undefined
+    ).subscribe({
       next: (response) => {
         this.pagedResponse = response;
-        this.users = response.items;
+        // Filter out ONLY the default SuperAdmin by email, not all SuperAdmin role users
+        if (!this.authorizationService.isAdmin()) {
+          this.users = response.items.filter(user =>
+            user.email?.toLowerCase() !== 'admin@admin.com'
+          );
+        } else {
+          this.users = response.items;
+        }
         this.loading = false;
       },
       error: (error) => {
@@ -378,7 +389,7 @@ export class UserComponent implements OnInit, OnDestroy {
   // Filter methods
   onRoleFilterChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
-    const roleId = selectElement.value;
+    this.selectedRoleId = selectElement.value;
 
     // Reset to first page when filter changes
     this.pageRequest.pageNumber = 1;
@@ -402,5 +413,10 @@ export class UserComponent implements OnInit, OnDestroy {
   onSearchChange(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.listService.search(target.value);
+  }
+
+  // Helper method to identify SuperAdmin by email
+  private isSuperAdminEmail(email: string | undefined): boolean {
+    return email === 'admin@admin.com'; // Match this with your SuperAdmin email
   }
 }

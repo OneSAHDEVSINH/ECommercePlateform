@@ -9,9 +9,10 @@ import { CountryComponent } from './country/country.component';
 import { StateComponent } from './state/state.component';
 import { CityComponent } from './city/city.component';
 import { AdminLayoutComponent } from '../shared/admin-layout/admin-layout.component';
-import { RoleManagementComponent } from './role-management/role-management.component';
+import { RoleComponent } from './role/role.component';
 import { UserComponent } from './user/user.component';
 import { AccessDeniedComponent } from '../shared/access-denied.component';
+import { ModuleComponent } from './module/module.component';
 
 @NgModule({
   imports: [
@@ -27,8 +28,9 @@ import { AccessDeniedComponent } from '../shared/access-denied.component';
     CityComponent,
     AdminLayoutComponent,
     UserComponent,
-    RoleManagementComponent,
-    AccessDeniedComponent
+    RoleComponent,
+    AccessDeniedComponent,
+    ModuleComponent
   ]
 })
 export class AdminModule { }

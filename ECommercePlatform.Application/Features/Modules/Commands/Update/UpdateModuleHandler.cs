@@ -34,6 +34,14 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                         return AppResult<ModuleDto>.Failure(routeResult.Error);
                 }
 
+                // Validate icon uniqueness if icon is being updated
+                if (!string.IsNullOrEmpty(request.Icon) && request.Icon != module.Icon)
+                {
+                    var iconResult = await _unitOfWork.Modules.EnsureIconIsUniqueAsync(request.Icon, request.Id);
+                    if (iconResult.IsFailure)
+                        return AppResult<ModuleDto>.Failure(iconResult.Error);
+                }
+
                 // Update module properties
                 module.Update(
                     request.Name ?? module.Name ?? string.Empty,

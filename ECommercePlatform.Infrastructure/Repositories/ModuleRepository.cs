@@ -11,40 +11,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
 {
     public class ModuleRepository(AppDbContext context) : GenericRepository<Module>(context), IModuleRepository
     {
-        public async Task<bool> IsNameUniqueAsync(string name)
-        {
-            return !await _context.Modules
-                .AnyAsync(m => m.Name != null &&
-                              m.Name.ToLower().Trim() == name.ToLower().Trim() &&
-                              !m.IsDeleted);
-        }
-
-        public async Task<bool> IsNameUniqueAsync(string name, Guid excludeId)
-        {
-            return !await _context.Modules
-                .AnyAsync(m => m.Name != null &&
-                              m.Name.ToLower().Trim() == name.ToLower().Trim() &&
-                              m.Id != excludeId &&
-                              !m.IsDeleted);
-        }
-
-        public async Task<bool> IsRouteUniqueAsync(string route)
-        {
-            return !await _context.Modules
-                .AnyAsync(m => m.Route != null &&
-                              m.Route.ToLower().Trim() == route.ToLower().Trim() &&
-                              !m.IsDeleted);
-        }
-
-        public async Task<bool> IsRouteUniqueAsync(string route, Guid excludeId)
-        {
-            return !await _context.Modules
-                .AnyAsync(m => m.Route != null &&
-                              m.Route.ToLower().Trim() == route.ToLower().Trim() &&
-                              m.Id != excludeId &&
-                              !m.IsDeleted);
-        }
-
         public new async Task<Module?> GetByIdAsync(Guid id)
         {
             return await _context.Modules
@@ -78,16 +44,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .FirstOrDefaultAsync(m => m.Route != null &&
                                          m.Route.ToLower() == route.ToLower() &&
                                          !m.IsDeleted);
-        }
-
-        public async Task<bool> AnyAsync(Expression<Func<Module, bool>> predicate)
-        {
-            return await _context.Modules.AnyAsync(predicate);
-        }
-
-        public IQueryable<Module> AsQueryable()
-        {
-            return _context.Modules.AsQueryable();
         }
 
         // Combined validation method for name uniqueness
@@ -143,6 +99,34 @@ namespace ECommercePlatform.Infrastructure.Repositories
                     return exists
                         ? Result.Failure<string>($"Module with route \"{route}\" already exists.")
                         : Result.Success(normalizedRoute);
+                });
+        }
+
+        // Combined validation method for route uniqueness
+        public Task<Result<string>> EnsureIconIsUniqueAsync(string icon, Guid? excludeId = null)
+        {
+            return Result.Success(icon)
+                // Validate route is not empty
+                .Ensure(r => !string.IsNullOrEmpty(r?.Trim()), "Module Icon cannot be null or empty.")
+                // Normalize the input
+                .Map(r => r.Trim().ToLower())
+                // Check uniqueness against database
+                .Bind(async normalizedIcon =>
+                {
+                    var query = _context.Modules.Where(m =>
+                        m.Icon != null &&
+                        m.Icon.ToLower().Trim() == normalizedIcon &&
+                        !m.IsDeleted);
+
+                    // Apply ID exclusion if provided
+                    if (excludeId.HasValue)
+                        query = query.Where(m => m.Id != excludeId.Value);
+
+                    var exists = await query.AnyAsync();
+
+                    return exists
+                        ? Result.Failure<string>($"Module with icon \"{icon}\" already exists.")
+                        : Result.Success(normalizedIcon);
                 });
         }
 

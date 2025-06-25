@@ -11,23 +11,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
 {
     public class RoleRepository(AppDbContext context) : GenericRepository<Role>(context), IRoleRepository
     {
-        public async Task<bool> IsNameUniqueAsync(string name)
-        {
-            return !await _context.Roles
-                .AnyAsync(r => r.Name != null &&
-                               r.Name.ToLower().Trim() == name.ToLower().Trim() &&
-                               !r.IsDeleted);
-        }
-
-        public async Task<bool> IsNameUniqueAsync(string name, Guid excludeId)
-        {
-            return !await _context.Roles
-                .AnyAsync(r => r.Name != null &&
-                               r.Name.ToLower().Trim() == name.ToLower().Trim() &&
-                               r.Id != excludeId &&
-                               !r.IsDeleted);
-        }
-
         public new async Task<Role?> GetByIdAsync(Guid id)
         {
             return await _context.Roles
@@ -52,11 +35,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> AnyAsync(Expression<Func<Role, bool>> predicate)
-        {
-            return await _context.Roles.AnyAsync(predicate);
-        }
-
         public IQueryable<Role> AsQueryable()
         {
             return _context.Roles.AsQueryable();
@@ -67,14 +45,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return await _context.Roles
                 .Include(r => r.RolePermissions)
                     .ThenInclude(rp => rp.Module)
-                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
-        }
-
-        public async Task<Role?> GetRoleWithUsersAsync(Guid id)
-        {
-            return await _context.Roles
-                .Include(r => r.UserRoles)
-                    .ThenInclude(ur => ur.User)
                 .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
         }
 

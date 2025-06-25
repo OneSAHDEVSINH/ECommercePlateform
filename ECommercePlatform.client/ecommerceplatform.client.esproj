@@ -12,7 +12,6 @@
     <TypeScriptConfiguration Remove="src\app\services\ser\**" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="src\app\admin\shared\" />
     <Folder Include="src\app\Pipes\" />
   </ItemGroup>
 </Project>

@@ -45,7 +45,7 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
-                    
+
                     IsActive = user.IsActive,
                     PhoneNumber = user.PhoneNumber,
                     Gender = user.Gender,

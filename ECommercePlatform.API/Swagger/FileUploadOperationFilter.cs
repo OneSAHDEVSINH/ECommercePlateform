@@ -1,9 +1,6 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace ECommercePlatform.API.Swagger
 {

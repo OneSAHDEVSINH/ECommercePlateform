@@ -171,7 +171,7 @@
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
-                <th>Actions</th>
+                <th *ngIf="authorizationService.hasDeleteOrAddEditPermission('countries')">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -179,7 +179,7 @@
                 <td>{{ country.name }}</td>
                 <td>{{ country.code }}</td>
                 <td>{{ country.createdOn | date:'medium' }}</td>
-                <td>
+                <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('countries')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editCountry(country)"
                           *appPermission="{ moduleRoute: 'countries', type: PermissionType.AddEdit }">
                     <i class="fas fa-edit"></i> Edit
@@ -217,164 +217,3 @@
     </div>
   </div>
 </section>
-
-
-
-
-
-<!--<head>
-  <meta name="description" content="Admin Country CRUD">
-</head>
-
-<div class="admin-container">-->
-<!--<app-navbar></app-navbar>-->
-<!-- Main content area -->
-<!--<main class="main-content">-->
-<!-- Top navigation bar -->
-<!--<header class="topbar">
-  <div class="topbar-title">
-    <h2>Manage Countries</h2>
-  </div>
-</header>-->
-<!-- Content area -->
-<!--<div class="content">-->
-<!-- Alert message if any -->
-<!--<div *ngIf="message" [ngClass]="['alert', message.type === 'success' ? 'alert-success' : 'alert-danger']">
-  {{ message.text }}
-  <button class="alert-close" (click)="message = null">&times;</button>
-</div>-->
-<!-- Country Form -->
-<!--<div class="form-container">
-  <h3>{{ isEditMode ? 'Edit Country' : 'Add New Country' }}</h3>
-
-  <form [formGroup]="countryForm" (ngSubmit)="onSubmit()" class="data-form">
-    <div class="form-group">
-      <label for="name">Country Name</label>
-      <input
-        type="text"
-        id="name"
-        formControlName="name"
-        class="form-control"
-        [ngClass]="{'is-invalid': countryForm.get('name')?.touched && countryForm.get('name')?.errors}"
-      >
-      <div *ngIf="countryForm.get('name')?.touched && countryForm.get('name')?.errors" class="error-message">
-        <div *ngIf="countryForm.get('name')?.errors?.['required']">Country name is required</div>
-        <div *ngIf="countryForm.get('name')?.errors?.['maxlength']">Country name must be less than 100 characters</div>
-        <div *ngIf="countryForm.get('name')?.errors?.['whitespace']">Country name cannot contain only whitespace</div>
-        <div *ngIf="countryForm.get('name')?.errors?.['lettersOnly']">Country name can only contain letters and spaces</div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="code">Country Code</label>
-      <input
-        type="text"
-        id="code"
-        formControlName="code"
-        class="form-control"
-        [ngClass]="{'is-invalid': countryForm.get('code')?.touched && countryForm.get('code')?.errors}"
-      >
-      <div *ngIf="countryForm.get('code')?.touched && countryForm.get('code')?.errors" class="error-message">
-        <div *ngIf="countryForm.get('code')?.errors?.['required']">Country code is required</div>
-        <div *ngIf="countryForm.get('code')?.errors?.['maxlength']">Country code must be less than 10 characters</div>
-        <div *ngIf="countryForm.get('code')?.errors?.['whitespace']">Country code cannot contain only whitespace</div>
-        <div *ngIf="countryForm.get('code')?.errors?.['lettersOnly']">Country code can only contain letters and spaces</div>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" class="btn-primary" [disabled]="countryForm.invalid || loading">
-        {{ isEditMode ? 'Update' : 'Add' }} Country
-      </button>
-      <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="isEditMode">Cancel</button>
-        <button type="button" class="btn-secondary" (click)="resetForm()" *ngIf="!isEditMode && (countryForm.get('name')?.touched || countryForm.get('code')?.touched)">Reset</button>
-    </div>
-  </form>
-</div>-->
-<!-- Countries list -->
-<!--<div class="table-container">
-  <h3>Countries List</h3>-->
-<!-- Search and filter controls -->
-<!--<div class="list-controls">-->
-<!-- Add Date Range Filter -->
-<!--<app-date-range-filter></app-date-range-filter>
-
-  <div class="search-box">
-    <input type="text"
-           placeholder="Search countries..."
-           (input)="onSearch($event)"
-           [value]="pageRequest.searchText || ''"
-           class="search-input">
-    <i class="search-icon">🔍</i>
-  </div>
-
-  <div class="page-size-selector">
-    Show
-    <select (change)="onPageSizeChange($event)">
-      <option [value]="10" [selected]="pageRequest.pageSize === 10">10</option>
-      <option [value]="25" [selected]="pageRequest.pageSize === 25">25</option>
-      <option [value]="50" [selected]="pageRequest.pageSize === 50">50</option>
-      <option [value]="100" [selected]="pageRequest.pageSize === 100">100</option>
-    </select>
-    entries
-  </div>
-</div>
-
-<div *ngIf="loading" class="loading-indicator">Loading...</div>
-
-<div *ngIf="countries.length === 0 && !loading" class="no-data">
-  No countries found. Please add a new country or adjust your search criteria.
-</div>
-
-<table *ngIf="countries.length > 0" class="data-table">
-  <thead>
-    <tr>
-      <th (click)="onSortChange('name')" class="sortable">
-        Name
-        <span *ngIf="pageRequest.sortColumn === 'name'" class="sort-indicator">
-          {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
-        </span>
-      </th>
-      <th (click)="onSortChange('code')" class="sortable">
-        Code
-        <span *ngIf="pageRequest.sortColumn === 'code'" class="sort-indicator">
-          {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
-        </span>
-      </th>
-      <th (click)="onSortChange('createdOn')" class="sortable">
-        Created On
-        <span *ngIf="pageRequest.sortColumn === 'createdOn'" class="sort-indicator">
-          {{ pageRequest.sortDirection === 'asc' ? '⇧' : '⇩' }}
-        </span>
-      </th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let country of countries">
-      <td>{{ country.name }}</td>
-      <td>{{ country.code }}</td>
-      <td>{{ country.createdOn | date:'medium' }}</td>
-      <td class="actions">
-        <button class="btn-edit" (click)="editCountry(country)">Edit</button>
-        <button class="btn-delete" (click)="deleteCountry(country.id!)">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>-->
-<!-- Pagination component -->
-<!--<app-pagination *ngIf="pagedResponse && pagedResponse.totalPages > 1"
-                [totalPages]="pagedResponse.totalPages"
-                [currentPage]="pagedResponse.pageNumber"
-                (pageChange)="onPageChange($event)">
-</app-pagination>-->
-<!-- Pagination info -->
-<!--<div *ngIf="pagedResponse && countries.length > 0" class="pagination-info">
-          Showing {{ (pagedResponse.pageNumber - 1) * pagedResponse.pageSize + 1 }}
-          to {{ Math.min(pagedResponse.pageNumber * pagedResponse.pageSize, pagedResponse.totalCount) }}
-          of {{ pagedResponse.totalCount }} entries
-        </div>
-      </div>
-    </div>
-  </main>
-</div>-->

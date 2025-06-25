@@ -11,7 +11,6 @@ import { CountryService } from '../../services/country/country.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { MessageService, Message } from '../../services/general/message.service';
 import { Subscription } from 'rxjs';
-import { NavbarComponent } from "../navbar/navbar.component";
 import { CustomValidatorsService } from '../../services/custom-validators/custom-validators.service';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
@@ -415,27 +414,6 @@ export class CityComponent implements OnInit, OnDestroy {
     this.selectedStateId = stateId;
     this.pageRequest.pageNumber = 1; // Reset to first page when filter changes
     this.loadCities();
-    //if (!stateId || stateId === 'all') {
-    //  this.loadCities();
-    //  return;
-    //}
-
-    //this.loading = true;
-    //this.cityService.getCitiesByState(stateId).subscribe({
-    //  next: (cities) => {
-    //    this.cities = cities;
-    //    this.loading = false;
-    //  },
-    //  error: (error) => {
-    //    console.error('Error loading cities by state:', error);
-    //    const errorMessage = error.error?.message ||
-    //      error.error?.title ||
-    //      error.message ||
-    //      'Failed to load cities for the selected state';
-    //    this.messageService.showMessage({ type: 'error', text: errorMessage });
-    //    this.loading = false;
-    //  }
-    //});
   }
 
   onCountryChange(event: Event): void {

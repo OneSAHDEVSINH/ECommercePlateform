@@ -76,8 +76,6 @@ export class PermissionDirective implements OnInit, OnDestroy {
   private permissionTypeToString(type: PermissionType): string {
     switch (type) {
       case PermissionType.View: return 'View';
-      //case PermissionType.Add: return 'Add';
-      //case PermissionType.Edit: return 'Edit';
       case PermissionType.AddEdit: return 'AddEdit';
       case PermissionType.Delete: return 'Delete';
       default: return 'access';

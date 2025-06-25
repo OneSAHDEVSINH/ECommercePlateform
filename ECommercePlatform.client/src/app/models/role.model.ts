@@ -25,8 +25,6 @@ export interface Permission {
 
 export enum PermissionType {
   View = 'View',
-  //Add = 'Add',
-  //Edit = 'Edit',
   AddEdit = 'AddEdit',
   Delete = 'Delete'
 }
@@ -47,8 +45,6 @@ export interface ModulePermission {
   moduleId: string;
   moduleName: string;
   canView: boolean;
-  //canCreate: boolean;
-  //canEdit: boolean;
   canAddEdit: boolean;
   canDelete: boolean;
 }

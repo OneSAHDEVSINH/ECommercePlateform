@@ -10,20 +10,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
 {
     public class StateRepository(AppDbContext context) : GenericRepository<State>(context), IStateRepository
     {
-        public async Task<bool> AnyAsync(Expression<Func<Country, bool>> predicate)
-        {
-            return await _context.Countries.AnyAsync(predicate);
-        }
-
-        public async Task<IReadOnlyList<State>> GetActiveStatesAsync()
-        {
-            return await _context.States
-                .Where(s => s.IsActive && !s.IsDeleted)
-                .OrderBy(s => s.Name)
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
         public async Task<IReadOnlyList<State>> GetStatesByCountryIdAsync(Guid countryId)
         {
             return await _context.States
@@ -32,54 +18,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .OrderBy(s => s.Name)
                 .AsNoTracking()
                 .ToListAsync();
-        }
-
-        public async Task<State> GetStateWithCitiesAsync(Guid id)
-        {
-            var state = await _context.States
-                .Include(s => s.Cities!.Where(c => c.IsActive && !c.IsDeleted))
-                .FirstOrDefaultAsync(s => s.Id == id)
-                ?? throw new KeyNotFoundException($"State with ID {id} not found.");
-
-            return state!;
-        }
-
-        public async Task<bool> IsNameUniqueInCountryAsync(string name, Guid countryId)
-        {
-            return !await _context.States
-                .AnyAsync(s => s.Name != null &&
-                s.Name.ToLower().Trim() == name.ToLower().Trim() &&
-                s.CountryId == countryId &&
-                !s.IsDeleted);
-        }
-
-        public async Task<bool> IsCodeUniqueInCountryAsync(string code, Guid countryId)
-        {
-            return !await _context.States
-                .AnyAsync(s => s.Code != null &&
-                s.Code.ToLower().Trim() == code.ToLower().Trim() &&
-                s.CountryId == countryId &&
-                !s.IsDeleted);
-        }
-
-        public async Task<bool> IsNameUniqueInCountryAsync(string name, Guid countryId, Guid excludeId)
-        {
-            return !await _context.States
-                .AnyAsync(s => s.Name != null &&
-                s.Name.ToLower().Trim() == name.ToLower().Trim() &&
-                s.CountryId == countryId &&
-                s.Id != excludeId &&
-                !s.IsDeleted);
-        }
-
-        public async Task<bool> IsCodeUniqueInCountryAsync(string code, Guid countryId, Guid excludeId)
-        {
-            return !await _context.States
-                .AnyAsync(s => s.Code != null &&
-                s.Code.ToLower().Trim() == code.ToLower().Trim() &&
-                s.CountryId == countryId &&
-                s.Id != excludeId &&
-                !s.IsDeleted);
         }
 
         // Combined implementation with optional excludeId parameter

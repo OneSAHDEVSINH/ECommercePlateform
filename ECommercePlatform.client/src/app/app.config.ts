@@ -6,6 +6,7 @@ import { routes } from './app.routes';
 import { GlobalErrorHandler } from './services/error-handler.service';
 import { NavigationErrorHandlerService } from './services/navigation-error-handler.service';
 import { errorInterceptor } from './services/general/http-error.interceptor';
+import { PermissionRefreshService } from './services/general/permission-refresh.service'
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,6 +25,7 @@ export const appConfig: ApplicationConfig = {
         return next(req);
       }
     ])),
+    PermissionRefreshService,
     provideAnimations(),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     {

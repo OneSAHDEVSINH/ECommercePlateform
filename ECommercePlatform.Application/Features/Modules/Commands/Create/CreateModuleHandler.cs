@@ -23,6 +23,11 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Create
                 if (routeResult.IsFailure)
                     return AppResult<ModuleDto>.Failure(routeResult.Error);
 
+                // Validate icon uniqueness
+                var iconResult = await _unitOfWork.Modules.EnsureIconIsUniqueAsync(request.Icon!);
+                if (iconResult.IsFailure)
+                    return AppResult<ModuleDto>.Failure(iconResult.Error);
+
                 // Create module entity
                 var module = Domain.Entities.Module.Create(
                     request.Name,
