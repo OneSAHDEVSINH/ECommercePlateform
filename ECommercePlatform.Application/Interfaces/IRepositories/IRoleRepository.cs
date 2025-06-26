@@ -3,7 +3,7 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 
-namespace ECommercePlatform.Application.Interfaces
+namespace ECommercePlatform.Application.Interfaces.IRepositories
 {
     public interface IRoleRepository : IGenericRepository<Role>
     {

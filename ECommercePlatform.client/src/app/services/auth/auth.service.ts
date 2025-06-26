@@ -172,7 +172,7 @@ export class AuthService {
     // If no user is logged in, return false
     if (!currentUser) return false;
 
-    // If user is SuperAdmin, they can continue regardless of roles
+    // If user is SuperAdmin, can continue regardless of roles
     if (this.isSuperAdmin()) return true;
 
     // For regular users, check if they have any roles

@@ -4,7 +4,6 @@ import { RouterModule, Router, ActivatedRoute, NavigationEnd } from '@angular/ro
 import { Subscription, interval } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth/auth.service';
-import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
 import { AuthorizationService } from '../../services/authorization/authorization.service';
 import { PermissionNotificationService, PermissionError } from '../../services/general/permission-notification.service';
@@ -22,7 +21,10 @@ export class AdminLayoutComponent implements OnInit {
   userName: string = 'Admin';
   currentTheme: string = 'light-mode';
   isUserDropdownOpen: boolean = false;
-  isModulesMenuOpen: boolean = false;
+  isQuickActionsOpen: boolean = false;
+  isAccessManagementOpen: boolean = false;
+  isSidebarCollapsed: boolean = false;
+  screenWidth: number = window.innerWidth;
   PermissionType = PermissionType;
   accessDeniedMessage: string | null = null;
   permissionError: PermissionError | null = null;
@@ -55,12 +57,21 @@ export class AdminLayoutComponent implements OnInit {
       this.currentTheme = savedTheme;
     }
 
+    // Check for saved sidebar state
+    const savedSidebarState = localStorage.getItem('admin-sidebar-collapsed');
+    this.isSidebarCollapsed = savedSidebarState === 'true';
+
+    // Auto-collapse sidebar on mobile devices
+    if (this.screenWidth < 992) {
+      this.isSidebarCollapsed = true;
+    }
+
     // Subscribe to permission errors
     this.permissionNotificationService.error$.subscribe(error => {
       this.permissionError = error;
     });
 
-    // Detect current route to know which module we're on
+    // Detect current route to know which module user is on
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -68,6 +79,14 @@ export class AdminLayoutComponent implements OnInit {
       if (urlParts.length > 2) {
         this.currentModuleRoute = urlParts[2];
         this.startPermissionCheck();
+
+        // Auto-collapse sidebar on navigation in mobile view
+        if (this.screenWidth < 992) {
+          this.isSidebarCollapsed = true;
+        }
+
+        // Check if the active route belongs to any dropdown and open it
+        this.updateActiveDropdown(this.currentModuleRoute);
       }
     });
 
@@ -91,8 +110,61 @@ export class AdminLayoutComponent implements OnInit {
         }, 5000);
       }
     });
-    // Check if we're on a modules page to auto-open the menu
-    this.isModulesMenuOpen = this.router.url.includes('/admin/modules');
+
+    // Initialize active dropdown based on current route
+    this.updateActiveDropdown(this.currentModuleRoute);
+  }
+
+  updateActiveDropdown(route: string): void {
+    // Quick Actions routes
+    if (route === 'countries' || route === 'states' || route === 'cities') {
+      this.isQuickActionsOpen = true;
+      this.isAccessManagementOpen = false;
+    }
+    // Access Management routes
+    else if (route === 'users' || route === 'roles' || route === 'modules') {
+      this.isAccessManagementOpen = true;
+      this.isQuickActionsOpen = false;
+    }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.screenWidth = window.innerWidth;
+    // Auto-collapse sidebar on small screens
+    if (this.screenWidth < 992 && !this.isSidebarCollapsed) {
+      this.isSidebarCollapsed = true;
+    }
+  }
+
+  toggleSidebar(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+    localStorage.setItem('admin-sidebar-collapsed', this.isSidebarCollapsed.toString());
+  }
+
+  toggleQuickActions(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.isQuickActionsOpen = !this.isQuickActionsOpen;
+    // Close other dropdown when opening this one
+    if (this.isQuickActionsOpen) {
+      this.isAccessManagementOpen = false;
+    }
+  }
+
+  toggleAccessManagement(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+    this.isAccessManagementOpen = !this.isAccessManagementOpen;
+    // Close other dropdown when opening this one
+    if (this.isAccessManagementOpen) {
+      this.isQuickActionsOpen = false;
+    }
   }
 
   ngOnDestroy() {
@@ -110,31 +182,29 @@ export class AdminLayoutComponent implements OnInit {
     this.isUserDropdownOpen = !this.isUserDropdownOpen;
   }
 
-  // Add method to toggle modules dropdown menu
-  toggleModulesMenu(): void {
-    this.isModulesMenuOpen = !this.isModulesMenuOpen;
-  }
-
   refreshPermissions(): void {
     this.isRefreshing = true;
     this.permissionRefreshService.refreshPermissions().subscribe({
       next: () => {
         this.isRefreshing = false;
 
-        // Check if we still have permission for current route after refresh
+        // Check if still have permission for current route after refresh
         if (this.currentModuleRoute && this.currentModuleRoute !== 'dashboard' &&
           this.currentModuleRoute !== 'access-denied') {
           this.authorizationService.checkPermission(this.currentModuleRoute, PermissionType.View)
             .subscribe(hasPermission => {
               if (!hasPermission && !this.authorizationService.isAdmin()) {
-                this.router.navigate(['/admin/access-denied'], {
-                  queryParams: {
-                    accessDenied: 'true',
-                    module: this.currentModuleRoute,
-                    permission: 'View',
-                    returnUrl: this.router.url
-                  }
-                });
+                // Don't redirect to access-denied if already there
+                if (!this.router.url.includes('/admin/access-denied')) {
+                  this.router.navigate(['/admin/access-denied'], {
+                    queryParams: {
+                      accessDenied: 'true',
+                      module: this.currentModuleRoute,
+                      permission: 'View',
+                      returnUrl: this.router.url
+                    }
+                  });
+                }
               }
             });
         }
@@ -156,21 +226,25 @@ export class AdminLayoutComponent implements OnInit {
       return;
     }
 
-    // Check every 15 seconds if we still have view permission for the current module
-    this.permissionCheckInterval = interval(15000).pipe(
+    // Check every 15 seconds if still have view permission for the current module
+    this.permissionCheckInterval = interval(1000).pipe(
       switchMap(() => this.permissionRefreshService.refreshPermissions()),
       switchMap(() => this.authorizationService.checkPermission(this.currentModuleRoute, PermissionType.View))
     ).subscribe(hasPermission => {
       if (!hasPermission && !this.authorizationService.isAdmin()) {
         console.warn(`Permission lost for module: ${this.currentModuleRoute}`);
-        this.router.navigate(['/admin/access-denied'], {
-          queryParams: {
-            accessDenied: 'true',
-            module: this.currentModuleRoute,
-            permission: 'View',
-            returnUrl: this.router.url
-          }
-        });
+
+        // Don't redirect to access-denied if already there to prevent recursive URLs
+        if (!this.router.url.includes('/admin/access-denied')) {
+          this.router.navigate(['/admin/access-denied'], {
+            queryParams: {
+              accessDenied: 'true',
+              module: this.currentModuleRoute,
+              permission: 'View',
+              returnUrl: this.router.url
+            }
+          });
+        }
       }
     });
   }
@@ -189,11 +263,16 @@ export class AdminLayoutComponent implements OnInit {
   @HostListener('document:click')
   closeDropdown(): void {
     this.isUserDropdownOpen = false;
-    // Don't auto-close the modules menu on document click as that would be disruptive
+    // Don't auto-close the sidebar dropdowns on document click as that would be disruptive
   }
 
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/admin/login']);
+  }
+
+  // Helper method to check if a route is active
+  isRouteActive(route: string): boolean {
+    return this.router.url.includes(`/admin/${route}`);
   }
 }

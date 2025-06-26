@@ -17,15 +17,15 @@ namespace ECommercePlatform.API.Middleware
             // Continue down the pipeline
             await _next(context);
 
-            // If we have a validation problem (status code 400) and it's from ModelState validation, format the response
+            // If I have a validation problem (status code 400) and it's from ModelState validation, format the response
             if (context.Response.StatusCode == (int)HttpStatusCode.BadRequest)
             {
                 // Check if this is a validation error response
                 var endpoint = context.GetEndpoint();
                 if (endpoint?.Metadata?.GetMetadata<ApiControllerAttribute>() != null)
                 {
-                    // This is an API controller, we can handle validation errors
-                    var problemDetailsFeature = context.Features.Get<IProblemDetailsService>(); // Updated to use IProblemDetailsService
+                    // This is an API controller, It can handle validation errors
+                    var problemDetailsFeature = context.Features.Get<IProblemDetailsService>();
                     if (problemDetailsFeature != null)
                     {
                         // Check if this is a validation problem

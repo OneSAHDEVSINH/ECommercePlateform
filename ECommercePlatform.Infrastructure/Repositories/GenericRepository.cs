@@ -1,5 +1,5 @@
 using ECommercePlatform.Application.Common.Extensions;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IRepositories;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -24,14 +24,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        //public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate)
-        //{
-        //    return await _context.Set<T>()
-        //        .Where(predicate)
-        //        .AsNoTracking()
-        //        .ToListAsync();
-        //}
-
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             return await _context.Set<T>()
@@ -53,20 +45,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
-
-        //public async Task<bool> ExistsAsync(Guid id)
-        //{
-        //    var entity = await _context.Set<T>().FindAsync(id);
-        //    return entity != null;
-        //}
-
-        //// Implement the new method
-        //public IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = null)
-        //{
-        //    return predicate == null
-        //        ? _context.Set<T>().AsQueryable()
-        //        : _context.Set<T>().Where(predicate);
-        //}
 
         // Streamlined paging method with support for search
         public async Task<PagedResponse<T>> GetPagedAsync(

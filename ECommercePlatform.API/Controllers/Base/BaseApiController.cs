@@ -1,5 +1,4 @@
-﻿// API/Controllers/Base/BaseApiController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace ECommercePlatform.API.Controllers.Base

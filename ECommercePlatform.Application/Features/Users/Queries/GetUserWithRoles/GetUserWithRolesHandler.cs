@@ -39,14 +39,13 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetUserWithRoles
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
-
                     PhoneNumber = user.PhoneNumber,
                     Gender = user.Gender,
                     DateOfBirth = user.DateOfBirth,
                     Bio = user.Bio,
                     IsActive = user.IsActive,
                     CreatedOn = user.CreatedOn,
-                    Roles = rolesDto // Assign roles here
+                    Roles = rolesDto // Assign roles
                 };
 
                 return AppResult<UserDto>.Success(userDto);

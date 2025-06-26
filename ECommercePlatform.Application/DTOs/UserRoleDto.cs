@@ -31,20 +31,6 @@ namespace ECommercePlatform.Application.DTOs
         }
     }
 
-    public class CreateUserRoleDto
-    {
-        public required Guid UserId { get; init; }
-        public required Guid RoleId { get; init; }
-        public bool IsActive { get; init; } = true;
-    }
-
-    public class UpdateUserRoleDto
-    {
-        public Guid UserId { get; init; }
-        public Guid RoleId { get; init; }
-        public bool? IsActive { get; init; }
-    }
-
     public class UserRoleListDto
     {
         public Guid Id { get; init; }

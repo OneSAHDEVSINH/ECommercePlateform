@@ -1,6 +1,7 @@
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IRepositories;
+using ECommercePlatform.Application.Interfaces.IServices;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
-using ECommercePlatform.Application.Services;
 using ECommercePlatform.Domain.Entities;
 using ECommercePlatform.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;

@@ -31,7 +31,6 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetUserById
                     .Cast<RoleDto>() // Ensure nullability is handled
                     .ToList();
 
-                // Fix for CS8852: Use object initializer to set init-only property
                 var userDto = new UserDto
                 {
                     Id = user.Id,
@@ -45,7 +44,7 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetUserById
                     Bio = user.Bio,
                     IsActive = user.IsActive,
                     CreatedOn = user.CreatedOn,
-                    Roles = rolesDto // Assign roles here
+                    Roles = rolesDto // Assign roles
                 };
 
                 return AppResult<UserDto>.Success(userDto);

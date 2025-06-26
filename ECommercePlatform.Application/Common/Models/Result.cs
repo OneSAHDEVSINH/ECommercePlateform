@@ -9,10 +9,6 @@
 
         private AppResult(bool isSuccess, T value, string error)
         {
-            //if (isSuccess && error != null)
-            //    throw new InvalidOperationException();
-            //if (!isSuccess && value != null)
-            //    throw new InvalidOperationException();
             IsSuccess = isSuccess;
             Value = value;
             Error = error;
@@ -32,10 +28,6 @@
         public string Error { get; }
         protected AppResult(bool isSuccess, string error)
         {
-            //if (isSuccess && error != null)
-            //    throw new InvalidOperationException();
-            //if (!isSuccess && error == null)
-            //    throw new InvalidOperationException();
             IsSuccess = isSuccess;
             Error = error;
         }

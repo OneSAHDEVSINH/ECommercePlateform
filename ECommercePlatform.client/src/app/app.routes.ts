@@ -4,14 +4,14 @@ import { DashboardComponent } from './admin/dashboard/dashboard.component';
 import { CountryComponent } from './admin/country/country.component';
 import { StateComponent } from './admin/state/state.component';
 import { CityComponent } from './admin/city/city.component';
-import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
+import { PageNotFoundComponent } from './shared/page-not-found/page-not-found.component';
 import { AdminLayoutComponent } from './shared/admin-layout/admin-layout.component';
 import { RoleComponent } from './admin/role/role.component';
 import { UserComponent } from './admin/user/user.component';
 import { PermissionGuard } from './guards/permission.guard';
 import { PermissionType } from './models/role.model';
 import { ModuleComponent } from './admin/module/module.component';
-import { AccessDeniedComponent } from './shared/access-denied.component';
+import { AccessDeniedComponent } from './shared/access-denied/access-denied.component';
 
 // Custom matcher to catch malformed URLs
 function malformedUrlMatcher(url: UrlSegment[]) {

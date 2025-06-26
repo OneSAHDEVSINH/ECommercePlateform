@@ -1,11 +1,6 @@
 ﻿using ECommercePlatform.Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ECommercePlatform.Application.Interfaces
+namespace ECommercePlatform.Application.Interfaces.IServices
 {
     public interface IPermissionCacheService
     {

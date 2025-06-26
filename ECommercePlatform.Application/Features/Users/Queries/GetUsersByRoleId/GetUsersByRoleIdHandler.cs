@@ -49,7 +49,6 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetUsersByRoleId
                         FirstName = user.FirstName,
                         LastName = user.LastName,
                         Email = user.Email,
-
                         PhoneNumber = user.PhoneNumber,
                         Gender = user.Gender,
                         DateOfBirth = user.DateOfBirth,

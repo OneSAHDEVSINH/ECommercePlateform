@@ -45,10 +45,7 @@ export class UserComponent implements OnInit, OnDestroy {
   // Selected roles for the user being edited/created
   selectedRoles: string[] = [];
   selectedRoleId: string = 'all';
-
-  // Make Math available to template
   Math = Math;
-  // Make PermissionType enum available to the template
   PermissionType = PermissionType;
 
   // Pagination properties

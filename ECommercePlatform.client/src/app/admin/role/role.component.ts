@@ -173,8 +173,6 @@ export class RoleComponent implements OnInit, OnDestroy {
 
       const permissionMap = new Map<PermissionType, boolean>();
       permissionMap.set(PermissionType.View, false);
-      //permissionMap.set(PermissionType.Add, false);
-      //permissionMap.set(PermissionType.Edit, false);
       permissionMap.set(PermissionType.AddEdit, false);
       permissionMap.set(PermissionType.Delete, false);
 
@@ -203,8 +201,6 @@ export class RoleComponent implements OnInit, OnDestroy {
     const modulePerms = this.modulePermissions.get(moduleId);
     if (modulePerms) {
       modulePerms.set(PermissionType.View, checked);
-      //modulePerms.set(PermissionType.Add, checked);
-      //modulePerms.set(PermissionType.Edit, checked);
       modulePerms.set(PermissionType.AddEdit, checked); 
       modulePerms.set(PermissionType.Delete, checked);
     }
@@ -215,8 +211,6 @@ export class RoleComponent implements OnInit, OnDestroy {
     if (!modulePerms) return false;
     return (
       (modulePerms.get(PermissionType.View) || false) &&
-      //(modulePerms.get(PermissionType.Add) || false) &&
-      //(modulePerms.get(PermissionType.Edit) || false) &&
       (modulePerms.get(PermissionType.AddEdit) || false) &&
       (modulePerms.get(PermissionType.Delete) || false)
     );
@@ -248,8 +242,6 @@ export class RoleComponent implements OnInit, OnDestroy {
           moduleId: moduleId,
           moduleName: module.name,
           canView: permMap.get(PermissionType.View) || false,
-          //canAdd: permMap.get(PermissionType.Add) || false,
-          //canEdit: permMap.get(PermissionType.Edit) || false,
           canAddEdit: permMap.get(PermissionType.AddEdit) || false,
           canDelete: permMap.get(PermissionType.Delete) || false
         });
@@ -322,8 +314,6 @@ export class RoleComponent implements OnInit, OnDestroy {
                 const modulePerms = this.modulePermissions.get(perm.moduleId);
                 if (modulePerms) {
                   modulePerms.set(PermissionType.View, perm.canView || false);
-                  //modulePerms.set(PermissionType.Add, perm.canAdd || false);
-                  //modulePerms.set(PermissionType.Edit, perm.canEdit || false);
                   modulePerms.set(PermissionType.AddEdit, perm.canAddEdit || false);
                   modulePerms.set(PermissionType.Delete, perm.canDelete || false);
                 }

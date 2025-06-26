@@ -27,7 +27,6 @@ export class PermissionGuard implements CanActivate {
       return true;
     }
 
-    // Steps 1-4 remain unchanged...
     if (!this.authService.isAuthenticated()) {
       return this.router.createUrlTree(['/admin/login'], {
         queryParams: { returnUrl: state.url }
@@ -51,7 +50,7 @@ export class PermissionGuard implements CanActivate {
       return true;
     }
 
-    // Step 5: Check specific permissions
+    // Check specific permissions
     const moduleRoute = route.data['moduleRoute'] || this.getModuleRouteFromUrl(state.url);
     const requiredPermission = route.data['permission'] as PermissionType || PermissionType.View;
 
@@ -74,35 +73,13 @@ export class PermissionGuard implements CanActivate {
         // If primary permission check failed and it was View permission,
         // check if user has any other permissions
         if (requiredPermission === PermissionType.View) {
-          return this.checkForAnyPermission(moduleRoute, [
-            //PermissionType.Add,
-            //PermissionType.Edit,
+          return this.checkForAnyPermission(moduleRoute,
+          [
             PermissionType.AddEdit,
             PermissionType.Delete
           ], state.url);
         }
 
-        // Otherwise show access denied
-        //console.warn(`Access denied to ${moduleRoute}: Missing ${this.getReadablePermissionType(requiredPermission)} permission`);
-
-        //if (moduleRoute === 'dashboard') {
-        //  return of(this.router.createUrlTree(['/admin/login'], {
-        //    queryParams: {
-        //      accessDenied: 'true',
-        //      module: moduleRoute,
-        //      permission: this.getReadablePermissionType(requiredPermission)
-        //    }
-        //  }));
-        //}
-
-        //return of(this.router.createUrlTree(['/admin/access-denied'], {
-        //  queryParams: {
-        //    accessDenied: 'true',
-        //    module: moduleRoute,
-        //    permission: this.getReadablePermissionType(requiredPermission),
-        //    returnUrl: state.url
-        //  }
-        //}));
         this.permissionNotificationService.showPermissionError(
           moduleRoute,
           this.getReadablePermissionType(requiredPermission)
@@ -120,53 +97,6 @@ export class PermissionGuard implements CanActivate {
       })
     );
   }
-
-  // Helper method to check if user has ANY of the given permissions
-  //private checkForAnyPermission(moduleRoute: string, permissions: PermissionType[], returnUrl: string): Observable<boolean | UrlTree> {
-  //  const permissionChecks$ = permissions.map(permission =>
-  //    this.authorizationService.checkPermission(moduleRoute, permission)
-  //  );
-
-  //  // If there are no permissions to check, deny access
-  //  if (permissionChecks$.length === 0) {
-  //    return of(this.router.createUrlTree(['/admin/access-denied'], {
-  //      queryParams: {
-  //        accessDenied: 'true',
-  //        module: moduleRoute,
-  //        permission: 'any',
-  //        returnUrl: returnUrl
-  //      }
-  //    }));
-  //  }
-
-  //  return forkJoin(permissionChecks$).pipe(
-  //    map(results => {
-  //      const hasAnyPermission = results.some(result => result === true);
-
-  //      if (hasAnyPermission) {
-  //        return true;
-  //      }
-
-  //      return this.router.createUrlTree(['/admin/access-denied'], {
-  //        queryParams: {
-  //          accessDenied: 'true',
-  //          module: moduleRoute,
-  //          permission: 'any',
-  //          returnUrl: returnUrl
-  //        }
-  //      });
-  //    }),
-  //    catchError(error => {
-  //      console.error('Permission checks failed:', error);
-  //      return of(this.router.createUrlTree(['/admin/access-denied'], {
-  //        queryParams: {
-  //          permissionError: 'true',
-  //          errorMessage: 'Error checking permissions'
-  //        }
-  //      }));
-  //    })
-  //  );
-  //}
 
   private checkForAnyPermission(moduleRoute: string, permissions: PermissionType[], returnUrl: string): Observable<boolean | UrlTree> {
     // First check if this module exists/is accessible to the user at all
@@ -224,8 +154,6 @@ export class PermissionGuard implements CanActivate {
   private getReadablePermissionType(type: PermissionType): string {
     switch (type) {
       case PermissionType.View: return 'View';
-      //case PermissionType.Add: return 'Add';
-      //case PermissionType.Edit: return 'Edit';
       case PermissionType.AddEdit: return 'AddEdit';
       case PermissionType.Delete: return 'Delete';
       default: return 'access';

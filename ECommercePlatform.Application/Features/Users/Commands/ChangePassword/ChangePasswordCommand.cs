@@ -9,8 +9,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.ChangePassword
     public class ChangePasswordCommand : IRequest<AppResult>, ITransactionalBehavior
     {
         [JsonIgnore]
-        public Guid UserId { get; set; } // Set by controller
-
+        public Guid UserId { get; set; }
         public required string CurrentPassword { get; init; }
         public required string NewPassword { get; init; }
     }

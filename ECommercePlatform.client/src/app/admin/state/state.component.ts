@@ -38,7 +38,7 @@ export class StateComponent implements OnInit, OnDestroy {
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
   private dateRangeSubscription!: Subscription;
-  Math = Math; // Make Math available to the template
+  Math = Math;
   selectedCountryId = 'all';
   PermissionType = PermissionType;
 
@@ -130,7 +130,6 @@ export class StateComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Replace the loadStates method in the StateComponent class
   loadStates(): void {
     this.loading = true;
     const countryId = this.selectedCountryId === 'all' ? undefined : this.selectedCountryId;
@@ -281,9 +280,6 @@ export class StateComponent implements OnInit, OnDestroy {
   }
 
   onPageSizeChange(event: Event): void {
-    //const target = event.target as HTMLSelectElement;
-    //this.pageRequest.pageSize = parseInt(target.value, 10);
-    //this.pageRequest.pageNumber = 1; // Reset to page 1 when changing page size
     const selectElement = event.target as HTMLSelectElement;
     this.pageRequest.pageSize = +selectElement.value;
     this.pageRequest.pageNumber = 1;
@@ -303,9 +299,6 @@ export class StateComponent implements OnInit, OnDestroy {
   }
 
   onSearch(event: Event): void {
-    //const target = event.target as HTMLInputElement;
-    //this.pageRequest.searchText = target.value;
-    //this.searchTerms.next(target.value);
     const searchTerm = (event.target as HTMLInputElement).value;
     this.listService.search(searchTerm);
   }

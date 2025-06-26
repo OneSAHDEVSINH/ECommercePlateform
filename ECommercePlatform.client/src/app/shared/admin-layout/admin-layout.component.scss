@@ -4,7 +4,7 @@
 }
 
 .dropdown-toggle::after {
-  display: none; // Hide default caret
+  display: none;
 }
 
 .dropdown-menu {
@@ -84,5 +84,99 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+// Dropdown styling enhancements
+.nav-sidebar .nav-item.has-treeview {
+  .nav-link {
+    cursor: pointer;
+
+    &.active {
+      font-weight: bold;
+    }
+
+    .right {
+      transition: transform 0.3s ease;
+    }
+  }
+
+  &.menu-open {
+    > .nav-link .right {
+      transform: rotate(-90deg);
+    }
+  }
+}
+
+// Dropdown animation
+.nav-treeview {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+
+  &.menu-open {
+    max-height: 500px; // Adjust based on your menu height
+  }
+}
+
+// Improve submenu item styling
+.nav-treeview > .nav-item > .nav-link {
+  padding-left: 25px;
+  font-size: 0.9em;
+
+  &.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left: 3px solid #007bff;
+  }
+}
+
+// Responsive sidebar styles
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 899; // Just below the sidebar z-index
+  display: none;
+}
+
+body.sidebar-open .sidebar-overlay {
+  display: block;
+}
+
+@media (max-width: 991.98px) {
+  .sidebar-open .main-sidebar {
+    transform: translateX(0);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, .25), 0 10px 10px rgba(0, 0, 0, .22);
+  }
+
+  .main-sidebar {
+    transform: translateX(-250px);
+    transition: transform .3s ease-in-out;
+    box-shadow: none;
+  }
+}
+
+.nav-link {
+  cursor: pointer;
+}
+
+// Improve active state for better visibility
+.nav-sidebar .nav-link.active {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+// Improved responsive footer
+@media (max-width: 767.98px) {
+  .main-footer {
+    text-align: center;
+
+    .float-right {
+      float: none !important;
+      display: block;
+      margin-bottom: 10px;
+    }
   }
 }

@@ -1,6 +1,6 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Application.Services;
+using ECommercePlatform.Application.Interfaces.IServices;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser
@@ -24,7 +24,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUse
                 // Prevent removing all roles from a super admin
                 if (isSuperAdmin && request.RoleIds.Count == 0)
                     return AppResult.Failure($"Cannot remove all roles from a super admin user.");
-
 
                 // Get current roles
                 var currentRoles = await _unitOfWork.UserManager.GetRolesAsync(user);

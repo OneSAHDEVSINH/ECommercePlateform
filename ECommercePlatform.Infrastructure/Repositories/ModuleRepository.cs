@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Helpers;
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IRepositories;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public new async Task<Module?> GetByIdAsync(Guid id)
         {
             return await _context.Modules
-                .Include(m => m.RolePermissions) // Changed from Permissions
+                .Include(m => m.RolePermissions)
                 .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
         }
 
@@ -22,7 +22,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public new async Task<List<Module>> GetAllAsync()
         {
             return await _context.Modules
-                .Include(m => m.RolePermissions) // Changed from Permissions
+                .Include(m => m.RolePermissions)
                 .Where(m => !m.IsDeleted)
                 .OrderBy(m => m.DisplayOrder)
                 .ToListAsync();

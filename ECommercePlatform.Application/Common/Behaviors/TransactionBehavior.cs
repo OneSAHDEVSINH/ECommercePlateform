@@ -24,13 +24,13 @@ namespace ECommercePlatform.Application.Common.Behaviors
 
             try
             {
-                // Log that we're starting a transaction
+                // Log for starting a transaction
                 _logger.LogInformation("Beginning transaction for {RequestType}", typeof(TRequest).Name);
 
                 // Execute the next behavior in the pipeline (which will eventually execute the request handler)
                 var response = await next(cancellationToken);
 
-                // If we get here without exceptions, commit the transaction
+                // If got here without exceptions, commit the transaction
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation("Transaction completed successfully for {RequestType}", typeof(TRequest).Name);

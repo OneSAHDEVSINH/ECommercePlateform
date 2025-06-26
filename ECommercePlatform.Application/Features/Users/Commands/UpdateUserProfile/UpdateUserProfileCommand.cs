@@ -11,8 +11,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfil
     public class UpdateUserProfileCommand : IRequest<AppResult<UserProfileDto>>, ITransactionalBehavior
     {
         [JsonIgnore]
-        public Guid Id { get; set; } // Set by controller
-
+        public Guid Id { get; set; }
         public string? FirstName { get; init; }
         public string? LastName { get; init; }
         public string? PhoneNumber { get; init; }

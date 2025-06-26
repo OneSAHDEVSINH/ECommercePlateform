@@ -1,4 +1,4 @@
-﻿using ECommercePlatform.Application.Interfaces;
+﻿using ECommercePlatform.Application.Interfaces.IRepositories;
 using ECommercePlatform.Infrastructure.Repositories;
 
 namespace ECommercePlatform.Server

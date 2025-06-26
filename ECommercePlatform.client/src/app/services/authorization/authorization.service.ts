@@ -26,7 +26,6 @@ export class AuthorizationService {
     });
   }
 
-  // Add this method
   isAdmin(): boolean {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) return false;
@@ -129,7 +128,7 @@ export class AuthorizationService {
   clearCache(): void {
     this.permissionsCache.clear();
 
-    // Optionally, you might want to reload permissions from the server
+    // Optionally, might want to reload permissions from the server
     // This ensures the cache is refreshed with latest data
     if (this.authService.isAuthenticated()) {
       // Force a permission check to repopulate cache

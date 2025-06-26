@@ -1,12 +1,5 @@
-// src/app/services/auth.interceptor.ts
 import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor,
-  HttpErrorResponse
-} from '@angular/common/http';
+import {  HttpRequest,  HttpHandler,  HttpEvent,  HttpInterceptor,  HttpErrorResponse} from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from './auth.service';
@@ -66,7 +59,7 @@ export class AuthInterceptor implements HttpInterceptor {
           });
 
           // Redirect to the access-denied page if needed
-          // (Uncomment if you prefer redirection)
+          // (Uncomment if redirection is prefered)
           // this.router.navigate(['/access-denied']);
 
           return throwError(() => error);

@@ -1,4 +1,3 @@
-// Application/Authorization/Attributes/HasPermissionAttribute.cs
 using Microsoft.AspNetCore.Authorization;
 
 namespace ECommercePlatform.Application.Common.Authorization.Attributes

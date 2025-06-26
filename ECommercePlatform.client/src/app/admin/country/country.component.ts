@@ -36,7 +36,7 @@ export class CountryComponent implements OnInit, OnDestroy {
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
   private dateRangeSubscription!: Subscription;
-  Math = Math; // Make Math available to the template
+  Math = Math;
   PermissionType = PermissionType;
 
   // Pagination properties

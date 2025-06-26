@@ -1,8 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-//import { HttpClientModule } from '@angular/common/http';
-//routing.module';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { CountryComponent } from './country/country.component';
@@ -11,16 +9,13 @@ import { CityComponent } from './city/city.component';
 import { AdminLayoutComponent } from '../shared/admin-layout/admin-layout.component';
 import { RoleComponent } from './role/role.component';
 import { UserComponent } from './user/user.component';
-import { AccessDeniedComponent } from '../shared/access-denied.component';
+import { AccessDeniedComponent } from '../shared/access-denied/access-denied.component';
 import { ModuleComponent } from './module/module.component';
 
 @NgModule({
   imports: [
     CommonModule,
-    //AdminRoutingModule,
     ReactiveFormsModule,
-    //HttpClientModule,
-    // Import standalone components
     LoginComponent,
     DashboardComponent,
     CountryComponent,

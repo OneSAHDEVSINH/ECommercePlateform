@@ -1,7 +1,8 @@
 using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Helpers;
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IRepositories;
+using ECommercePlatform.Application.Interfaces.IServices;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;

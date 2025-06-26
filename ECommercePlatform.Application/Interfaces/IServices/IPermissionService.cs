@@ -1,6 +1,6 @@
 ﻿using ECommercePlatform.Application.DTOs;
 
-namespace ECommercePlatform.Application.Interfaces
+namespace ECommercePlatform.Application.Interfaces.IServices
 {
     public interface IPermissionService
     {

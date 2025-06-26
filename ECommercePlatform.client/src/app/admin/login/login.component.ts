@@ -37,9 +37,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    // Get return URL
-    //this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
-
     // Get return URL with validation
     this.returnUrl = this.getValidReturnUrl();
 
@@ -63,12 +60,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
       setTimeout(() => {
         this.errorMessage = '';
-      }, 25000);
+      }, 2500);
       this.loading = false;
     });
   }
 
-  // Add this new method
   private getValidReturnUrl(): string {
     const defaultUrl = '/admin/dashboard';
     const queryReturnUrl = this.route.snapshot.queryParams['returnUrl'];
@@ -108,7 +104,6 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   get f() { return this.loginForm.controls; }
 
-  // Add this method
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
@@ -126,7 +121,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       password: this.f['password'].value
     };
 
-    console.log('Login attempt with:', loginData); // Add this line
+    console.log('Login attempt with:', loginData);
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
@@ -146,8 +141,8 @@ export class LoginComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.loading = false;
-        console.error('Login error:', error); // Add this line
-        console.error('Error response:', error.error); // Add this line
+        console.error('Login error:', error);
+        console.error('Error response:', error.error);
 
         // Handle specific error messages
         if (error.status === 401) {
@@ -162,37 +157,5 @@ export class LoginComponent implements OnInit, OnDestroy {
         }, 2500);
       }
     });
-  }
-  // Add this method to your login component for testing
-  testApiConnection(): void {
-    const testUrl = `${environment.apiUrl}/Auth/login`;
-    console.log('Testing API at:', testUrl);
-
-    fetch(testUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: 'admin@admin.com',
-        password: 'Admin@123'
-      })
-    })
-      .then(response => {
-        console.log('Response status:', response.status);
-        return response.text();
-      })
-      .then(text => {
-        console.log('Response body:', text);
-        try {
-          const json = JSON.parse(text);
-          console.log('Parsed response:', json);
-        } catch (e) {
-          console.log('Response is not JSON:', text);
-        }
-      })
-      .catch(error => {
-        console.error('Fetch error:', error);
-      });
   }
 }

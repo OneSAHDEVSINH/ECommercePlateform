@@ -1,6 +1,7 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IServices;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Queries.GetCurrentUserProfile
@@ -34,23 +35,6 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetCurrentUserPro
                     .Where(r => r != null)
                     .Select(r => (RoleDto)r!)
                     .ToList();
-
-                // Create UserProfileDto with all properties in the initializer
-                //var userProfile = new UserProfileDto
-                //{
-                //    Id = user.Id,
-                //    FirstName = user.FirstName,
-                //    LastName = user.LastName,
-                //    Email = user.Email,
-                //    PhoneNumber = user.PhoneNumber,
-                //    Gender = user.Gender,
-                //    DateOfBirth = user.DateOfBirth,
-                //    Bio = user.Bio,
-                //    IsActive = user.IsActive,
-                //    CreatedOn = user.CreatedOn,
-                //    Roles = rolesDto,
-                //    Permissions = permissions // Set in initializer
-                //};
 
                 var userProfile = UserProfileDto.Create(user, rolesDto, permissions);
 

@@ -1,4 +1,5 @@
 ﻿using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IServices;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -152,8 +153,6 @@ namespace ECommercePlatform.API.Controllers
                         permissions = new
                         {
                             canView = permission.CanView,
-                            //canAdd = permission.CanAdd,
-                            //canEdit = permission.CanEdit,
                             canAddEdit = permission.CanAddEdit,
                             canDelete = permission.CanDelete
                         }

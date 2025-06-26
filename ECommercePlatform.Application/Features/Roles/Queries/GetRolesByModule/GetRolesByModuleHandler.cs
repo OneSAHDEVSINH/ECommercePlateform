@@ -70,8 +70,6 @@ namespace ECommercePlatform.Application.Features.Roles.Queries.GetRolesByModule
                     ModuleId = g.Key.ModuleId,
                     ModuleName = g.Key.Name,
                     CanView = g.First().CanView,
-                    //CanAdd = g.First().CanAdd,
-                    //CanEdit = g.First().CanEdit,
                     CanAddEdit = g.First().CanAddEdit,
                     CanDelete = g.First().CanDelete
                 })
@@ -86,12 +84,6 @@ namespace ECommercePlatform.Application.Features.Roles.Queries.GetRolesByModule
                 CreatedOn = role.CreatedOn,
                 Permissions = permissionsDto
             };
-        }
-
-        private async Task<RoleDto> BuildRoleDtoWithPermissions(Domain.Entities.Role role, CancellationToken cancellationToken)
-        {
-            // Fully qualify the Role type
-            return (RoleDto)role;
         }
     }
 }

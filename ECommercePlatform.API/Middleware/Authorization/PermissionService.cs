@@ -1,10 +1,7 @@
-﻿using ECommercePlatform.API.Hubs;
-using ECommercePlatform.Application.DTOs;
+﻿using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
-using ECommercePlatform.Domain.Entities;
-using Microsoft.AspNetCore.SignalR;
+using ECommercePlatform.Application.Interfaces.IServices;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommercePlatform.API.Middleware.Authorization
 {

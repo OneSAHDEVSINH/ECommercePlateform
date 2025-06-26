@@ -1,5 +1,4 @@
-﻿// API/Extensions/ControllerExtensions.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace ECommercePlatform.API.Extensions

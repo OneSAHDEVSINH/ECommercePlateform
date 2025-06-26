@@ -44,7 +44,7 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetUserByEmail
                     Bio = user.Bio,
                     IsActive = user.IsActive,
                     CreatedOn = user.CreatedOn,
-                    Roles = rolesDto // Assign roles here
+                    Roles = rolesDto // Assign roles
                 };
 
                 return AppResult<UserDto>.Success(userDto);

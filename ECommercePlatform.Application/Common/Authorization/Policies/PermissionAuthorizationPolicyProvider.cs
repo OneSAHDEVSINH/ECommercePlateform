@@ -1,4 +1,3 @@
-//using ECommercePlatform.Application.Authorization.Requirements;
 using ECommercePlatform.Application.Common.Authorization.Requirements;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;

@@ -1,4 +1,3 @@
-// API/Controllers/UserController.cs
 using ECommercePlatform.API.Extensions;
 using ECommercePlatform.Application.Common.Authorization.Attributes;
 using ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUser;
@@ -14,7 +13,7 @@ using ECommercePlatform.Application.Features.Users.Queries.GetUserByEmail;
 using ECommercePlatform.Application.Features.Users.Queries.GetUserById;
 using ECommercePlatform.Application.Features.Users.Queries.GetUsersByRoleId;
 using ECommercePlatform.Application.Features.Users.Queries.GetUserWithRoles;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IServices;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +35,6 @@ namespace ECommercePlatform.API.Controllers
             _permissionService = permissionService;
         }
 
-        // Admin endpoints
         [HttpGet]
         [HasPermission("Users", "View")]
         public async Task<IActionResult> GetAllUsers([FromQuery] bool activeOnly = true)

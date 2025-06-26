@@ -39,7 +39,7 @@ export class CountryService {
 
     // Format dates in ISO format for ASP.NET Core
     if (request.startDate) {
-      // Ensure we send the ISO string format that .NET can parse
+      // Ensure to send the ISO string format that .NET can parse
       params = params.set('startDate', request.startDate);
     }
 

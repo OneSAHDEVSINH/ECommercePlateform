@@ -31,16 +31,6 @@ namespace ECommercePlatform.Application.DTOs
         }
     }
 
-    public class CreateModuleDto
-    {
-        public required string Name { get; init; }
-        public string? Description { get; init; }
-        public required string Route { get; init; }
-        public string? Icon { get; init; }
-        public int DisplayOrder { get; init; } = 0;
-        public bool IsActive { get; init; } = true;
-    }
-
     public class UpdateModuleDto
     {
         public string? Name { get; init; }

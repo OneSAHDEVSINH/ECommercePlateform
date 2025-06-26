@@ -1,5 +1,5 @@
 ﻿using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IRepositories;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -9,15 +9,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
 {
     public class RolePermissionRepository(AppDbContext context) : GenericRepository<RolePermission>(context), IRolePermissionRepository
     {
-        public async Task<List<RolePermission>> GetByRoleIdAsync(Guid roleId)
-        {
-            return await _context.RolePermissions
-                .Include(rp => rp.Module)
-                .Include(rp => rp.Role)
-                .Where(rp => rp.RoleId == roleId && !rp.IsDeleted)
-                .ToListAsync();
-        }
-
         public async Task<List<RolePermission>> GetByModuleIdAsync(Guid moduleId)
         {
             return await _context.RolePermissions
@@ -25,16 +16,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .Include(rp => rp.Module)
                 .Where(rp => rp.ModuleId == moduleId && !rp.IsDeleted)
                 .ToListAsync();
-        }
-
-        public async Task<RolePermission?> GetByRoleAndModuleAsync(Guid roleId, Guid moduleId)
-        {
-            return await _context.RolePermissions
-                .Include(rp => rp.Module)
-                .Include(rp => rp.Role)
-                .FirstOrDefaultAsync(rp => rp.RoleId == roleId &&
-                                          rp.ModuleId == moduleId &&
-                                          !rp.IsDeleted);
         }
 
         public async Task DeleteByRoleIdAsync(Guid roleId)
@@ -47,14 +28,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> ExistsAsync(Guid roleId, Guid moduleId)
-        {
-            return await _context.RolePermissions
-                .AnyAsync(rp => rp.RoleId == roleId &&
-                               rp.ModuleId == moduleId &&
-                               !rp.IsDeleted);
-        }
-
         public async Task<bool> AnyAsync(Expression<Func<RolePermission, bool>> predicate)
         {
             return await _context.RolePermissions.AnyAsync(predicate);
@@ -63,47 +36,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
         public IQueryable<RolePermission> AsQueryable()
         {
             return _context.RolePermissions.AsQueryable();
-        }
-
-        public async Task<List<RolePermission>> GetActiveRolePermissionsAsync()
-        {
-            return await _context.RolePermissions
-                .Include(rp => rp.Role)
-                .Include(rp => rp.Module)
-                .Where(rp => rp.IsActive && !rp.IsDeleted)
-                .OrderBy(rp => rp.Role.Name)
-                .ThenBy(rp => rp.Module.DisplayOrder)
-                .ToListAsync();
-        }
-
-        public async Task AddRangeAsync(IEnumerable<RolePermission> rolePermissions)
-        {
-            await _context.RolePermissions.AddRangeAsync(rolePermissions);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateRolePermissionsAsync(Guid roleId, List<RoleModulePermissionDto> permissions)
-        {
-            // Remove existing permissions for the role
-            var existingPermissions = await _context.RolePermissions
-                .Where(rp => rp.RoleId == roleId)
-                .ToListAsync();
-
-            _context.RolePermissions.RemoveRange(existingPermissions);
-
-            // Add new permissions
-            var newPermissions = permissions.Select(p => RolePermission.Create(
-                roleId,
-                p.ModuleId,
-                p.CanView,
-                //p.CanAdd,
-                //p.CanEdit,
-                p.CanAddEdit,
-                p.CanDelete
-            ));
-
-            await _context.RolePermissions.AddRangeAsync(newPermissions);
-            await _context.SaveChangesAsync();
         }
 
         // Updated search function

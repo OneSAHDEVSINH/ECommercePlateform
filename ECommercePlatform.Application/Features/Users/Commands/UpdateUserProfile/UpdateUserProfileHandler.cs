@@ -1,6 +1,7 @@
 ﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IServices;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile
@@ -58,23 +59,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfil
                     .Where(r => r != null)
                     .Select(r => (RoleDto)r!)
                     .ToList();
-
-                // Create new UserProfileDto with all properties in the initializer
-                //var userProfile = new UserProfileDto
-                //{
-                //    Id = updatedUser.Id,
-                //    FirstName = updatedUser.FirstName,
-                //    LastName = updatedUser.LastName,
-                //    Email = updatedUser.Email,
-                //    PhoneNumber = updatedUser.PhoneNumber,
-                //    Gender = updatedUser.Gender,
-                //    DateOfBirth = updatedUser.DateOfBirth,
-                //    Bio = updatedUser.Bio,
-                //    IsActive = updatedUser.IsActive,
-                //    CreatedOn = updatedUser.CreatedOn,
-                //    Roles = rolesDto,
-                //    Permissions = permissions // Set in initializer
-                //};
 
                 var userProfile = UserProfileDto.Create(user, rolesDto, permissions);
 

@@ -27,7 +27,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     // The user info will now be displayed in the main AdminLTE navbar
-    // You don't need to handle it here unless you want to show it in the content area
+    // don't need to handle it here unless need to show it in the content area
     this.authService.currentUser$.subscribe(user => {
       if (user) {
         const firstName = user.firstName || user['firstName'] || '';

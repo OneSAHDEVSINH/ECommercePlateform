@@ -1,5 +1,4 @@
-﻿// Application/Common/Authorization/Requirements/PermissionRequirement.cs
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 
 namespace ECommercePlatform.Application.Common.Authorization.Requirements
 {

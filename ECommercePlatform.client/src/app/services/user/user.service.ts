@@ -89,7 +89,6 @@ export class UserService {
       .pipe(catchError(this.handleError));
   }
 
-  // Fix: Send array directly, not wrapped in object
   assignRolesToUser(userId: string, roleIds: string[]): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/${userId}/roles`, roleIds)
       .pipe(catchError(this.handleError));

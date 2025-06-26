@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IRepositories;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +15,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             return await _context.UserRoles
                 .Include(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
-                        .ThenInclude(rp => rp.Module) // Remove Permission reference
+                        .ThenInclude(rp => rp.Module)
                 .Include(ur => ur.User)
                 .Where(ur => ur.UserId == userId && !ur.IsDeleted)
                 .ToListAsync();
@@ -38,42 +38,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
 
             _context.UserRoles.RemoveRange(userRoles);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteByRoleIdAsync(Guid roleId)
-        {
-            var userRoles = await _context.UserRoles
-                .Where(ur => ur.RoleId == roleId)
-                .ToListAsync();
-
-            _context.UserRoles.RemoveRange(userRoles);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<bool> ExistsAsync(Guid userId, Guid roleId)
-        {
-            return await _context.UserRoles
-                .AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId && !ur.IsDeleted);
-        }
-
-        public async Task<bool> AnyAsync(Expression<Func<UserRole, bool>> predicate)
-        {
-            return await _context.UserRoles.AnyAsync(predicate);
-        }
-
-        public IQueryable<UserRole> AsQueryable()
-        {
-            return _context.UserRoles.AsQueryable();
-        }
-
-        public async Task<List<UserRole>> GetActiveUserRolesAsync()
-        {
-            return await _context.UserRoles
-                .Include(ur => ur.User)
-                .Include(ur => ur.Role)
-                .Where(ur => ur.IsActive && !ur.IsDeleted)
-                .OrderBy(ur => ur.User.FirstName)
-                .ToListAsync();
         }
 
         // Search function for user roles

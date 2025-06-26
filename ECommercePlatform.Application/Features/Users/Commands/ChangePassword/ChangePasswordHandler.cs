@@ -5,14 +5,9 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.ChangePassword
 {
-    public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, AppResult>
+    public class ChangePasswordHandler(IUnitOfWork unitOfWork) : IRequestHandler<ChangePasswordCommand, AppResult>
     {
-        private readonly IUnitOfWork _unitOfWork;
-
-        public ChangePasswordHandler(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<AppResult> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
         {

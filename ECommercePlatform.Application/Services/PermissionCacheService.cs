@@ -1,12 +1,7 @@
 ﻿using ECommercePlatform.Application.DTOs;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IServices;
 using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ECommercePlatform.Application.Services
 {

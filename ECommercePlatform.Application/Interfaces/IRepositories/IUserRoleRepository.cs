@@ -1,20 +1,14 @@
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
-using System.Linq.Expressions;
 
-namespace ECommercePlatform.Application.Interfaces
+namespace ECommercePlatform.Application.Interfaces.IRepositories
 {
     public interface IUserRoleRepository : IGenericRepository<UserRole>
     {
         Task<List<UserRole>> GetByUserIdAsync(Guid userId);
         Task<List<UserRole>> GetByRoleIdAsync(Guid roleId);
         Task DeleteByUserIdAsync(Guid userId);
-        Task DeleteByRoleIdAsync(Guid roleId);
-        Task<bool> ExistsAsync(Guid userId, Guid roleId);
-        Task<bool> AnyAsync(Expression<Func<UserRole, bool>> predicate);
-        IQueryable<UserRole> AsQueryable();
-        Task<List<UserRole>> GetActiveUserRolesAsync();
 
         // Pagination methods
         Task<PagedResponse<UserRole>> GetPagedUserRolesAsync(

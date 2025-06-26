@@ -1,5 +1,5 @@
 using ECommercePlatform.Application.Common.Authorization.Requirements;
-using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

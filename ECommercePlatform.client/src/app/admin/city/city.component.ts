@@ -42,7 +42,7 @@ export class CityComponent implements OnInit, OnDestroy {
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
   private dateRangeSubscription!: Subscription;
-  Math = Math; // Make Math available to the template
+  Math = Math;
   selectedStateId = 'all';
   selectedCountryIdFilter: string = 'all';
   filteredStates: State[] = [];
