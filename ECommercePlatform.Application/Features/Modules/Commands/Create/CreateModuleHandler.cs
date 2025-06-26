@@ -13,20 +13,10 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Create
         {
             try
             {
-                // Validate name uniqueness
-                var nameResult = await _unitOfWork.Modules.EnsureNameIsUniqueAsync(request.Name);
-                if (nameResult.IsFailure)
-                    return AppResult<ModuleDto>.Failure(nameResult.Error);
-
-                // Validate route uniqueness
-                var routeResult = await _unitOfWork.Modules.EnsureRouteIsUniqueAsync(request.Route);
-                if (routeResult.IsFailure)
-                    return AppResult<ModuleDto>.Failure(routeResult.Error);
-
-                // Validate icon uniqueness
-                var iconResult = await _unitOfWork.Modules.EnsureIconIsUniqueAsync(request.Icon!);
-                if (iconResult.IsFailure)
-                    return AppResult<ModuleDto>.Failure(iconResult.Error);
+                // Validate uniqueness
+                var uniqueResult = await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(request.Name, request.Route, request.Icon!, request.DisplayOrder);
+                if (uniqueResult.IsFailure)
+                    return AppResult<ModuleDto>.Failure(uniqueResult.Error);
 
                 // Create module entity
                 var module = Domain.Entities.Module.Create(

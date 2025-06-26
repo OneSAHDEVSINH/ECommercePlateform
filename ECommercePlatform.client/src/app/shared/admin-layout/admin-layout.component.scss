@@ -1,182 +1,51 @@
-// Dropdown styling
-.dropdown {
-  position: relative;
-}
+// Sidebar navigation
+//.nav-sidebar {
+//  .nav-item.has-treeview {
+    // Parent menu items
+//    > .nav-link {
+//      position: relative;
+//      cursor: pointer;
 
-.dropdown-toggle::after {
-  display: none;
-}
+//      .right {
+//        position: absolute;
+//        right: 1rem;
+//        top: 50%;
+//        transform: translateY(-50%);
+//        transition: transform 0.2s ease;
+//      }
+//    }
+    // When menu is open
+//    &.menu-open {
+//      > .nav-link .right {
+//        transform: translateY(-50%) rotate(-90deg);
+//      }
 
-.dropdown-menu {
-  position: absolute;
-  right: 0;
-  left: auto;
-  top: 100%;
-  z-index: 1000;
-  min-width: 10rem;
-  padding: 0.5rem 0;
-  margin: 0.125rem 0 0;
-  font-size: 1rem;
-  color: #212529;
-  text-align: left;
-  list-style: none;
-  background-color: #fff;
-  background-clip: padding-box;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0.25rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
-  display: none;
-}
+//      > .nav-treeview {
+//        display: block;
+//      }
+//    }
+//  }
+  // Submenu list
+//  .nav-treeview {
+//    display: none;
+//    padding-left: 0.5rem;
 
-.dropdown-menu.show {
-  display: block;
-}
+//    .nav-item {
+//      .nav-link {
+//        padding-left: 1rem;
+//        font-size: 0.9em;
 
-.dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 1.5rem;
-  clear: both;
-  font-weight: 400;
-  color: #212529;
-  text-align: inherit;
-  white-space: nowrap;
-  background-color: transparent;
-  border: 0;
-  cursor: pointer;
+//        &.active {
+//          border-left: 3px solid #007bff;
+//          background-color: rgba(255, 255, 255, 0.1);
+//        }
+//      }
+//    }
+//  }
+//}
 
-  &:hover, &:focus {
-    color: #16181b;
-    text-decoration: none;
-    background-color: #f8f9fa;
-  }
-
-  i {
-    margin-right: 0.5rem;
-  }
-}
-
-.dropdown-divider {
-  height: 0;
-  margin: 0.5rem 0;
-  overflow: hidden;
-  border-top: 1px solid #e9ecef;
-}
-
-.permission-alert {
-  position: fixed;
-  top: 60px;
-  right: 20px;
-  z-index: 9999;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  opacity: 1;
-  animation: fadeInRight 0.5s ease-out;
-}
-
-@keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-// Dropdown styling enhancements
-.nav-sidebar .nav-item.has-treeview {
-  .nav-link {
-    cursor: pointer;
-
-    &.active {
-      font-weight: bold;
-    }
-
-    .right {
-      transition: transform 0.3s ease;
-    }
-  }
-
-  &.menu-open {
-    > .nav-link .right {
-      transform: rotate(-90deg);
-    }
-  }
-}
-
-// Dropdown animation
-.nav-treeview {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-
-  &.menu-open {
-    max-height: 500px; // Adjust based on your menu height
-  }
-}
-
-// Improve submenu item styling
-.nav-treeview > .nav-item > .nav-link {
-  padding-left: 25px;
-  font-size: 0.9em;
-
-  &.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-left: 3px solid #007bff;
-  }
-}
-
-// Responsive sidebar styles
-.sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 899; // Just below the sidebar z-index
-  display: none;
-}
-
-body.sidebar-open .sidebar-overlay {
-  display: block;
-}
-
-@media (max-width: 991.98px) {
-  .sidebar-open .main-sidebar {
-    transform: translateX(0);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, .25), 0 10px 10px rgba(0, 0, 0, .22);
-  }
-
-  .main-sidebar {
-    transform: translateX(-250px);
-    transition: transform .3s ease-in-out;
-    box-shadow: none;
-  }
-}
-
-.nav-link {
-  cursor: pointer;
-}
-
-// Improve active state for better visibility
-.nav-sidebar .nav-link.active {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-}
-
-// Improved responsive footer
-@media (max-width: 767.98px) {
-  .main-footer {
-    text-align: center;
-
-    .float-right {
-      float: none !important;
-      display: block;
-      margin-bottom: 10px;
-    }
-  }
-}
+// Highlight active routes
+//.nav-link.active {
+//  font-weight: 600;
+//  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+//}

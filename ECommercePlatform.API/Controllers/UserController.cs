@@ -24,16 +24,10 @@ namespace ECommercePlatform.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class UserController : ControllerBase
+    public class UserController(IMediator mediator, IPermissionService permissionService) : ControllerBase
     {
-        private readonly IMediator _mediator;
-        private readonly IPermissionService _permissionService;
-
-        public UserController(IMediator mediator, IPermissionService permissionService)
-        {
-            _mediator = mediator;
-            _permissionService = permissionService;
-        }
+        private readonly IMediator _mediator = mediator;
+        private readonly IPermissionService _permissionService = permissionService;
 
         [HttpGet]
         [HasPermission("Users", "View")]

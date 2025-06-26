@@ -202,7 +202,7 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<Role>>();
 
         // Seed roles
-        string[] roleNames = { "SuperAdmin", "Admin", "User" };
+        string[] roleNames = ["SuperAdmin", "Admin", "User"];
         foreach (var roleName in roleNames)
         {
             if (!await roleManager.RoleExistsAsync(roleName))

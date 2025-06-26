@@ -65,6 +65,10 @@ export class AuthorizationService {
     }
   }
 
+  hasViewPermission(moduleRoute: string): boolean {
+    return this.hasPermission(moduleRoute, PermissionType.View);
+  }
+
   hasViewOrAddEditPermission(moduleRoute: string): boolean {
     return this.hasPermission(moduleRoute, PermissionType.View) ||
       this.hasPermission(moduleRoute, PermissionType.AddEdit);

@@ -46,87 +46,78 @@ namespace ECommercePlatform.Infrastructure.Repositories
                                          !m.IsDeleted);
         }
 
-        // Combined validation method for name uniqueness
-        public Task<Result<string>> EnsureNameIsUniqueAsync(string name, Guid? excludeId = null)
+        public Task<Result<(string normalizedName, string normalizedRoute, string normalizedIcon, int normalizedDp)>> EnsureNameRouteIconDPAreUniqueAsync(string name, string route, string icon, int dp, Guid? excludeId = null)
         {
-            return Result.Success(name)
+            return Result.Success((name, route, icon, dp))
                 // Validate name is not empty
-                .Ensure(n => !string.IsNullOrEmpty(n?.Trim()), "Module name cannot be null or empty.")
-                // Normalize the input
-                .Map(n => n.Trim().ToLower())
+                .Ensure(tuple => !string.IsNullOrEmpty(tuple.name?.Trim()), "Name cannot be null or empty.")
+                // Validate code is not empty
+                .Ensure(tuple => !string.IsNullOrEmpty(tuple.route?.Trim()), "Route cannot be null or empty.")
+                .Ensure(tuple => !string.IsNullOrEmpty(tuple.icon?.Trim()), "Icon cannot be null or empty.")
+                .Ensure(tuple => tuple.dp >= 0, "Module display order must be a non-negative number.")
+                // Normalize the inputs
+                .Map(tuple => (
+                    normalizedName: tuple.name.Trim().ToLower(),
+                    normalizedRoute: tuple.route.Trim().ToLower(),
+                    normalizedIcon: tuple.icon.Trim().ToLower(),
+                    normalizedDp: tuple.dp
+                ))
                 // Check uniqueness against database
-                .Bind(async normalizedName =>
+                .Bind(async tuple =>
                 {
-                    var query = _context.Modules.Where(m =>
-                        m.Name != null &&
-                        m.Name.ToLower().Trim() == normalizedName &&
-                        !m.IsDeleted);
+                    var nameQuery = _context.Modules.Where(m =>
+                 m.Name != null &&
+                 m.Name.ToLower().Trim() == tuple.normalizedName &&
+                 !m.IsDeleted);
+
+                    var routeQuery = _context.Modules.Where(m =>
+                 m.Route != null &&
+                 m.Route.ToLower().Trim() == tuple.normalizedRoute &&
+                 !m.IsDeleted);
+
+                    var iconQuery = _context.Modules.Where(m =>
+                 m.Icon != null &&
+                 m.Icon.ToLower().Trim() == tuple.normalizedIcon &&
+                 !m.IsDeleted);
+
+                    var dpQuery = _context.Modules.Where(m =>
+                 m.DisplayOrder == tuple.normalizedDp &&
+                 !m.IsDeleted);
 
                     // Apply ID exclusion if provided
                     if (excludeId.HasValue)
-                        query = query.Where(m => m.Id != excludeId.Value);
+                    {
+                        nameQuery = nameQuery.Where(c => c.Id != excludeId.Value);
+                        routeQuery = routeQuery.Where(c => c.Id != excludeId.Value);
+                        iconQuery = iconQuery.Where(c => c.Id != excludeId.Value);
+                        dpQuery = dpQuery.Where(c => c.Id != excludeId.Value);
+                    }
 
-                    var exists = await query.AnyAsync();
+                    var nameExists = await nameQuery.AnyAsync();
+                    var routeExists = await routeQuery.AnyAsync();
+                    var iconExists = await iconQuery.AnyAsync();
+                    var dpExists = await dpQuery.AnyAsync();
 
-                    return exists
-                        ? Result.Failure<string>($"Module with name \"{name}\" already exists.")
-                        : Result.Success(normalizedName);
-                });
-        }
+                    // Collect all uniqueness violations
+                    var errors = new List<string>();
 
-        // Combined validation method for route uniqueness
-        public Task<Result<string>> EnsureRouteIsUniqueAsync(string route, Guid? excludeId = null)
-        {
-            return Result.Success(route)
-                // Validate route is not empty
-                .Ensure(r => !string.IsNullOrEmpty(r?.Trim()), "Module route cannot be null or empty.")
-                // Normalize the input
-                .Map(r => r.Trim().ToLower())
-                // Check uniqueness against database
-                .Bind(async normalizedRoute =>
-                {
-                    var query = _context.Modules.Where(m =>
-                        m.Route != null &&
-                        m.Route.ToLower().Trim() == normalizedRoute &&
-                        !m.IsDeleted);
+                    if (nameExists)
+                        errors.Add($"name \"{name}\"");
 
-                    // Apply ID exclusion if provided
-                    if (excludeId.HasValue)
-                        query = query.Where(m => m.Id != excludeId.Value);
+                    if (routeExists)
+                        errors.Add($"route \"{route}\"");
 
-                    var exists = await query.AnyAsync();
+                    if (iconExists)
+                        errors.Add($"icon \"{icon}\"");
 
-                    return exists
-                        ? Result.Failure<string>($"Module with route \"{route}\" already exists.")
-                        : Result.Success(normalizedRoute);
-                });
-        }
+                    if (dpExists)
+                        errors.Add($"display order \"{dp}\"");
 
-        // Combined validation method for route uniqueness
-        public Task<Result<string>> EnsureIconIsUniqueAsync(string icon, Guid? excludeId = null)
-        {
-            return Result.Success(icon)
-                // Validate route is not empty
-                .Ensure(r => !string.IsNullOrEmpty(r?.Trim()), "Module Icon cannot be null or empty.")
-                // Normalize the input
-                .Map(r => r.Trim().ToLower())
-                // Check uniqueness against database
-                .Bind(async normalizedIcon =>
-                {
-                    var query = _context.Modules.Where(m =>
-                        m.Icon != null &&
-                        m.Icon.ToLower().Trim() == normalizedIcon &&
-                        !m.IsDeleted);
+                    // Return failure with all collected errors if any exist
+                    if (errors.Count > 0)
+                        return Result.Failure<(string, string, string, int)>("Module with " + string.Join(", ", errors) + " already exists.");
 
-                    // Apply ID exclusion if provided
-                    if (excludeId.HasValue)
-                        query = query.Where(m => m.Id != excludeId.Value);
-
-                    var exists = await query.AnyAsync();
-
-                    return exists
-                        ? Result.Failure<string>($"Module with icon \"{icon}\" already exists.")
-                        : Result.Success(normalizedIcon);
+                    return Result.Success(tuple);
                 });
         }
 

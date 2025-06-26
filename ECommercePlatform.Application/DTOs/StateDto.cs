@@ -24,7 +24,7 @@ namespace ECommercePlatform.Application.DTOs
                 Code = state.Code,
                 CountryId = state?.CountryId ?? Guid.Empty,
                 CountryName = state?.Country?.Name,
-                IsActive = state.IsActive,
+                IsActive = state!.IsActive,
                 CreatedOn = state.CreatedOn
             };
         }

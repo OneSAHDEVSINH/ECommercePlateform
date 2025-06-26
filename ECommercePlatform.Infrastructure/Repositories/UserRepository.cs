@@ -6,8 +6,12 @@ using ECommercePlatform.Application.Interfaces.IServices;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
+using FluentAssertions.Equivalency;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using System.Drawing;
 using System.Linq.Expressions;
+using System.Runtime.Intrinsics.Arm;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
@@ -22,15 +26,12 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
         }
 
-        public new async Task<User?> GetByIdAsync(Guid id)
-        {
-            return await _context.Users
+        public new async Task<User?> GetByIdAsync(Guid id) => await _context.Users
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
-                        .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(r => r!.RolePermissions)
                             .ThenInclude(rp => rp.Module)
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
-        }
 
         public new async Task<List<User>> GetAllAsync()
         {
@@ -58,59 +59,55 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        // Combined validation method that returns a Result object
-        public Task<Result<string>> EnsureEmailIsUniqueAsync(string email, Guid? excludeId = null)
+        public Task<Result<(string normalizedEmail, string normalizedPhone)>> EnsureEmailAndPhoneAreUniqueAsync(string email, string phone, Guid? excludeId = null)
         {
-            return Result.Success(email)
-                // Validate email is not empty
-                .Ensure(e => !string.IsNullOrEmpty(e?.Trim()), "Email cannot be null or empty.")
-                // Normalize the input
-                .Map(e => e.Trim().ToLower())
+            return Result.Success((email, phone))
+                // Validate name is not empty
+                .Ensure(tuple => !string.IsNullOrEmpty(tuple.email?.Trim()), "Email cannot be null or empty.")
+                // Validate phone is not empty
+                .Ensure(tuple => !string.IsNullOrEmpty(tuple.phone?.Trim()), "Phone cannot be null or empty.")
+                // Normalize the inputs
+                .Map(tuple => (
+                    normalizedEmail: tuple.email.Trim().ToLower(),
+                    normalizedPhone: tuple.phone.Trim().ToLower()
+                ))
                 // Check uniqueness against database
-                .Bind(async normalizedEmail =>
+                .Bind(async tuple =>
                 {
-                    var query = _context.Users.Where(u =>
-                        u.Email != null &&
-                        u.Email.ToLower().Trim() == normalizedEmail &&
-                        !u.IsDeleted);
+                    var emailQuery = _context.Users.Where(c =>
+                        c.Email != null &&
+                        c.Email.ToLower().Trim() == tuple.normalizedEmail &&
+                        !c.IsDeleted);
+
+                    var phoneQuery = _context.Users.Where(c =>
+                        c.PhoneNumber != null &&
+                        c.PhoneNumber.ToLower().Trim() == tuple.normalizedPhone &&
+                        !c.IsDeleted);
 
                     // Apply ID exclusion if provided
                     if (excludeId.HasValue)
-                        query = query.Where(u => u.Id != excludeId.Value);
+                    {
+                        emailQuery = emailQuery.Where(c => c.Id != excludeId.Value);
+                        phoneQuery = phoneQuery.Where(c => c.Id != excludeId.Value);
+                    }
 
-                    var exists = await query.AnyAsync();
+                    var emailExists = await emailQuery.AnyAsync();
+                    var phoneExists = await phoneQuery.AnyAsync();
 
-                    return exists
-                        ? Result.Failure<string>($"User with email \"{email}\" already exists.")
-                        : Result.Success(normalizedEmail);
-                });
-        }
+                    // Collect all uniqueness violations
+                    var errors = new List<string>();
 
-        // Combined validation method that returns a Result object
-        public Task<Result<string>> EnsurePhoneIsUniqueAsync(string phone, Guid? excludeId = null)
-        {
-            return Result.Success(phone)
-                // Validate email is not empty
-                .Ensure(e => !string.IsNullOrEmpty(e?.Trim()), "Phone Number cannot be null or empty.")
-                // Normalize the input
-                .Map(e => e.Trim().ToLower())
-                // Check uniqueness against database
-                .Bind(async normalizedPhone =>
-                {
-                    var query = _context.Users.Where(u =>
-                        u.PhoneNumber != null &&
-                        u.PhoneNumber.ToLower().Trim() == normalizedPhone &&
-                        !u.IsDeleted);
+                    if (emailExists)
+                        errors.Add($"email \"{email}\"");
 
-                    // Apply ID exclusion if provided
-                    if (excludeId.HasValue)
-                        query = query.Where(u => u.Id != excludeId.Value);
+                    if (phoneExists)
+                        errors.Add($"phone number \"{phone}\"");
 
-                    var exists = await query.AnyAsync();
+                    // Return failure with all collected errors if any exist
+                    if (errors.Count > 0)
+                        return Result.Failure<(string, string)>("User with " + string.Join(", ", errors) + " already exists.");
 
-                    return exists
-                        ? Result.Failure<string>($"User with phone number \"{phone}\" already exists.")
-                        : Result.Success(normalizedPhone);
+                    return Result.Success(tuple);
                 });
         }
 
@@ -145,10 +142,10 @@ namespace ECommercePlatform.Infrastructure.Repositories
 
             if (!string.IsNullOrEmpty(currentUserIdStr) && Guid.TryParse(currentUserIdStr, out var currentUserId))
             {
-                var currentUser = await _context.Users.FindAsync(currentUserId);
+                var currentUser = await _context.Users.FindAsync([currentUserId], cancellationToken: cancellationToken);
                 if (currentUser != null)
                 {
-                    isSuperAdminViewing = _superAdminService.IsSuperAdminEmail(currentUser.Email);
+                    isSuperAdminViewing = _superAdminService.IsSuperAdminEmail(currentUser.Email!);
                 }
             }
 
@@ -233,7 +230,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 // Eagerly load all roles for these users to ensure they're properly populated
                 var userRolesWithRoles = await _context.UserRoles
                     .Include(ur => ur.Role)
-                    .Where(ur => userIds.Contains(ur.UserId) && !ur.IsDeleted && ur.IsActive && ur.Role.IsActive && !ur.Role.IsDeleted)
+                    .Where(ur => userIds.Contains(ur.UserId) && !ur.IsDeleted && ur.IsActive && ur.Role!.IsActive && !ur.Role.IsDeleted)
                     .ToListAsync(cancellationToken);
 
                 // Group by user ID for easy lookup
@@ -247,7 +244,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
                     var dto = (UserDto)user;
 
                     // If roles should be included but are missing, use our lookup
-                    if (userRolesLookup.TryGetValue(user.Id, out var userRoles) && (dto.Roles == null || !dto.Roles.Any()))
+                    if (userRolesLookup.TryGetValue(user.Id, out var userRoles) && (dto.Roles == null || dto.Roles.Count == 0))
                     {
                         dto = new UserDto
                         {
@@ -261,10 +258,9 @@ namespace ECommercePlatform.Infrastructure.Repositories
                             Bio = user.Bio,
                             IsActive = user.IsActive,
                             CreatedOn = user.CreatedOn,
-                            Roles = userRoles
+                            Roles = [.. userRoles
                                 .Where(ur => ur.Role != null)
-                                .Select(ur => (RoleDto)ur.Role!)
-                                .ToList()
+                                .Select(ur => (RoleDto)ur.Role!)]
                         };
                     }
 

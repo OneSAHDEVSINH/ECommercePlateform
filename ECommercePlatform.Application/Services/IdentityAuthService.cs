@@ -36,7 +36,7 @@ namespace ECommercePlatform.Application.Services
                 throw new KeyNotFoundException("User account is inactive or deleted");
 
             // Check if user is superadmin - this should bypass role requirements
-            bool isSuperAdmin = _superAdminService.IsSuperAdminEmail(user.Email);
+            bool isSuperAdmin = _superAdminService.IsSuperAdminEmail(user.Email!);
 
             // Check password
             var result = await _unitOfWork.SignInManager.CheckPasswordSignInAsync(
@@ -72,7 +72,7 @@ namespace ECommercePlatform.Application.Services
             }
 
             // Check if non-superadmin user has any active roles
-            if (!isSuperAdmin && !roles.Any())
+            if (!isSuperAdmin && roles.Count == 0)
             {
                 throw new UnauthorizedAccessException(
                     "Access denied. All your assigned roles are inactive. Please contact the administrator.");
@@ -121,9 +121,9 @@ namespace ECommercePlatform.Application.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}")
+                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new(ClaimTypes.Email, user.Email),
+                new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}")
             };
 
             // Add roles as claims

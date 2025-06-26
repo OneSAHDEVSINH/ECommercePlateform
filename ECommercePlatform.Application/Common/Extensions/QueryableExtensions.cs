@@ -22,7 +22,7 @@ namespace ECommercePlatform.Application.Common.Extensions
 
         public static IQueryable<RolePermission> WhereModuleActive(this IQueryable<RolePermission> query)
         {
-            return query.Where(rp => rp.Module.IsActive && !rp.Module.IsDeleted);
+            return query.Where(rp => rp.Module!.IsActive && !rp.Module.IsDeleted);
         }
 
         public static IQueryable<T> ApplyFilter<T>(

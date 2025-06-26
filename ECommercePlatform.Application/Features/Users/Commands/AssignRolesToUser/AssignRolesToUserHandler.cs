@@ -19,7 +19,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUse
                     return AppResult.Failure($"User with ID {request.UserId} not found.");
 
                 // Check if this is a super admin user
-                bool isSuperAdmin = _superAdminService.IsSuperAdminEmail(user.Email);
+                bool isSuperAdmin = _superAdminService.IsSuperAdminEmail(user.Email!);
 
                 // Prevent removing all roles from a super admin
                 if (isSuperAdmin && request.RoleIds.Count == 0)

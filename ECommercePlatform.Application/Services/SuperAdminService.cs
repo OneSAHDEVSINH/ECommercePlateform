@@ -5,16 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommercePlatform.Application.Services
 {
-    public class SuperAdminService : ISuperAdminService
+    public class SuperAdminService(IConfiguration configuration, IServiceProvider serviceProvider) : ISuperAdminService
     {
-        private readonly string _superAdminEmail;
-        private readonly IServiceProvider _serviceProvider;
-
-        public SuperAdminService(IConfiguration configuration, IServiceProvider serviceProvider)
-        {
-            _superAdminEmail = configuration["SuperAdmin:Email"] ?? "admin@admin.com";
-            _serviceProvider = serviceProvider;
-        }
+        private readonly string _superAdminEmail = configuration["SuperAdmin:Email"] ?? "admin@admin.com";
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         public bool IsSuperAdminEmail(string email)
         {
@@ -28,7 +22,7 @@ namespace ECommercePlatform.Application.Services
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
             var user = await unitOfWork.UserManager.FindByIdAsync(userId.ToString());
-            return user != null && IsSuperAdminEmail(user.Email);
+            return user != null && IsSuperAdminEmail(user.Email!);
         }
     }
 }

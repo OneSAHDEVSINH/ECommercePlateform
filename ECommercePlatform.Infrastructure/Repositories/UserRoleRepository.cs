@@ -14,7 +14,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
         {
             return await _context.UserRoles
                 .Include(ur => ur.Role)
-                    .ThenInclude(r => r.RolePermissions)
+                    .ThenInclude(r => r!.RolePermissions)
                         .ThenInclude(rp => rp.Module)
                 .Include(ur => ur.User)
                 .Where(ur => ur.UserId == userId && !ur.IsDeleted)

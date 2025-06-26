@@ -3,8 +3,11 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces.IRepositories;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using System.Drawing;
 using System.Linq.Expressions;
+using System.Runtime.Intrinsics.Arm;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {
@@ -45,14 +48,20 @@ namespace ECommercePlatform.Infrastructure.Repositories
                     var nameExists = await nameQuery.AnyAsync();
                     var codeExists = await codeQuery.AnyAsync();
 
-                    if (nameExists && codeExists)
-                        return Result.Failure<(string, string)>($"Country with name \"{name}\" and code \"{code}\" already exists.");
-                    else if (nameExists)
-                        return Result.Failure<(string, string)>($"Country with name \"{name}\" already exists.");
-                    else if (codeExists)
-                        return Result.Failure<(string, string)>($"Country with code \"{code}\" already exists.");
-                    else
-                        return Result.Success(tuple);
+                    // Collect all uniqueness violations
+                    var errors = new List<string>();
+
+                    if (nameExists)
+                        errors.Add($"name \"{name}\"");
+
+                    if (codeExists)
+                        errors.Add($"code \"{code}\"");
+
+                    // Return failure with all collected errors if any exist
+                    if (errors.Count > 0)
+                        return Result.Failure<(string, string)>("Country with " + string.Join(", ", errors) + " already exists.");
+
+                    return Result.Success(tuple);
                 });
         }
 

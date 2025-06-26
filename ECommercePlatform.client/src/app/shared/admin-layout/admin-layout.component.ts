@@ -9,7 +9,6 @@ import { AuthorizationService } from '../../services/authorization/authorization
 import { PermissionNotificationService, PermissionError } from '../../services/general/permission-notification.service';
 import { PermissionRefreshService } from '../../services/general/permission-refresh.service';
 
-
 @Component({
   selector: 'app-admin-layout',
   templateUrl: './admin-layout.component.html',
@@ -71,6 +70,9 @@ export class AdminLayoutComponent implements OnInit {
       this.permissionError = error;
     });
 
+    // Initialize dropdown state based on current URL first
+    this.initializeDropdownStateFromUrl(this.router.url);
+
     // Detect current route to know which module user is on
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -85,8 +87,8 @@ export class AdminLayoutComponent implements OnInit {
           this.isSidebarCollapsed = true;
         }
 
-        // Check if the active route belongs to any dropdown and open it
-        this.updateActiveDropdown(this.currentModuleRoute);
+        // Update active dropdown based on new route
+        this.initializeDropdownStateFromUrl(event.url);
       }
     });
 
@@ -116,16 +118,7 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   updateActiveDropdown(route: string): void {
-    // Quick Actions routes
-    if (route === 'countries' || route === 'states' || route === 'cities') {
-      this.isQuickActionsOpen = true;
-      this.isAccessManagementOpen = false;
-    }
-    // Access Management routes
-    else if (route === 'users' || route === 'roles' || route === 'modules') {
-      this.isAccessManagementOpen = true;
-      this.isQuickActionsOpen = false;
-    }
+    this.initializeDropdownStateFromUrl(`/admin/${route}`);
   }
 
   @HostListener('window:resize', ['$event'])
@@ -258,6 +251,24 @@ export class AdminLayoutComponent implements OnInit {
 
   dismissPermissionError(): void {
     this.permissionNotificationService.clearError();
+  }
+
+  private initializeDropdownStateFromUrl(url: string): void {
+    const urlParts = url.split('/');
+    if (urlParts.length > 2) {
+      const currentRoute = urlParts[2];
+
+      // Quick Actions routes
+      if (currentRoute === 'countries' || currentRoute === 'states' || currentRoute === 'cities') {
+        this.isQuickActionsOpen = true;
+        this.isAccessManagementOpen = false;
+      }
+      // Access Management routes
+      else if (currentRoute === 'users' || currentRoute === 'roles' || currentRoute === 'modules') {
+        this.isAccessManagementOpen = true;
+        this.isQuickActionsOpen = false;
+      }
+    }
   }
 
   @HostListener('document:click')

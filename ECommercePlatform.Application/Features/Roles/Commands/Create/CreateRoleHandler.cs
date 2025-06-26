@@ -31,7 +31,7 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Create
                 await _unitOfWork.Roles.AddAsync(role);
 
                 // Process permissions if provided
-                if (request.Permissions != null && request.Permissions.Any())
+                if (request.Permissions != null && request.Permissions.Count != 0)
                 {
                     foreach (var perm in request.Permissions)
                     {

@@ -8,10 +8,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.UploadAvatar
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public UploadAvatarHandler(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
+        public UploadAvatarHandler(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
 
         public async Task<AppResult<string>> Handle(UploadAvatarCommand request, CancellationToken cancellationToken)
         {

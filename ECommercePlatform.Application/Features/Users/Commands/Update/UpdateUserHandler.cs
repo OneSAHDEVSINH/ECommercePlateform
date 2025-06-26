@@ -19,26 +19,19 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
                 if (user == null)
                     return AppResult<UserDto>.Failure($"User with ID {request.Id} not found.");
 
-                // Check email uniqueness if changing
-                if (!string.IsNullOrEmpty(request.Email) && request.Email != user.Email)
+                // Check uniqueness if changing
+                if ((!string.IsNullOrEmpty(request.Email) && request.Email != user.Email) || 
+                    (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber))
                 {
-                    var emailResult = await _unitOfWork.Users.EnsureEmailIsUniqueAsync(request.Email, request.Id);
-                    if (emailResult.IsFailure)
-                        return AppResult<UserDto>.Failure(emailResult.Error);
+                    var uniqueResult = await _unitOfWork.Users.EnsureEmailAndPhoneAreUniqueAsync(request.Email!, request.PhoneNumber!, request.Id);
+                    if (uniqueResult.IsFailure)
+                        return AppResult<UserDto>.Failure(uniqueResult.Error);
 
                     user.Email = request.Email;
                     user.UserName = request.Email;
-                }
-
-                // Check email uniqueness if changing
-                if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
-                {
-                    var phoneResult = await _unitOfWork.Users.EnsurePhoneIsUniqueAsync(request.PhoneNumber, request.Id);
-                    if (phoneResult.IsFailure)
-                        return AppResult<UserDto>.Failure(phoneResult.Error);
-
                     user.PhoneNumber = request.PhoneNumber;
                 }
+
 
                 // Update user properties
                 if (!string.IsNullOrEmpty(request.FirstName))

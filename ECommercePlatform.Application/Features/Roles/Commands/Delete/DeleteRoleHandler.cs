@@ -18,7 +18,7 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Delete
 
                 // Check if role is used by users
                 var userRoles = await _unitOfWork.UserRoles.GetByRoleIdAsync(role.Id);
-                if (userRoles.Any())
+                if (userRoles.Count != 0)
                     return AppResult.Failure("Cannot delete role. It is currently assigned to one or more users.");
 
                 // First delete all role permissions

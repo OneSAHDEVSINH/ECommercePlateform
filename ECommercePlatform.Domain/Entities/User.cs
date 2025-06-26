@@ -22,7 +22,7 @@ namespace ECommercePlatform.Domain.Entities
         public virtual ICollection<Address>? Addresses { get; set; }
         public virtual ICollection<Order>? Orders { get; set; }
         public virtual ICollection<Review>? Reviews { get; set; }
-        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        public virtual ICollection<UserRole> UserRoles { get; set; } = [];
 
         // Default parameterless constructor required by EF Core
         public User() { }
@@ -35,7 +35,6 @@ namespace ECommercePlatform.Domain.Entities
             DateOnly? dateOfBirth = null,
             string? phoneNumber = null,
             string? email = null,
-            string? password = null,
             string? bio = null,
             UserRole? role = null
         )
@@ -80,7 +79,6 @@ namespace ECommercePlatform.Domain.Entities
             DateOnly dateOfBirth,
             string phoneNumber,
             string email,
-            string password,
             string bio,
             UserRole userRole,
             string createdBy,

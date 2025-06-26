@@ -20,7 +20,7 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Create
                 .MaximumLength(500).WithMessage("Description must not exceed 500 characters.")
                 .When(x => !string.IsNullOrEmpty(x.Description));
 
-            When(x => x.Permissions != null && x.Permissions.Any(), () =>
+            When(x => x.Permissions != null && x.Permissions.Count != 0, () =>
             {
                 RuleForEach(x => x.Permissions!)
                     .ChildRules(permission =>

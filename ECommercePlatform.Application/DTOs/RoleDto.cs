@@ -22,7 +22,7 @@ namespace ECommercePlatform.Application.DTOs
                 CreatedOn = role.CreatedOn,
                 Permissions = role.RolePermissions?
                     .Where(rp => !rp.IsDeleted && rp.Module != null)
-                    .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                    .GroupBy(rp => new { rp.ModuleId, rp.Module!.Name })
                     .Select(g => new RoleModulePermissionDto
                     {
                         ModuleId = g.Key.ModuleId,

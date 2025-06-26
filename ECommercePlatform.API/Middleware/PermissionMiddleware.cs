@@ -23,7 +23,7 @@ namespace ECommercePlatform.API.Middleware
                 .OfType<HasPermissionAttribute>()
                 .ToList();
 
-            if (!permissions.Any())
+            if (permissions.Count == 0)
             {
                 await _next(context);
                 return;

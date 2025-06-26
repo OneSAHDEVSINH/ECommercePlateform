@@ -32,7 +32,7 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
                     var role = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
                     return new RoleDto
                     {
-                        Id = role.Id,
+                        Id = role!.Id,
                         Name = role.Name,
                         Description = role.Description,
                         IsActive = role.IsActive

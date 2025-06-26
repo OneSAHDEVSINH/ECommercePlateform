@@ -11,9 +11,8 @@ namespace ECommercePlatform.Application.Interfaces.IRepositories
         new Task<List<Module>> GetAllAsync();
         Task<List<Module>> GetActiveModulesAsync();
         Task<Module?> GetByRouteAsync(string route);
-        Task<Result<string>> EnsureNameIsUniqueAsync(string name, Guid? excludeId = null);
-        Task<Result<string>> EnsureRouteIsUniqueAsync(string route, Guid? excludeId = null);
-        Task<Result<string>> EnsureIconIsUniqueAsync(string icon, Guid? excludeId = null);
+
+        Task<Result<(string normalizedName, string normalizedRoute, string normalizedIcon, int normalizedDp)>> EnsureNameRouteIconDPAreUniqueAsync(string name, string route, string icon, int dp, Guid? excludeId = null);
 
         // Pagination methods
         Task<PagedResponse<Module>> GetPagedModulesAsync(

@@ -8,10 +8,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.RemoveAvatar
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public RemoveAvatarHandler(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
+        public RemoveAvatarHandler(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
 
         public async Task<AppResult> Handle(RemoveAvatarCommand request, CancellationToken cancellationToken)
         {

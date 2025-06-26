@@ -23,7 +23,7 @@ namespace ECommercePlatform.Application.Features.Users.Queries.GetUsersByRoleId
 
                 // Filter by active if requested
                 if (request.ActiveOnly)
-                    users = users.Where(u => u.IsActive && !u.IsDeleted).ToList();
+                    users = [.. users.Where(u => u.IsActive && !u.IsDeleted)];
 
                 // Map users to DTOs with their roles
                 var userDtos = new List<UserDto>();

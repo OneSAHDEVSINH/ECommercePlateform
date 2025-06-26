@@ -63,17 +63,10 @@ namespace ECommercePlatform.API.Middleware
             await context.Response.WriteAsync(json);
         }
 
-        public class ResourceNotFoundException : Exception
+        public class ResourceNotFoundException(string resourceName, object resourceId) : Exception($"{resourceName} with ID {resourceId} was not found")
         {
-            public string ResourceName { get; }
-            public object ResourceId { get; }
-
-            public ResourceNotFoundException(string resourceName, object resourceId)
-                : base($"{resourceName} with ID {resourceId} was not found")
-            {
-                ResourceName = resourceName;
-                ResourceId = resourceId;
-            }
+            public string ResourceName { get; } = resourceName;
+            public object ResourceId { get; } = resourceId;
         }
     }
 }

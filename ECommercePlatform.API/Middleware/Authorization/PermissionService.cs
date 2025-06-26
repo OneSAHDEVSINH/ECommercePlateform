@@ -38,7 +38,7 @@ namespace ECommercePlatform.API.Middleware.Authorization
             var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
                 .Include(rp => rp.Module)
                 .Where(rp => roleIds.Contains(rp.RoleId) &&
-                            rp.Module.Name == moduleName &&
+                            rp.Module!.Name == moduleName &&
                             rp.Module.IsActive &&
                             !rp.Module.IsDeleted &&
                             rp.IsActive &&
@@ -65,7 +65,7 @@ namespace ECommercePlatform.API.Middleware.Authorization
             var rolePermissions = await _unitOfWork.RolePermissions.AsQueryable()
                 .Include(rp => rp.Module)
                 .Where(rp => roleIds.Contains(rp.RoleId) &&
-                            rp.Module.IsActive &&
+                            rp.Module!.IsActive &&
                             !rp.Module.IsDeleted &&
                             rp.IsActive &&
                             !rp.IsDeleted)
@@ -73,10 +73,10 @@ namespace ECommercePlatform.API.Middleware.Authorization
 
             // Group by module and aggregate permissions
             var permissions = rolePermissions
-                .GroupBy(rp => new { rp.ModuleId, rp.Module.Name })
+                .GroupBy(rp => new { rp.ModuleId, rp.Module!.Name })
                 .Select(g => new UserPermissionDto
                 {
-                    ModuleName = g.Key.Name,
+                    ModuleName = g.Key.Name!,
                     CanView = g.Any(rp => rp.CanView),
                     CanAddEdit = g.Any(rp => rp.CanAddEdit),
                     CanDelete = g.Any(rp => rp.CanDelete)

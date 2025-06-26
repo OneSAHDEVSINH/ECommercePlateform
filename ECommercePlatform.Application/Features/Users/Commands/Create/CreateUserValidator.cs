@@ -43,10 +43,10 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                 .MaximumLength(500).WithMessage("Bio must not exceed 500 characters")
                 .When(x => !string.IsNullOrEmpty(x.Bio));
 
-            RuleFor(x => x.RoleIds)
-                .NotNull().WithMessage("At least one role must be assigned")
-                .Must(roles => roles != null && roles.Count > 0)
-                    .WithMessage("At least one role must be assigned");
+            //RuleFor(x => x.RoleIds)
+            //    .NotNull().WithMessage("At least one role must be assigned")
+            //    .Must(roles => roles != null && roles.Count > 0)
+            //        .WithMessage("At least one role must be assigned");
 
             RuleForEach(x => x.RoleIds)
                 .NotEmpty().WithMessage("Role ID cannot be empty");

@@ -34,7 +34,7 @@ namespace ECommercePlatform.Application.Features.Roles.Queries.GetRolesByModule
 
                 // Filter by active if requested
                 if (request.ActiveOnly)
-                    roles = roles.Where(r => r.IsActive && !r.IsDeleted).ToList();
+                    roles = [.. roles.Where(r => r.IsActive && !r.IsDeleted)];
 
                 // Map to DTOs
                 var roleDtos = new List<RoleDto>();

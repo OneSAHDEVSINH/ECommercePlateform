@@ -57,34 +57,37 @@ namespace ECommercePlatform.Application.Services
         public async Task InvalidateAllPermissionsAsync()
         {
             // Clear all cache entries by iterating over the cache keys
-            var cacheKeys = GetAllCacheKeys();
+            var cacheKeys = AllCacheKeys;
             foreach (var key in cacheKeys)
             {
                 _cache.Remove(key);
             }
         }
 
-        private IEnumerable<object> GetAllCacheKeys()
+        private IEnumerable<object> AllCacheKeys
         {
-            // Use reflection to access private cache entries
-            var cacheEntriesField = typeof(MemoryCache).GetProperty("EntriesCollection", BindingFlags.NonPublic | BindingFlags.Instance);
-            var entriesCollection = cacheEntriesField?.GetValue(_cache) as dynamic;
-            var cacheKeys = new List<object>();
-
-            if (entriesCollection != null)
+            get
             {
-                foreach (var cacheItem in entriesCollection)
+                // Use reflection to access private cache entries
+                var cacheEntriesField = typeof(MemoryCache).GetProperty("EntriesCollection", BindingFlags.NonPublic | BindingFlags.Instance);
+                var entriesCollection = cacheEntriesField?.GetValue(_cache) as dynamic;
+                var cacheKeys = new List<object>();
+
+                if (entriesCollection != null)
                 {
-                    var keyProperty = cacheItem.GetType().GetProperty("Key");
-                    var key = keyProperty?.GetValue(cacheItem);
-                    if (key != null)
+                    foreach (var cacheItem in entriesCollection)
                     {
-                        cacheKeys.Add(key);
+                        var keyProperty = cacheItem.GetType().GetProperty("Key");
+                        var key = keyProperty?.GetValue(cacheItem);
+                        if (key != null)
+                        {
+                            cacheKeys.Add(key);
+                        }
                     }
                 }
-            }
 
-            return cacheKeys;
+                return cacheKeys;
+            }
         }
     }
 }

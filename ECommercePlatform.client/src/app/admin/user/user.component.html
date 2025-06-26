@@ -193,7 +193,7 @@
           </div>
 
           <!-- Roles Selection -->
-          <div class="row mt-2">
+          <div class="row mt-2" *appPermission="{ moduleRoute: 'roles', type: PermissionType.AddEdit }">
             <div class="col-md-12">
               <div class="card card-outline card-info">
                 <div class="card-header">

@@ -18,7 +18,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
         //public DateOnly? DateOfBirth { get; init; }
         public string? DateOfBirth { get; init; }
         public string? Bio { get; init; }
-        public List<Guid>? RoleIds { get; init; } = new();
+        public List<Guid>? RoleIds { get; init; } = [];
         public bool IsActive { get; init; } = true;
 
         [JsonIgnore]

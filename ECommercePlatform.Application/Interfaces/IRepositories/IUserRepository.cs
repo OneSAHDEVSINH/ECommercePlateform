@@ -12,8 +12,7 @@ namespace ECommercePlatform.Application.Interfaces.IRepositories
         new Task<List<User>> GetAllAsync();
         Task<List<User>> GetUsersByRoleIdAsync(Guid roleId);
         Task<List<User>> GetActiveUsersAsync();
-        Task<Result<string>> EnsureEmailIsUniqueAsync(string email, Guid? excludeId = null);
-        Task<Result<string>> EnsurePhoneIsUniqueAsync(string phone, Guid? excludeId = null);
+        Task<Result<(string normalizedEmail, string normalizedPhone)>> EnsureEmailAndPhoneAreUniqueAsync(string email, string phone, Guid? excludeId = null);
 
         // Pagination methods
         Task<PagedResponse<User>> GetPagedUsersAsync(

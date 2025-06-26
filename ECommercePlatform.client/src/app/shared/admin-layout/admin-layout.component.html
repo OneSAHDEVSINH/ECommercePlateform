@@ -76,7 +76,7 @@
         <nav class="mt-2">
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
             <!-- Dashboard Link -->
-            <li class="nav-item" *ngIf="authorizationService.hasViewOrAddEditPermission('dashboard')">
+            <li class="nav-item" *ngIf="authorizationService.hasViewPermission('dashboard')">
               <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fas fa-tachometer-alt"></i>
                 <p>Dashboard</p>
@@ -84,10 +84,10 @@
             </li>
 
             <!-- QUICK ACTIONS DROPDOWN -->
-            <li class="nav-item has-treeview"
-                *ngIf="authorizationService.hasViewOrAddEditPermission('countries') ||
-                       authorizationService.hasViewOrAddEditPermission('states') ||
-                       authorizationService.hasViewOrAddEditPermission('cities')">
+            <li class="nav-item has-treeview" [ngClass]="{'menu-open': isQuickActionsOpen}"
+                *ngIf="authorizationService.hasViewPermission('countries') ||
+            authorizationService.hasViewPermission('states') ||
+            authorizationService.hasViewPermission('cities')">
               <a href="#" class="nav-link" (click)="toggleQuickActions($event)"
                  [ngClass]="{'active': isQuickActionsOpen || isRouteActive('countries') || isRouteActive('states') || isRouteActive('cities')}">
                 <i class="nav-icon fas fa-bolt"></i>
@@ -96,21 +96,20 @@
                   <i class="fas fa-angle-left right"></i>
                 </p>
               </a>
-              <ul class="nav nav-treeview" [ngClass]="{'menu-open': isQuickActionsOpen}"
-                  [ngStyle]="{'display': isQuickActionsOpen ? 'block' : 'none'}">
-                <li class="nav-item" *ngIf="authorizationService.hasViewOrAddEditPermission('countries')">
+              <ul class="nav nav-treeview">
+                <li class="nav-item" *ngIf="authorizationService.hasViewPermission('countries')">
                   <a routerLink="/admin/countries" routerLinkActive="active" class="nav-link">
                     <i class="nav-icon fas fa-globe"></i>
                     <p>Countries</p>
                   </a>
                 </li>
-                <li class="nav-item" *ngIf="authorizationService.hasViewOrAddEditPermission('states')">
+                <li class="nav-item" *ngIf="authorizationService.hasViewPermission('states')">
                   <a routerLink="/admin/states" routerLinkActive="active" class="nav-link">
                     <i class="nav-icon fas fa-map-marked-alt"></i>
                     <p>States</p>
                   </a>
                 </li>
-                <li class="nav-item" *ngIf="authorizationService.hasViewOrAddEditPermission('cities')">
+                <li class="nav-item" *ngIf="authorizationService.hasViewPermission('cities')">
                   <a routerLink="/admin/cities" routerLinkActive="active" class="nav-link">
                     <i class="nav-icon fas fa-city"></i>
                     <p>Cities</p>
@@ -120,10 +119,10 @@
             </li>
 
             <!-- ACCESS MANAGEMENT DROPDOWN -->
-            <li class="nav-item has-treeview"
-                *ngIf="authorizationService.hasViewOrAddEditPermission('users') ||
-                       authorizationService.hasViewOrAddEditPermission('roles') ||
-                       authorizationService.hasViewOrAddEditPermission('modules')">
+            <li class="nav-item has-treeview" [ngClass]="{'menu-open': isAccessManagementOpen}"
+                *ngIf="authorizationService.hasViewPermission('users') ||
+            authorizationService.hasViewPermission('roles') ||
+            authorizationService.hasViewPermission('modules')">
               <a href="#" class="nav-link" (click)="toggleAccessManagement($event)"
                  [ngClass]="{'active': isAccessManagementOpen || isRouteActive('users') || isRouteActive('roles') || isRouteActive('modules')}">
                 <i class="nav-icon fas fa-shield-alt"></i>
@@ -132,21 +131,20 @@
                   <i class="fas fa-angle-left right"></i>
                 </p>
               </a>
-              <ul class="nav nav-treeview" [ngClass]="{'menu-open': isAccessManagementOpen}"
-                  [ngStyle]="{'display': isAccessManagementOpen ? 'block' : 'none'}">
-                <li class="nav-item" *ngIf="authorizationService.hasViewOrAddEditPermission('users')">
+              <ul class="nav nav-treeview">
+                <li class="nav-item" *ngIf="authorizationService.hasViewPermission('users')">
                   <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
                     <i class="nav-icon fas fa-users"></i>
                     <p>Users</p>
                   </a>
                 </li>
-                <li class="nav-item" *ngIf="authorizationService.hasViewOrAddEditPermission('roles')">
+                <li class="nav-item" *ngIf="authorizationService.hasViewPermission('roles')">
                   <a routerLink="/admin/roles" routerLinkActive="active" class="nav-link">
                     <i class="nav-icon fas fa-user-shield"></i>
                     <p>Roles & Permissions</p>
                   </a>
                 </li>
-                <li class="nav-item" *ngIf="authorizationService.hasViewOrAddEditPermission('modules')">
+                <li class="nav-item" *ngIf="authorizationService.hasViewPermission('modules')">
                   <a routerLink="/admin/modules" routerLinkActive="active" class="nav-link">
                     <i class="nav-icon fas fa-puzzle-piece"></i>
                     <p>Modules</p>

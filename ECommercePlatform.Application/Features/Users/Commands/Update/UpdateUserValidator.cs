@@ -58,7 +58,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
                     .MaximumLength(500).WithMessage("Bio must not exceed 500 characters");
             });
 
-            When(x => x.RoleIds != null && x.RoleIds.Any(), () =>
+            When(x => x.RoleIds != null && x.RoleIds.Count != 0, () =>
             {
                 RuleForEach(x => x.RoleIds!)
                     .NotEmpty().WithMessage("Role ID cannot be empty");

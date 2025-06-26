@@ -8,7 +8,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUse
     public record AssignRolesToUserCommand : IRequest<AppResult>, ITransactionalBehavior, IAuditableUpdateRequest
     {
         public required Guid UserId { get; init; }
-        public required List<Guid> RoleIds { get; init; } = new();
+        public required List<Guid> RoleIds { get; init; } = [];
 
         [JsonIgnore]
         public string? ModifiedBy { get; set; }

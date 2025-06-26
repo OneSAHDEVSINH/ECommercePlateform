@@ -15,15 +15,9 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
         {
             try
             {
-                // Validate email uniqueness
-                var emailResult = await _unitOfWork.Users.EnsureEmailIsUniqueAsync(request.Email);
-                if (emailResult.IsFailure)
-                    return AppResult<UserDto>.Failure(emailResult.Error);
-
-                // Validate phone uniqueness
-                var phoneResult = await _unitOfWork.Users.EnsurePhoneIsUniqueAsync(request.PhoneNumber!);
-                if (phoneResult.IsFailure)
-                    return AppResult<UserDto>.Failure(phoneResult.Error);
+                var uniqueResult = await _unitOfWork.Users.EnsureEmailAndPhoneAreUniqueAsync(request.Email, request.PhoneNumber!);
+                if (uniqueResult.IsFailure)
+                    return AppResult<UserDto>.Failure(uniqueResult.Error);
 
                 // Parse gender
                 Gender gender = Gender.Other;
@@ -68,7 +62,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                 }
 
                 // Assign roles if provided
-                if (request.RoleIds != null && request.RoleIds.Any())
+                if (request.RoleIds != null && request.RoleIds.Count != 0)
                 {
                     foreach (var roleId in request.RoleIds)
                     {

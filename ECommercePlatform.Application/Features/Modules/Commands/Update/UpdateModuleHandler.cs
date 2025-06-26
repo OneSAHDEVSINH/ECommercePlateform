@@ -18,28 +18,20 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                 if (module == null)
                     return AppResult<ModuleDto>.Failure($"Module with ID {request.Id} not found.");
 
-                // Validate name uniqueness if name is being updated
-                if (!string.IsNullOrEmpty(request.Name) && request.Name != module.Name)
+                // Validate uniqueness if it is being updated
+                if ((!string.IsNullOrEmpty(request.Name) && request.Name != module.Name) || 
+                    (!string.IsNullOrEmpty(request.Route) && request.Route != module.Route) || 
+                    (!string.IsNullOrEmpty(request.Icon) && request.Icon != module.Icon) || 
+                    request.DisplayOrder != module.DisplayOrder)
                 {
-                    var nameResult = await _unitOfWork.Modules.EnsureNameIsUniqueAsync(request.Name, request.Id);
+                    var nameResult = await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(
+                        request.Name!, 
+                        request.Route!, 
+                        request.Icon!, 
+                        request.DisplayOrder ?? module.DisplayOrder, 
+                        request.Id);
                     if (nameResult.IsFailure)
                         return AppResult<ModuleDto>.Failure(nameResult.Error);
-                }
-
-                // Validate route uniqueness if route is being updated
-                if (!string.IsNullOrEmpty(request.Route) && request.Route != module.Route)
-                {
-                    var routeResult = await _unitOfWork.Modules.EnsureRouteIsUniqueAsync(request.Route, request.Id);
-                    if (routeResult.IsFailure)
-                        return AppResult<ModuleDto>.Failure(routeResult.Error);
-                }
-
-                // Validate icon uniqueness if icon is being updated
-                if (!string.IsNullOrEmpty(request.Icon) && request.Icon != module.Icon)
-                {
-                    var iconResult = await _unitOfWork.Modules.EnsureIconIsUniqueAsync(request.Icon, request.Id);
-                    if (iconResult.IsFailure)
-                        return AppResult<ModuleDto>.Failure(iconResult.Error);
                 }
 
                 // Update module properties
