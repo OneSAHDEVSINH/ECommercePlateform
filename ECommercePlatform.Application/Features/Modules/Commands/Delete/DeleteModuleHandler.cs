@@ -30,7 +30,6 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Delete
                 //await _unitOfWork.Modules.UpdateAsync(module);
                 // Delete the module
                 await _unitOfWork.Modules.DeleteAsync(module);
-                await _unitOfWork.SaveChangesAsync();
 
                 return AppResult.Success();
             }

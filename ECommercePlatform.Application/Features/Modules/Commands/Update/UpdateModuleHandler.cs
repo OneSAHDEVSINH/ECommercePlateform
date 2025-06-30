@@ -19,16 +19,16 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                     return AppResult<ModuleDto>.Failure($"Module with ID {request.Id} not found.");
 
                 // Validate uniqueness if it is being updated
-                if ((!string.IsNullOrEmpty(request.Name) && request.Name != module.Name) || 
-                    (!string.IsNullOrEmpty(request.Route) && request.Route != module.Route) || 
-                    (!string.IsNullOrEmpty(request.Icon) && request.Icon != module.Icon) || 
+                if ((!string.IsNullOrEmpty(request.Name) && request.Name != module.Name) ||
+                    (!string.IsNullOrEmpty(request.Route) && request.Route != module.Route) ||
+                    (!string.IsNullOrEmpty(request.Icon) && request.Icon != module.Icon) ||
                     request.DisplayOrder != module.DisplayOrder)
                 {
                     var nameResult = await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(
-                        request.Name!, 
-                        request.Route!, 
-                        request.Icon!, 
-                        request.DisplayOrder ?? module.DisplayOrder, 
+                        request.Name!,
+                        request.Route!,
+                        request.Icon!,
+                        request.DisplayOrder ?? module.DisplayOrder,
                         request.Id);
                     if (nameResult.IsFailure)
                         return AppResult<ModuleDto>.Failure(nameResult.Error);
@@ -44,17 +44,12 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                 );
 
                 if (request.IsActive.HasValue)
-                {
                     module.SetActive(request.IsActive.Value, request.ModifiedBy ?? "system");
-                }
                 else
-                {
                     module.SetModifiedBy(request.ModifiedBy ?? "system");
-                }
 
                 // Update module in database
                 await _unitOfWork.Modules.UpdateAsync(module);
-                await _unitOfWork.SaveChangesAsync();
 
                 // Map to DTO and return
                 var moduleDto = (ModuleDto)module;

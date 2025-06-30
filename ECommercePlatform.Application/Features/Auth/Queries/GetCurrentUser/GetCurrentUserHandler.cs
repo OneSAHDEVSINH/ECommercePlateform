@@ -45,7 +45,6 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
-
                     IsActive = user.IsActive,
                     PhoneNumber = user.PhoneNumber,
                     Gender = user.Gender,
@@ -64,3 +63,45 @@ namespace ECommercePlatform.Application.Features.Auth.Queries.GetCurrentUser
         }
     }
 }
+
+
+//if (!_currentUserService.IsAuthenticated || string.IsNullOrEmpty(_currentUserService.UserId))
+//    return AppResult<UserDto>.Failure("User is not authenticated");
+
+//var userId = Guid.Parse(_currentUserService.UserId); // Convert string UserId to Guid
+//var user = await _unitOfWork.Users.GetByIdAsync(userId);
+
+//if (user == null)
+//    return AppResult<UserDto>.Failure("User not found");
+
+//// Get user roles
+//var userRoles = await _unitOfWork.UserRoles.GetByUserIdAsync(userId);
+//var allRoles = await _unitOfWork.Roles.GetAllAsync();
+//var rolesDto = userRoles.Select(ur =>
+//{
+//    var role = allRoles.FirstOrDefault(r => r.Id == ur.RoleId);
+//    return new RoleDto
+//    {
+//        Id = role!.Id,
+//        Name = role.Name,
+//        Description = role.Description,
+//        IsActive = role.IsActive
+//    };
+//}).ToList();
+
+//var userDto = new UserDto
+//{
+//    Id = user.Id,
+//    FirstName = user.FirstName,
+//    LastName = user.LastName,
+//    Email = user.Email,
+//    IsActive = user.IsActive,
+//    PhoneNumber = user.PhoneNumber,
+//    Gender = user.Gender,
+//    DateOfBirth = user.DateOfBirth,
+//    Bio = user.Bio,
+//    CreatedOn = user.CreatedOn,
+//    Roles = rolesDto
+//};
+
+//return AppResult<UserDto>.Success(userDto);

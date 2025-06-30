@@ -6,12 +6,8 @@ using ECommercePlatform.Application.Interfaces.IServices;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
-using FluentAssertions.Equivalency;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Drawing;
 using System.Linq.Expressions;
-using System.Runtime.Intrinsics.Arm;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {

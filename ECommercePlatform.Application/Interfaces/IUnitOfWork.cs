@@ -19,7 +19,6 @@ namespace ECommercePlatform.Application.Interfaces
         SignInManager<User> SignInManager { get; }
         // Shall be added more repositories as properties
 
-        Task<int> CompleteAsync();
         Task<int> SaveChangesAsync();
         new void Dispose();
     }

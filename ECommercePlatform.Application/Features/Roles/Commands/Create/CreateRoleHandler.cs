@@ -52,8 +52,6 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Create
                     }
                 }
 
-                await _unitOfWork.SaveChangesAsync();
-
                 // Reload the role with permissions for return
                 var createdRole = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);
                 if (createdRole == null)

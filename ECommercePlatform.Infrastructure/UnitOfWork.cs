@@ -47,11 +47,6 @@ namespace ECommercePlatform.Infrastructure
         public RoleManager<Role> RoleManager => _roleManager;
         public SignInManager<User> SignInManager => _signInManager;
 
-        public async Task<int> CompleteAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
-
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

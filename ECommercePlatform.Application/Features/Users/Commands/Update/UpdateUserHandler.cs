@@ -20,7 +20,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
                     return AppResult<UserDto>.Failure($"User with ID {request.Id} not found.");
 
                 // Check uniqueness if changing
-                if ((!string.IsNullOrEmpty(request.Email) && request.Email != user.Email) || 
+                if ((!string.IsNullOrEmpty(request.Email) && request.Email != user.Email) ||
                     (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber))
                 {
                     var uniqueResult = await _unitOfWork.Users.EnsureEmailAndPhoneAreUniqueAsync(request.Email!, request.PhoneNumber!, request.Id);

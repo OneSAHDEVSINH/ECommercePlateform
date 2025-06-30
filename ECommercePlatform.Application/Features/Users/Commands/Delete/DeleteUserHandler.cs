@@ -21,7 +21,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Delete
 
                 // Then delete the user
                 await _unitOfWork.Users.DeleteAsync(user);
-                await _unitOfWork.SaveChangesAsync();
 
                 return AppResult.Success();
             }

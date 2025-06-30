@@ -28,7 +28,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.UploadAvatar
                 user.ModifiedOn = DateTime.UtcNow;
 
                 await _unitOfWork.Users.UpdateAsync(user);
-                await _unitOfWork.SaveChangesAsync();
 
                 // Return a base64 string or URL depending on your implementation
                 var avatarBase64 = Convert.ToBase64String(avatarData);

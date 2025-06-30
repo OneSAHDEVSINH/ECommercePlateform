@@ -3,11 +3,8 @@ using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces.IRepositories;
 using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using System.Drawing;
 using System.Linq.Expressions;
-using System.Runtime.Intrinsics.Arm;
 
 namespace ECommercePlatform.Infrastructure.Repositories
 {

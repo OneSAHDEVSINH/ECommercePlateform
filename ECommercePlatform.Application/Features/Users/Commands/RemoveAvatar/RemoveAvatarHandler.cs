@@ -23,7 +23,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.RemoveAvatar
                 user.ModifiedOn = DateTime.UtcNow;
 
                 await _unitOfWork.Users.UpdateAsync(user);
-                await _unitOfWork.SaveChangesAsync();
 
                 return AppResult.Success();
             }

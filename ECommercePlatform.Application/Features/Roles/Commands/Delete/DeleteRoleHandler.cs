@@ -26,7 +26,6 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Delete
 
                 // Then delete the role itself
                 await _unitOfWork.Roles.DeleteAsync(role);
-                await _unitOfWork.SaveChangesAsync();
 
                 return AppResult.Success();
             }

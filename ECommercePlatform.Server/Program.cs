@@ -87,7 +87,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Register services
 
-builder.Services.AddScoped<IAuthService, IdentityAuthService>(); // Use IdentityAuthService instead
+builder.Services.AddScoped<IAuthService, IdentityAuthService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -123,7 +123,7 @@ builder.Services.AddAuthentication(options =>
 
 // Register Authorization handlers
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
-builder.Services.AddScoped<IAuthorizationHandler, IdentityPermissionAuthorizationHandler>(); // ADD THIS if you have it
+builder.Services.AddScoped<IAuthorizationHandler, IdentityPermissionAuthorizationHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminBypassHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
