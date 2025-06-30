@@ -15,19 +15,20 @@ namespace ECommercePlatform.Application.Features.States.Commands.Create
         {
             try
             {
-                var result = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId)
-                .Map(tuple =>
-                {
-                    var state = State.Create(request.Name, request.Code, request.CountryId);
-                    state.IsActive = true;
-                    return state;
-                })
-                .Tap(state => _unitOfWork.States.AddAsync(state))
-                .Map(state => AppResult<StateDto>.Success((StateDto)state));
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult<StateDto>.Failure(result.Error);
+                return await _unitOfWork.States
+                    .EnsureNameAndCodeAreUniqueInCountryAsync(request.Name, request.Code, request.CountryId)
+                    .Bind(async tuple =>
+                    {
+                        var state = State.Create(request.Name, request.Code, request.CountryId);
+                        state.IsActive = true;
+                        await _unitOfWork.States.AddAsync(state);
+                        return Result.Success(state);
+                    })
+                    .Map(state => AppResult<StateDto>.Success((StateDto)state))
+                    .Match(
+                        success => success,
+                        failure => AppResult<StateDto>.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {

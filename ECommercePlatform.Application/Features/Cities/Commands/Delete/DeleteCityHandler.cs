@@ -13,23 +13,20 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Delete
         {
             try
             {
-                var result = await Result.Success(request.Id)
-                    // Find the city
-                    .Bind(async id =>
-                    {
-                        var city = await _unitOfWork.Cities.GetByIdAsync(id);
-                        return city == null
-                            ? Result.Failure<Domain.Entities.City>($"City with ID {id} not found.")
-                            : Result.Success(city);
-                    })
-                    // Delete the city
-                    .Tap(async city => await _unitOfWork.Cities.DeleteAsync(city))
-                    // Map to final result
-                    .Map(_ => AppResult.Success());
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult.Failure(result.Error);
+                return await Result.Success(request.Id)
+                .Bind(async id =>
+                {
+                    var city = await _unitOfWork.Cities.GetByIdAsync(id);
+                    return city == null
+                        ? Result.Failure<Domain.Entities.City>($"City with ID {id} not found.")
+                        : Result.Success(city);
+                })
+                .Tap(async city => await _unitOfWork.Cities.DeleteAsync(city))
+                .Map(_ => AppResult.Success())
+                .Match(
+                    success => success,
+                    failure => AppResult.Failure(failure)
+                );
             }
             catch (Exception ex)
             {

@@ -35,7 +35,7 @@ export class PermissionDirective implements OnInit, OnDestroy {
       }
     });
 
-    // Initial check
+    // Initial check copy
     if (this.authService.isAuthenticated()) {
       this.updateView();
     }

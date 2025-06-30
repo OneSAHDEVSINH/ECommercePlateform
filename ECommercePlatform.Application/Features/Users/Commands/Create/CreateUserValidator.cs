@@ -28,7 +28,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
                 .MaximumLength(100).WithMessage("Email must not exceed 100 characters")
                 .EmailAddress().WithMessage("A valid email address is required")
                 .Must(static value => EmailRegex.IsMatch(value))
-                    .WithMessage("Please enter a valid email address format");
+                    .WithMessage("Email must be in a valid format (example@domain.com).");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required")

@@ -15,52 +15,42 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
         {
             try
             {
-                //Method Using DTO 
-                // Convert command to DTO early
-                var updateDto = (UpdateStateDto)request;
-
-                var result = await Result.Success(updateDto)
-                    .Bind(async dto =>
+                return await Result.Success(request)
+                    .Bind(async req =>
                     {
-                        var state = await _unitOfWork.States.GetByIdAsync(request.Id);
-
+                        var state = await _unitOfWork.States.GetByIdAsync(req.Id);
                         return state == null
-                            ? Result.Failure<(State state, UpdateStateDto dto)>($"State with ID \"{request.Id}\" not found.")
-                            : Result.Success((state, dto));
+                            ? Result.Failure<State>($"State with ID \"{req.Id}\" not found.")
+                            : Result.Success(state);
                     })
-                    .Bind(async tuple =>
+                    .Bind(async state =>
                     {
-                        var (state, dto) = tuple;
-
-                        // Validation still needs values, extract from DTO
                         var validationResult = await _unitOfWork.States.EnsureNameAndCodeAreUniqueInCountryAsync(
-                            dto.Name ?? string.Empty,
-                            dto.Code ?? string.Empty,
-                            request.CountryId,
-                            request.Id);
+                        request.Name ?? string.Empty,
+                        request.Code ?? string.Empty,
+                        request.CountryId,
+                        request.Id);
 
                         return validationResult.IsSuccess
-                            ? Result.Success((state, dto))
-                            : Result.Failure<(State state, UpdateStateDto dto)>(validationResult.Error);
+                            ? Result.Success(state)
+                            : Result.Failure<State>(validationResult.Error);
                     })
-                    .Tap(async tuple =>
+                    .Tap(async state =>
                     {
-                        var (state, dto) = tuple;
-
-                        // Update entity using values from DTO
                         state.Update(
-                            dto.Name ?? string.Empty,
-                            dto.Code ?? string.Empty,
-                            dto.CountryId
+                            request.Name ?? string.Empty,
+                            request.Code ?? string.Empty,
+                            request.CountryId
                         );
+                        state.IsActive = request.IsActive;
 
                         await _unitOfWork.States.UpdateAsync(state);
                     })
-                    .Map(_ => AppResult.Success());
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult.Failure(result.Error);
+                    .Map(_ => AppResult.Success())
+                    .Match(
+                        success => success,
+                        error => AppResult.Failure(error)
+                    );
             }
             catch (Exception ex)
             {

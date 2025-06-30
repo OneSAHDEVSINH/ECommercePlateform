@@ -15,50 +15,40 @@ public class UpdateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Upda
     {
         try
         {
-            //Method Using DTO 
-            // Convert command to DTO early
-            var updateDto = (UpdateCountryDto)request;
-
-            var result = await Result.Success(updateDto)
-                .Bind(async dto =>
-                {
-                    var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
-
-                    return country == null
-                        ? Result.Failure<(Country country, UpdateCountryDto dto)>($"Country with ID \"{request.Id}\" not found.")
-                        : Result.Success((country, dto));
-                })
-                .Bind(async tuple =>
-                {
-                    var (country, dto) = tuple;
-
-                    // Validation still needs values, extract from DTO
-                    var validationResult = await _unitOfWork.Countries.EnsureNameAndCodeAreUniqueAsync(
-                        dto.Name ?? string.Empty,
-                        dto.Code ?? string.Empty,
+            return await Result.Success(request)
+                    .Bind(async req =>
+                    {
+                        var country = await _unitOfWork.Countries.GetByIdAsync(req.Id);
+                        return country == null
+                            ? Result.Failure<Country>($"Country with ID \"{req.Id}\" not found.")
+                            : Result.Success(country);
+                    })
+                    .Bind(async country =>
+                    {
+                        var validationResult = await _unitOfWork.Countries.EnsureNameAndCodeAreUniqueAsync(
+                        request.Name ?? string.Empty,
+                        request.Code ?? string.Empty,
                         request.Id);
 
-                    return validationResult.IsSuccess
-                        ? Result.Success((country, dto))
-                        : Result.Failure<(Country country, UpdateCountryDto dto)>(validationResult.Error);
-                })
-                .Tap(async tuple =>
-                {
-                    var (country, dto) = tuple;
+                        return validationResult.IsSuccess
+                            ? Result.Success(country)
+                            : Result.Failure<Country>(validationResult.Error);
+                    })
+                    .Tap(async country =>
+                    {
+                        country.Update(
+                            request.Name ?? string.Empty,
+                            request.Code ?? string.Empty
+                        );
+                        country.IsActive = request.IsActive;
 
-                    // Update entity using values from DTO
-                    country.Update(
-                        dto.Name ?? string.Empty,
-                        dto.Code ?? string.Empty
+                        await _unitOfWork.Countries.UpdateAsync(country);
+                    })
+                    .Map(_ => AppResult.Success())
+                    .Match(
+                        success => success,
+                        error => AppResult.Failure(error)
                     );
-
-                    await _unitOfWork.Countries.UpdateAsync(country);
-                })
-                .Map(_ => AppResult.Success());
-
-            return result.IsSuccess
-                ? result.Value
-                : AppResult.Failure(result.Error);
         }
         catch (Exception ex)
         {

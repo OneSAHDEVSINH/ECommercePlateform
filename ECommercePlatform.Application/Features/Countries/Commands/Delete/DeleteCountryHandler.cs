@@ -13,31 +13,21 @@ namespace ECommercePlatform.Application.Features.Countries.Commands.Delete
         {
             try
             {
-                var result = await Result.Success(request.Id)
-                    // Find the country
-                    .Bind(async id =>
-                    {
-                        var country = await _unitOfWork.Countries.GetByIdAsync(id);
-                        return country == null
-                            ? Result.Failure<Domain.Entities.Country>($"Country with ID {id} not found.")
-                            : Result.Success(country);
-                    })
-                    // Check if there are any associated states
-                    .Bind(async country =>
-                    {
-                        var states = await _unitOfWork.States.GetStatesByCountryIdAsync(country.Id);
-                        return states != null && states.Any()
-                            ? Result.Failure<Domain.Entities.Country>($"Cannot delete country with ID {country.Id} as it has associated states")
-                            : Result.Success(country);
-                    })
-                    // Delete the country
-                    .Tap(async country => await _unitOfWork.Countries.DeleteAsync(country))
-                    // Map to final result
-                    .Map(_ => AppResult.Success());
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult.Failure(result.Error);
+                return await Result.Success(request.Id)
+                .Bind(async id =>
+                {
+                    var country = await _unitOfWork.Countries.GetByIdAsync(id);
+                    return country == null
+                        ? Result.Failure<Domain.Entities.Country>($"Country with ID {id} not found.")
+                        : Result.Success(country);
+                })
+                .Tap(async country => await _unitOfWork.Countries
+                .DeleteAsync(country))
+                .Map(_ => AppResult.Success())
+                .Match(
+                    success => success,
+                    failure => AppResult.Failure(failure)
+                );
 
             }
             catch (Exception ex)

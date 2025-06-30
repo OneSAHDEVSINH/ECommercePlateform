@@ -18,7 +18,6 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
         }
 
-
         public new async Task<List<Module>> GetAllAsync()
         {
             return await _context.Modules

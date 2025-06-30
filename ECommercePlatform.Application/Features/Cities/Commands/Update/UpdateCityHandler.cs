@@ -15,50 +15,40 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
         {
             try
             {
-                //Method Using DTO 
-                // Convert command to DTO early
-                var updateDto = (UpdateCityDto)request;
-
-                var result = await Result.Success(updateDto)
-                    .Bind(async dto =>
+                return await Result.Success(request)
+                    .Bind(async req =>
                     {
-                        var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
-
+                        var city = await _unitOfWork.Cities.GetByIdAsync(req.Id);
                         return city == null
-                            ? Result.Failure<(City city, UpdateCityDto dto)>($"City with ID \"{request.Id}\" not found.")
-                            : Result.Success((city, dto));
+                            ? Result.Failure<City>($"City with ID \"{req.Id}\" not found.")
+                            : Result.Success(city);
                     })
-                    .Bind(async tuple =>
+                    .Bind(async city =>
                     {
-                        var (city, dto) = tuple;
-
-                        // Validation still needs values, extract from DTO
                         var validationResult = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(
-                            dto.Name ?? string.Empty,
-                            request.StateId,
-                            request.Id);
+                        request.Name ?? string.Empty,
+                        request.StateId,
+                        request.Id);
 
                         return validationResult.IsSuccess
-                            ? Result.Success((city, dto))
-                            : Result.Failure<(City city, UpdateCityDto dto)>(validationResult.Error);
+                            ? Result.Success(city)
+                            : Result.Failure<City>(validationResult.Error);
                     })
-                    .Tap(async tuple =>
+                    .Tap(async city =>
                     {
-                        var (city, dto) = tuple;
-
-                        // Update entity using values from DTO
                         city.Update(
-                            dto.Name ?? string.Empty,
-                            dto.StateId
+                            request.Name ?? string.Empty,
+                            request.StateId
                         );
+                        city.IsActive = request.IsActive;
 
                         await _unitOfWork.Cities.UpdateAsync(city);
                     })
-                    .Map(_ => AppResult.Success());
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult.Failure(result.Error);
+                    .Map(_ => AppResult.Success())
+                    .Match(
+                        success => success,
+                        error => AppResult.Failure(error)
+                    );
             }
             catch (Exception ex)
             {

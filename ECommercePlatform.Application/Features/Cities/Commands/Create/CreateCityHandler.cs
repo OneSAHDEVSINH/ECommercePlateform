@@ -15,20 +15,20 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Create
         {
             try
             {
-                var result = await _unitOfWork.Cities.EnsureNameIsUniqueInStateAsync(request.Name, request.StateId)
-                    .Map(_ => // Use _ to ignore the normalized name
+                return await _unitOfWork.Cities
+                    .EnsureNameIsUniqueInStateAsync(request.Name, request.StateId)
+                    .Bind(async tuple =>
                     {
-                        // Use the original name from the request
                         var city = City.Create(request.Name, request.StateId);
                         city.IsActive = true;
-                        return city;
+                        await _unitOfWork.Cities.AddAsync(city);
+                        return Result.Success(city);
                     })
-                    .Tap(city => _unitOfWork.Cities.AddAsync(city))
-                    .Map(city => AppResult<CityDto>.Success((CityDto)city));
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult<CityDto>.Failure(result.Error);
+                    .Map(city => AppResult<CityDto>.Success((CityDto)city))
+                    .Match(
+                        success => success,
+                        failure => AppResult<CityDto>.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {

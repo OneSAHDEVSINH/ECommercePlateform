@@ -15,19 +15,20 @@ public class CreateCountryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Crea
     {
         try
         {
-            var result = await _unitOfWork.Countries.EnsureNameAndCodeAreUniqueAsync(request.Name, request.Code)
-            .Map(tuple =>
-            {
-                var country = Country.Create(request.Name, request.Code);
-                country.IsActive = true;
-                return country;
-            })
-            .Tap(country => _unitOfWork.Countries.AddAsync(country))
-            .Map(country => AppResult<CountryDto>.Success((CountryDto)country));
-
-            return result.IsSuccess
-                ? result.Value
-                : AppResult<CountryDto>.Failure(result.Error);
+            return await _unitOfWork.Countries
+                    .EnsureNameAndCodeAreUniqueAsync(request.Name, request.Code)
+                    .Bind(async tuple =>
+                    {
+                        var country = Country.Create(request.Name, request.Code);
+                        country.IsActive = true;
+                        await _unitOfWork.Countries.AddAsync(country);
+                        return Result.Success(country);
+                    })
+                    .Map(country => AppResult<CountryDto>.Success((CountryDto)country))
+                    .Match(
+                        success => success,
+                        failure => AppResult<CountryDto>.Failure(failure)
+                    );
         }
         catch (Exception ex)
         {

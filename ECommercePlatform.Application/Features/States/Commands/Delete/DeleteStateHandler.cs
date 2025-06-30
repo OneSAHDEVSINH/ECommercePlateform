@@ -13,31 +13,20 @@ namespace ECommercePlatform.Application.Features.States.Commands.Delete
         {
             try
             {
-                var result = await Result.Success(request.Id)
-                    // Find the state
-                    .Bind(async id =>
-                    {
-                        var state = await _unitOfWork.States.GetByIdAsync(id);
-                        return state == null
-                            ? Result.Failure<Domain.Entities.State>($"State with ID {id} not found.")
-                            : Result.Success(state);
-                    })
-                    // Check if there are any associated cities
-                    .Bind(async state =>
-                    {
-                        var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(state.Id);
-                        return cities != null && cities.Any()
-                            ? Result.Failure<Domain.Entities.State>($"Cannot delete state with ID {state.Id} as it has associated states")
-                            : Result.Success(state);
-                    })
-                    // Delete the state
-                    .Tap(async state => await _unitOfWork.States.DeleteAsync(state))
-                    // Map to final result
-                    .Map(_ => AppResult.Success());
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult.Failure(result.Error);
+                return await Result.Success(request.Id)
+                .Bind(async id =>
+                {
+                    var state = await _unitOfWork.States.GetByIdAsync(id);
+                    return state == null
+                        ? Result.Failure<Domain.Entities.State>($"State with ID {id} not found.")
+                        : Result.Success(state);
+                })
+                .Tap(async state => await _unitOfWork.States.DeleteAsync(state))
+                .Map(_ => AppResult.Success())
+                .Match(
+                    success => success,
+                    failure => AppResult.Failure(failure)
+                );
             }
             catch (Exception ex)
             {
