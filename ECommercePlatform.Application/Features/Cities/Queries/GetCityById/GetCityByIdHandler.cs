@@ -1,6 +1,8 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Queries.GetCityById
@@ -13,13 +15,19 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCityById
         {
             try
             {
-                var city = await _unitOfWork.Cities.GetByIdAsync(request.Id);
-                if (city == null)
-                    return AppResult<CityDto>.Failure($"City with this ID \"{request.Id}\" not found.");
-
-                var cityDto = (CityDto)city;
-
-                return AppResult<CityDto>.Success(cityDto);
+                return await Result.Success(request)
+                    .Bind(async req => {
+                        var city = await _unitOfWork.Cities.GetByIdAsync(req.Id);
+                        return city == null
+                            ? Result.Failure<City>($"City with this ID \"{req.Id}\" not found.")
+                            : Result.Success(city);
+                    })
+                    .Map(city => (CityDto)city)
+                    .Map(cityDto => AppResult<CityDto>.Success(cityDto))
+                    .Match(
+                        success => success,
+                        failure => AppResult<CityDto>.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {

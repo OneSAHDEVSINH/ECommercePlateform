@@ -1,6 +1,8 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState
@@ -13,14 +15,25 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCitiesByState
         {
             try
             {
-                var state = await _unitOfWork.States.GetByIdAsync(request.StateId);
-                if (state == null)
-                    return AppResult<List<CityDto>>.Failure($"Cities with this ID \"{request.StateId}\" not found.");
-
-                var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(request.StateId);
-                var citiesDto = cities.Select(city => (CityDto)city).ToList();
-
-                return AppResult<List<CityDto>>.Success(citiesDto);
+                return await Result.Success(request)
+                    .Bind(async req =>
+                    {
+                        var state = await _unitOfWork.States.GetByIdAsync(req.StateId);
+                        return state == null
+                            ? Result.Failure<State>($"State with ID \"{req.StateId}\" not found.")
+                            : Result.Success(state);
+                    })
+                    .Bind(async state =>
+                    {
+                        var cities = await _unitOfWork.Cities.GetCitiesByStateIdAsync(state.Id);
+                        return Result.Success(cities);
+                    })
+                    .Map(cities => cities.Select(city => (CityDto)city).ToList())
+                    .Map(cityDtos => AppResult<List<CityDto>>.Success(cityDtos))
+                    .Match(
+                        success => success,
+                        failure => AppResult<List<CityDto>>.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
@@ -25,3 +26,16 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetAllCities
         }
     }
 }
+
+
+//return await Result.Success()
+//                    .Bind(async () =>
+//                    {
+//                        var cities = await _unitOfWork.Cities.GetAllAsync();
+//                        return Result.Success(cities);
+//                    })
+//                    .Map(cities => cities.Select(city => (CityDto)city).ToList())
+//                    .Match(
+//                        cityDtos => AppResult<List<CityDto>>.Success(cityDtos),
+//                        error => AppResult<List<CityDto>>.Failure(error)
+//                    );

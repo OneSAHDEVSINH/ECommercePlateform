@@ -1,6 +1,8 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Countries.Queries.GetCountryById
@@ -13,13 +15,19 @@ namespace ECommercePlatform.Application.Features.Countries.Queries.GetCountryByI
         {
             try
             {
-                var country = await _unitOfWork.Countries.GetByIdAsync(request.Id);
-                if (country == null)
-                    return AppResult<CountryDto>.Failure($"Country with this ID \"{request.Id}\" not found");
-
-                var countryDto = (CountryDto)country;
-
-                return AppResult<CountryDto>.Success(countryDto);
+                return await Result.Success(request)
+                    .Bind(async req => {
+                        var country = await _unitOfWork.Countries.GetByIdAsync(req.Id);
+                        return country == null
+                            ? Result.Failure<Country>($"Country with this ID \"{req.Id}\" not found")
+                            : Result.Success(country);
+                    })
+                    .Map(country => (CountryDto)country)
+                    .Map(countryDto => AppResult<CountryDto>.Success(countryDto))
+                    .Match(
+                        success => success,
+                        failure => AppResult<CountryDto>.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {

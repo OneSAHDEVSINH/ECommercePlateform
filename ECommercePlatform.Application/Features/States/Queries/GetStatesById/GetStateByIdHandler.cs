@@ -1,6 +1,8 @@
-﻿using ECommercePlatform.Application.Common.Models;
+﻿using CSharpFunctionalExtensions;
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Queries.GetStatesById
@@ -13,13 +15,19 @@ namespace ECommercePlatform.Application.Features.States.Queries.GetStatesById
         {
             try
             {
-                var state = await _unitOfWork.States.GetByIdAsync(request.Id);
-                if (state == null)
-                    return AppResult<StateDto>.Failure($"State with this ID \"{request.Id}\" not found.");
-
-                var stateDto = (StateDto)state;
-
-                return AppResult<StateDto>.Success(stateDto);
+                return await Result.Success(request)
+                    .Bind(async req => {
+                    var state = await _unitOfWork.States.GetByIdAsync(req.Id);
+                    return state == null
+                        ? Result.Failure<State>($"State with this ID \"{req.Id}\" not found.")
+                        : Result.Success(state);
+                    })
+                    .Map(state => (StateDto)state)
+                    .Map(stateDto => AppResult<StateDto>.Success(stateDto))
+                    .Match(
+                        success => success,
+                        failure => AppResult<StateDto>.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {
