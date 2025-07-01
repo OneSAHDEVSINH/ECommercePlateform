@@ -20,7 +20,7 @@ export class CountryService {
     return this.http.get<Country[]>(this.apiUrl);
   }
 
-  getPagedCountries(request: PagedRequest): Observable<PagedResponse<Country>> {
+  getPagedCountries(request: PagedRequest, activeOnly?: boolean): Observable<PagedResponse<Country>> {
     let params = new HttpParams()
       .set('pageNumber', request.pageNumber.toString())
       .set('pageSize', request.pageSize.toString());
@@ -47,6 +47,10 @@ export class CountryService {
       params = params.set('endDate', request.endDate);
     }
 
+    if (activeOnly !== undefined) {
+      params = params.set('activeOnly', activeOnly);
+    }
+
     return this.http.get<PagedResponse<Country>>(`${this.apiUrl}/paged`, { params });
   }
 
@@ -58,8 +62,8 @@ export class CountryService {
     return this.http.post<Country>(this.apiUrl, country);
   }
 
-  updateCountry(id: string, country: Country): Observable<Country> {
-    return this.http.put<Country>(`${this.apiUrl}/${encodeURIComponent(id)}`, country);
+  updateCountry(id: string, country: any): Observable<Country> {
+    return this.http.put<Country>(`${this.apiUrl}/${encodeURIComponent(id)}`, { ...country, id });
   }
 
   deleteCountry(id: string): Observable<void> {

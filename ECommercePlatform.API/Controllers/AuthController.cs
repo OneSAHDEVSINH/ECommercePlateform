@@ -27,7 +27,7 @@ namespace ECommercePlatform.API.Controllers
             {
                 // Return 401 for authentication failures
                 if (result.Error.Contains("Invalid email or password") ||
-                    result.Error.Contains("User account is inactive"))
+                    result.Error.Contains("User account is inactive or deleted"))
                 {
                     return Unauthorized(new { message = result.Error });
                 }

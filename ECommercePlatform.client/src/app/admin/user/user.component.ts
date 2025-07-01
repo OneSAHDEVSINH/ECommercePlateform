@@ -138,18 +138,22 @@ export class UserComponent implements OnInit, OnDestroy {
 
     this.userService.getPagedUsers(
       request,
-      this.selectedRoleId !== 'all' ? this.selectedRoleId : undefined
+      this.selectedRoleId !== 'all' ? this.selectedRoleId : undefined, false
     ).subscribe({
       next: (response) => {
         this.pagedResponse = response;
+
         // Filter out ONLY the default SuperAdmin by email, not all SuperAdmin role users
-        if (!this.authorizationService.isAdmin()) {
-          this.users = response.items.filter(user =>
-            user.email?.toLowerCase() !== 'admin@admin.com'
-          );
-        } else {
-          this.users = response.items;
-        }
+        let filteredUsers = !this.authorizationService.isAdmin()
+          ? response.items.filter(user => user.email?.toLowerCase() !== 'admin@admin.com')
+          : response.items;
+
+        // Convert gender enum values to string representation
+        this.users = filteredUsers.map(user => ({
+          ...user,
+          gender: genderToString(user.gender)
+        }));
+
         this.loading = false;
       },
       error: (error) => {
@@ -356,6 +360,34 @@ export class UserComponent implements OnInit, OnDestroy {
     } else {
       this.selectedRoles.splice(index, 1);
     }
+  }
+
+  toggleStatus(item: any): void {
+    if (!item.id || !this.authorizationService.hasPermission('users', PermissionType.AddEdit)) return;
+
+    this.loading = true;
+
+    // Create a simple update object with just the toggled status
+    const update = { isActive: !item.isActive };
+
+    this.userService.updateUser(item.id, update).subscribe({
+      next: () => {
+        // Update the item in the local array to avoid a full reload
+        item.isActive = !item.isActive;
+        this.messageService.showMessage({
+          type: 'success',
+          text: `User ${item.isActive ? 'activated' : 'deactivated'} successfully`
+        });
+        this.loadUsers();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error updating status:', error);
+        const errorMessage = error.error?.message || 'Failed to update status';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
+        this.loading = false;
+      }
+    });
   }
 
   // Pagination methods

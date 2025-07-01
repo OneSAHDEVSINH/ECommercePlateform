@@ -119,7 +119,8 @@ export class CityComponent implements OnInit, OnDestroy {
   private initForm(): void {
     this.cityForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
-      stateId: ['', [Validators.required]]
+      stateId: ['', [Validators.required]],
+      isActive: [true]
     });
   }
 
@@ -192,11 +193,6 @@ export class CityComponent implements OnInit, OnDestroy {
 
   loadCities(): void {
     this.loading = true;
-    //this.cityService.getCities().subscribe({
-    //  next: (cities) => {
-    //    this.cities = cities;
-    //    this.loading = false;
-    //  },
     const stateId = this.selectedStateId === 'all' ? undefined : this.selectedStateId;
     let countryId = this.selectedCountryIdFilter === 'all' ? undefined : this.selectedCountryIdFilter;
 
@@ -205,7 +201,7 @@ export class CityComponent implements OnInit, OnDestroy {
       countryId = undefined;
     }
 
-    this.cityService.getPagedCities(this.pageRequest, stateId, countryId).subscribe({
+    this.cityService.getPagedCities(this.pageRequest, stateId, countryId, false).subscribe({
       next: (response) => {
         this.cities = response.items;
         this.pagedResponse = response;
@@ -303,7 +299,8 @@ export class CityComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             this.cityForm.patchValue({
               name: city.name,
-              stateId: city.stateId
+              stateId: city.stateId,
+              isActive: city.isActive !== undefined ? city.isActive : true
             });
           });
         },
@@ -337,7 +334,8 @@ export class CityComponent implements OnInit, OnDestroy {
                 setTimeout(() => {
                   this.cityForm.patchValue({
                     name: city.name,
-                    stateId: city.stateId
+                    stateId: city.stateId,
+                    isActive: city.isActive !== undefined ? city.isActive : true
                   });
                 });
               }
@@ -346,7 +344,8 @@ export class CityComponent implements OnInit, OnDestroy {
             // If still can't find state, just patch form with what we have
             this.cityForm.patchValue({
               name: city.name,
-              stateId: city.stateId
+              stateId: city.stateId,
+              isActive: city.isActive !== undefined ? city.isActive : true
             });
           }
         },
@@ -361,7 +360,6 @@ export class CityComponent implements OnInit, OnDestroy {
       });
     }
   }
-
 
   deleteCity(id: string): void {
     if (confirm('Are you sure you want to delete this city?')) {
@@ -386,10 +384,45 @@ export class CityComponent implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.cityForm.reset();
+    this.cityForm.reset({ isActive: true });
     this.isEditMode = false;
     this.currentCityId = null;
     this.selectedCountryId = '';
+  }
+
+  toggleStatus(city: City): void {
+    if (!city.id || !this.authorizationService.hasPermission('cities', PermissionType.AddEdit)) return;
+
+    this.loading = true;
+
+    // Create an update object with all required fields
+    const update = {
+      id: city.id,
+      name: city.name,        
+      stateId: city.stateId,  
+      isActive: !city.isActive,
+      modifiedBy: this.getUserIdentifier(),
+      modifiedOn: new Date()
+    };
+
+    this.cityService.updateCity(city.id, update).subscribe({
+      next: () => {
+        // Update the item in the local array without reloading
+        city.isActive = !city.isActive;
+        this.messageService.showMessage({
+          type: 'success',
+          text: `City ${city.isActive ? 'activated' : 'deactivated'} successfully`
+        });
+        this.loadCities();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error updating status:', error);
+        const errorMessage = error.error?.message || 'Failed to update status';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
+        this.loading = false;
+      }
+    });
   }
 
   getStateName(stateId: string): string {

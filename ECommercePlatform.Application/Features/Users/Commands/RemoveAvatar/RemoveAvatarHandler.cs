@@ -20,7 +20,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.RemoveAvatar
 
                 // Remove avatar
                 user.Avatar = null;
-                user.ModifiedOn = DateTime.UtcNow;
 
                 await _unitOfWork.Users.UpdateAsync(user);
 

@@ -72,10 +72,8 @@ export class UserService {
       .pipe(catchError(this.handleError));
   }
 
-  updateUser(id: string, user: any): Observable<void> {
-    // Ensure id is included in the request body
-    const userData = { ...user, id };
-    return this.http.put<void>(`${this.apiUrl}/${id}`, userData)
+  updateUser(id: string, user: any): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/${id}`, { ...user, id })
       .pipe(catchError(this.handleError));
   }
 

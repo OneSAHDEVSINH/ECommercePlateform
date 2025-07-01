@@ -21,7 +21,7 @@ export class CityService {
   }
 
   // Add to city.service.ts
-  getPagedCities(request: PagedRequest, stateId?: string, countryId?: string): Observable<PagedResponse<City>> {
+  getPagedCities(request: PagedRequest, stateId?: string, countryId?: string, activeOnly?: boolean): Observable<PagedResponse<City>> {
     let params = new HttpParams()
       .set('pageNumber', request.pageNumber.toString())
       .set('pageSize', request.pageSize.toString())
@@ -54,6 +54,10 @@ export class CityService {
       params = params.set('countryId', countryId);
     }
 
+    if (activeOnly !== undefined) {
+      params = params.set('activeOnly', activeOnly);
+    }
+
     return this.http.get<PagedResponse<City>>(`${this.apiUrl}/paged`, { params });
   }
 
@@ -69,8 +73,8 @@ export class CityService {
     return this.http.post<City>(this.apiUrl, city);
   }
 
-  updateCity(id: string, city: City): Observable<City> {
-    return this.http.put<City>(`${this.apiUrl}/${id}`, city);
+  updateCity(id: string, city: any): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, { ...city, id });
   }
 
   deleteCity(id: string): Observable<void> {

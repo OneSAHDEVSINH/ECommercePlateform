@@ -33,8 +33,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfil
                 if (request.Bio != null)
                     user.Bio = request.Bio;
 
-                user.ModifiedOn = DateTime.UtcNow;
-
                 var result = await _unitOfWork.UserManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {

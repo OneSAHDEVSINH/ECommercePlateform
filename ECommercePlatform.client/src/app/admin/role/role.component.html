@@ -286,7 +286,11 @@
                 <td>{{ role.name }}</td>
                 <td>{{ role.description }}</td>
                 <td>
-                  <span [ngClass]="['badge', role.isActive ? 'badge-success' : 'badge-danger']">
+                  <span class="badge"
+                        [ngClass]="role.isActive ? 'badge-success' : 'badge-danger'"
+                        [style.cursor]="authorizationService.hasPermission('roles', PermissionType.AddEdit) ? 'pointer' : 'default'"
+                        [title]="authorizationService.hasPermission('roles', PermissionType.AddEdit) ? 'Click to toggle status' : ''"
+                        (click)="authorizationService.hasPermission('roles', PermissionType.AddEdit) ? toggleStatus(role) : null">
                     {{ role.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>

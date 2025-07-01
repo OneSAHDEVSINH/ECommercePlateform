@@ -49,9 +49,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.AssignRolesToUse
                     }
                 }
 
-                // Update modification tracking
-                user.ModifiedBy = request.ModifiedBy;
-                user.ModifiedOn = request.ModifiedOn;
                 await _unitOfWork.UserManager.UpdateAsync(user);
 
                 return AppResult.Success();

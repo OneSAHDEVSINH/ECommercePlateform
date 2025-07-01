@@ -127,7 +127,7 @@ export class RoleComponent implements OnInit, OnDestroy {
     const isActive = this.selectedStatusFilter === 'all' ? undefined :
       this.selectedStatusFilter === 'active' ? true : false;
 
-    const sub = this.roleService.getPagedRoles(this.pageRequest).subscribe({
+    const sub = this.roleService.getPagedRoles(this.pageRequest, false).subscribe({
       next: (response) => {
         this.pagedResponse = response;
         this.roles = response.items;
@@ -352,6 +352,34 @@ export class RoleComponent implements OnInit, OnDestroy {
     this.isEditMode = false;
     this.currentRoleId = null;
     this.initializeModulePermissions();
+  }
+
+  toggleStatus(item: any): void {
+    if (!item.id || !this.authorizationService.hasPermission('roles', PermissionType.AddEdit)) return;
+
+    this.loading = true;
+
+    // Create a simple update object with just the toggled status
+    const update = { isActive: !item.isActive };
+
+    this.roleService.updateRole(item.id, update).subscribe({
+      next: () => {
+        // Update the item in the local array to avoid a full reload
+        item.isActive = !item.isActive;
+        this.messageService.showMessage({
+          type: 'success',
+          text: `Role ${item.isActive ? 'activated' : 'deactivated'} successfully`
+        });
+        this.loadRoles();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error updating status:', error);
+        const errorMessage = error.error?.message || 'Failed to update status';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
+        this.loading = false;
+      }
+    });
   }
 
   onPageChange(newPage: number): void {

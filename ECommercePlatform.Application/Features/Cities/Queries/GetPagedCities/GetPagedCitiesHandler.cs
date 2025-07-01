@@ -18,7 +18,7 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetPagedCities
                     request,
                     request.StateId,
                     request.CountryId,
-                    activeOnly: true,
+                    request.ActiveOnly,
                     cancellationToken);
 
                 return AppResult<PagedResponse<CityDto>>.Success(pagedResponse);

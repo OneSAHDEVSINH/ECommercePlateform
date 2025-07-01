@@ -338,6 +338,22 @@
                   <i *ngIf="pageRequest.sortColumn === 'email'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
+                <th (click)="onSortChange('phoneNumber')" class="sortable">
+                  Phone Number
+                  <i *ngIf="pageRequest.sortColumn === 'phoneNumber'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th (click)="onSortChange('gender')" class="sortable">
+                  Gender
+                  <i *ngIf="pageRequest.sortColumn === 'gender'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th (click)="onSortChange('dateOfBirth')" class="sortable">
+                  Date of Birth
+                  <i *ngIf="pageRequest.sortColumn === 'dateOfBirth'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
+                <th>Bio</th>
                 <th>
                   Roles
                 </th>
@@ -358,13 +374,21 @@
               <tr *ngFor="let user of users">
                 <td>{{ user.firstName }} {{ user.lastName }}</td>
                 <td>{{ user.email }}</td>
+                <td>{{ user.phoneNumber }}</td>
+                <td>{{ user.gender }}</td>
+                <td>{{ user.dateOfBirth }}</td>
+                <td>{{ user.bio }}</td>
                 <td>
                   <span *ngFor="let role of user.roles" class="badge badge-info mr-1">
                     {{ role.name }}
                   </span>
                 </td>
                 <td>
-                  <span class="badge" [ngClass]="user.isActive ? 'badge-success' : 'badge-danger'">
+                  <span class="badge"
+                        [ngClass]="user.isActive ? 'badge-success' : 'badge-danger'"
+                        [style.cursor]="authorizationService.hasPermission('users', PermissionType.AddEdit) ? 'pointer' : 'default'"
+                        [title]="authorizationService.hasPermission('users', PermissionType.AddEdit) ? 'Click to toggle status' : ''"
+                        (click)="authorizationService.hasPermission('users', PermissionType.AddEdit) ? toggleStatus(user) : null">
                     {{ user.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>

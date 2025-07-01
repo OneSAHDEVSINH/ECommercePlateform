@@ -11,7 +11,7 @@ public record UpdateCountryCommand : IRequest<AppResult>, ITransactionalBehavior
     public string? Code { get; init; }
     public string? ModifiedBy { get; set; }
     public DateTime ModifiedOn { get; set; } = DateTime.Now;
-    public bool IsActive { get; init; } = true;
+    public bool IsActive { get; init; }
 
     public UpdateCountryCommand(string name, string code)
     {

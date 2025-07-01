@@ -110,7 +110,8 @@ export class StateComponent implements OnInit, OnDestroy {
     this.stateForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
       code: ['', [Validators.required, Validators.maxLength(10), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
-      countryId: ['', [Validators.required]]
+      countryId: ['', [Validators.required]],
+      isActive: [true]
     });
   }
 
@@ -134,7 +135,7 @@ export class StateComponent implements OnInit, OnDestroy {
     this.loading = true;
     const countryId = this.selectedCountryId === 'all' ? undefined : this.selectedCountryId;
 
-    this.stateService.getPagedStates(this.pageRequest, countryId).subscribe({
+    this.stateService.getPagedStates(this.pageRequest, countryId, false).subscribe({
       next: (response) => {
         this.states = response.items;
         this.pagedResponse = response;
@@ -216,7 +217,7 @@ export class StateComponent implements OnInit, OnDestroy {
       countryId: state.countryId,
       modifiedOn: new Date(),
       modifiedBy: this.getUserIdentifier(),
-      isActive: true,
+      isActive: state.isActive !== undefined ? state.isActive : true,
       isDeleted: false
     });
 
@@ -247,9 +248,42 @@ export class StateComponent implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.stateForm.reset();
+    this.stateForm.reset({ isActive: true });
     this.isEditMode = false;
     this.currentStateId = null;
+  }
+
+  toggleStatus(state: State): void {
+    if (!state.id || !this.authorizationService.hasPermission('states', PermissionType.AddEdit)) return;
+
+    this.loading = true;
+
+    // Create a simple update object with just the toggled status
+    const update = {
+      name: state.name,
+      code: state.code,
+      countryId: state.countryId,
+      isActive: !state.isActive
+    };
+
+    this.stateService.updateState(state.id, update).subscribe({
+      next: () => {
+        // Update the item in the local array to avoid a full reload
+        state.isActive = !state.isActive;
+        this.messageService.showMessage({
+          type: 'success',
+          text: `State ${state.isActive ? 'activated' : 'deactivated'} successfully`
+        });
+        this.loadStates();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error updating status:', error);
+        const errorMessage = error.error?.message || 'Failed to update status';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
+        this.loading = false;
+      }
+    });
   }
 
   getCountryName(countryId: string): string {

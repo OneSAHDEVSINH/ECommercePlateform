@@ -126,7 +126,7 @@ export class ModuleComponent implements OnInit, OnDestroy {
     const isActive = this.selectedStatusFilter === 'all' ? undefined :
       this.selectedStatusFilter === 'active' ? true : false;
 
-    const sub = this.moduleService.getPagedModules(this.pageRequest).subscribe({
+    const sub = this.moduleService.getPagedModules(this.pageRequest, false).subscribe({
       next: (response) => {
         this.pagedResponse = response;
         this.modules = response.items;
@@ -263,6 +263,41 @@ export class ModuleComponent implements OnInit, OnDestroy {
     });
     this.isEditMode = false;
     this.currentModuleId = null;
+  }
+
+  toggleStatus(module: Module): void {
+    if (!module.id || !this.authorizationService.hasPermission('modules', PermissionType.AddEdit)) return;
+
+    this.loading = true;
+
+    // Create a simple update object with just the toggled status
+    const update = {
+      name: module.name,
+      description: module.description,
+      route: module.route,
+      icon: module.icon,
+      displayOrder: module.displayOrder,
+      isActive: !module.isActive
+    };
+
+    this.moduleService.updateModule(module.id, update).subscribe({
+      next: () => {
+        // Update the item in the local array to avoid a full reload
+        module.isActive = !module.isActive;
+        this.messageService.showMessage({
+          type: 'success',
+          text: `Module ${module.isActive ? 'activated' : 'deactivated'} successfully`
+        });
+        this.loadModules();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error updating status:', error);
+        const errorMessage = error.error?.message || 'Failed to update status';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
+        this.loading = false;
+      }
+    });
   }
 
   // Pagination methods

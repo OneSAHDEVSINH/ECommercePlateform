@@ -26,9 +26,7 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Create
                     );
 
                         if (!request.IsActive)
-                        {
-                            module.SetActive(false, request.CreatedBy ?? "system");
-                        }
+                            module.SetActive(false);                       
 
                         return module;
                     })

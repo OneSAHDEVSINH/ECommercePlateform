@@ -96,6 +96,17 @@
                 </span>
               </div>
             </div>
+
+            <!-- Active Status -->
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch mt-2">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <!-- Card Footer -->
@@ -213,6 +224,11 @@
                   <i *ngIf="pageRequest.sortColumn === 'country'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
+                <th (click)="onSortChange('isActive')" class="sortable">
+                  Status
+                  <i *ngIf="pageRequest.sortColumn === 'isActive'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
                 <th (click)="onSortChange('createdOn')" class="sortable">
                   Created On
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
@@ -226,6 +242,15 @@
                 <td>{{ city.name }}</td>
                 <td>{{ getStateName(city.stateId) }}</td>
                 <td>{{ getCountryForState(city.stateId) }}</td>
+                <td>
+                  <span class="badge"
+                        [ngClass]="city.isActive ? 'badge-success' : 'badge-danger'"
+                        [style.cursor]="authorizationService.hasPermission('cities', PermissionType.AddEdit) ? 'pointer' : 'default'"
+                        [title]="authorizationService.hasPermission('cities', PermissionType.AddEdit) ? 'Click to toggle status' : ''"
+                        (click)="authorizationService.hasPermission('cities', PermissionType.AddEdit) ? toggleStatus(city) : null">
+                    {{ city.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
                 <td>{{ city.createdOn | date:'medium' }}</td>
                 <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('cities')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editCity(city)"

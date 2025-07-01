@@ -9,5 +9,6 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetPagedCities
     {
         public Guid? StateId { get; set; }
         public Guid? CountryId { get; set; }
+        public bool ActiveOnly { get; set; } = true;
     }
 }

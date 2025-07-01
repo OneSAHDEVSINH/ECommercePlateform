@@ -35,9 +35,6 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Update
                 if (request.IsActive.HasValue)
                     role.IsActive = request.IsActive.Value;
 
-                role.ModifiedBy = request.ModifiedBy;
-                role.ModifiedOn = request.ModifiedOn;
-
                 await _unitOfWork.Roles.UpdateAsync(role);
 
                 // Update permissions if provided

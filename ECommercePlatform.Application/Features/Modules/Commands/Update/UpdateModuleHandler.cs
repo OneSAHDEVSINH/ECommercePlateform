@@ -44,9 +44,7 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                 );
 
                 if (request.IsActive.HasValue)
-                    module.SetActive(request.IsActive.Value, request.ModifiedBy ?? "system");
-                else
-                    module.SetModifiedBy(request.ModifiedBy ?? "system");
+                    module.SetActive(request.IsActive.Value);
 
                 // Update module in database
                 await _unitOfWork.Modules.UpdateAsync(module);

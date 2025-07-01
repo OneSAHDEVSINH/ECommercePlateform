@@ -19,10 +19,23 @@ export class ModuleService {
       .pipe(catchError(this.handleError));
   }
 
-  getPagedModules(request: PagedRequest): Observable<PagedResponse<Module>> {
+  getPagedModules(request: PagedRequest, activeOnly?: boolean): Observable<PagedResponse<Module>> {
     return this.http.get<PagedResponse<Module>>(`${this.apiUrl}/paged`, {
-      params: { ...request as any }
+      params: this.createParams(request, activeOnly)
     }).pipe(catchError(this.handleError));
+  }
+
+  // Helper method to create HTTP parameters
+  private createParams(request: PagedRequest, activeOnly?: boolean): any {
+    let params: any = {
+      ...request,
+    };
+
+    if (activeOnly !== undefined) {
+      params.activeOnly = activeOnly;
+    }
+
+    return params;
   }
 
   getModule(id: string): Observable<Module> {
@@ -40,9 +53,8 @@ export class ModuleService {
       .pipe(catchError(this.handleError));
   }
 
-  updateModule(id: string, module: Module): Observable<void> {
-    const moduleData = { ...module, id };
-    return this.http.put<void>(`${this.apiUrl}/${id}`, moduleData)
+  updateModule(id: string, module: any): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, { ...module, id })
       .pipe(catchError(this.handleError));
   }
 

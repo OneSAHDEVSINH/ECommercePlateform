@@ -17,7 +17,7 @@ namespace ECommercePlatform.Application.Features.States.Queries.GetPagedStates
                 var pagedResponse = await _unitOfWork.States.GetPagedStateDtosAsync(
                     request,
                     request.CountryId,
-                    activeOnly: true,
+                    request.ActiveOnly,
                     cancellationToken);
 
                 return AppResult<PagedResponse<StateDto>>.Success(pagedResponse);

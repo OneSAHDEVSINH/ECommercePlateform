@@ -7,5 +7,6 @@ namespace ECommercePlatform.Application.Features.Countries.Queries.GetPagedCount
 {
     public class GetPagedCountriesQuery : PagedRequest, IRequest<AppResult<PagedResponse<CountryDto>>>
     {
+        public bool ActiveOnly { get; set; } = true;
     }
 }

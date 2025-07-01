@@ -78,6 +78,17 @@
                 </span>
               </div>
             </div>
+
+            <!-- Active Status -->
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Active Status</label>
+                <div class="custom-control custom-switch mt-2">
+                  <input type="checkbox" class="custom-control-input" id="isActive" formControlName="isActive">
+                  <label class="custom-control-label" for="isActive">Is Active</label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <!-- Card Footer -->
@@ -166,6 +177,11 @@
                   <i *ngIf="pageRequest.sortColumn === 'code'"
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
+                <th (click)="onSortChange('isActive')" class="sortable">
+                  Status
+                  <i *ngIf="pageRequest.sortColumn === 'isActive'"
+                     [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+                </th>
                 <th (click)="onSortChange('createdOn')" class="sortable">
                   Created On
                   <i *ngIf="pageRequest.sortColumn === 'createdOn'"
@@ -178,6 +194,15 @@
               <tr *ngFor="let country of countries">
                 <td>{{ country.name }}</td>
                 <td>{{ country.code }}</td>
+                <td>
+                  <span class="badge"
+                        [ngClass]="country.isActive ? 'badge-success' : 'badge-danger'"
+                        [style.cursor]="authorizationService.hasPermission('countries', PermissionType.AddEdit) ? 'pointer' : 'default'"
+                        [title]="authorizationService.hasPermission('countries', PermissionType.AddEdit) ? 'Click to toggle status' : ''"
+                        (click)="authorizationService.hasPermission('countries', PermissionType.AddEdit) ? toggleStatus(country) : null">
+                    {{ country.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
                 <td>{{ country.createdOn | date:'medium' }}</td>
                 <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('countries')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editCountry(country)"

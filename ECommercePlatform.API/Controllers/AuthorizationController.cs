@@ -165,12 +165,33 @@ namespace ECommercePlatform.API.Controllers
 
         [HttpGet("test-password-hash")]
         [AllowAnonymous]
-        public IActionResult TestPasswordHash()
+        public IActionResult TestPasswordHash([FromQuery] string password)
         {
+            if (string.IsNullOrEmpty(password))
+                return BadRequest("Password is required");
+
             var user = new User { UserName = "test" };
             var passwordHasher = new PasswordHasher<User>();
-            var hash = passwordHasher.HashPassword(user, "Admin@1234");
-            return Ok(new { hash });
+            var hash = passwordHasher.HashPassword(user, password);
+            return Ok(new { hash, password });
+        }
+
+        [HttpGet("verify-hash")]
+        [AllowAnonymous]
+        public IActionResult VerifyHash([FromQuery] string hash, [FromQuery] string password)
+        {
+            if (string.IsNullOrEmpty(hash) || string.IsNullOrEmpty(password))
+                return BadRequest("Hash and password are required");
+
+            var user = new User(); // Temporary user object just for verification
+            var passwordHasher = new PasswordHasher<User>();
+            var result = passwordHasher.VerifyHashedPassword(user, hash, password);
+
+            return Ok(new
+            {
+                isCorrect = result == PasswordVerificationResult.Success,
+                resultType = result.ToString()
+            });
         }
 
         [HttpPost("reset-admin-password")]

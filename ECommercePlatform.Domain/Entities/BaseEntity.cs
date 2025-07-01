@@ -36,10 +36,9 @@ namespace ECommercePlatform.Domain.Entities
             SetModifiedBy(restoredBy);
         }
 
-        public virtual void SetActive(bool isActive, string modifiedBy)
+        public virtual void SetActive(bool isActive)
         {
             IsActive = isActive;
-            SetModifiedBy(modifiedBy);
         }
     }
 }

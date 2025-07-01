@@ -18,10 +18,23 @@ export class RoleService {
       .pipe(catchError(this.handleError));
   }
 
-  getPagedRoles(request: PagedRequest): Observable<PagedResponse<Role>> {
+  getPagedRoles(request: PagedRequest, activeOnly?: boolean): Observable<PagedResponse<Role>> {
     return this.http.get<PagedResponse<Role>>(`${this.apiUrl}/paged`, {
-      params: { ...request as any }
+      params: this.createParams(request, activeOnly)
     }).pipe(catchError(this.handleError));
+  }
+
+  // Helper method to create HTTP parameters
+  private createParams(request: PagedRequest, activeOnly?: boolean): any {
+    let params: any = {
+      ...request,
+    };
+
+    if (activeOnly !== undefined) {
+      params.activeOnly = activeOnly;
+    }
+
+    return params;
   }
 
   getRole(id: string): Observable<Role> {

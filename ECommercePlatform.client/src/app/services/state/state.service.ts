@@ -21,7 +21,7 @@ export class StateService {
   }
 
   // Add pagination method
-  getPagedStates(request: PagedRequest, countryId?: string): Observable<PagedResponse<State>> {
+  getPagedStates(request: PagedRequest, countryId?: string, activeOnly?: boolean): Observable<PagedResponse<State>> {
     let params = new HttpParams()
       .set('pageNumber', request.pageNumber.toString())
       .set('pageSize', request.pageSize.toString())
@@ -50,6 +50,10 @@ export class StateService {
       params = params.set('countryId', countryId);
     }
 
+    if (activeOnly !== undefined) {
+      params = params.set('activeOnly', activeOnly);
+    }
+
     // Use the params object directly in the http options
     return this.http.get<PagedResponse<State>>(`${this.apiUrl}/paged`, { params });
   }
@@ -66,8 +70,8 @@ export class StateService {
     return this.http.post<State>(this.apiUrl, state);
   }
 
-  updateState(id: string, state: State): Observable<State> {
-    return this.http.put<State>(`${this.apiUrl}/${id}`, state);
+  updateState(id: string, state: any): Observable<State> {
+    return this.http.put<State>(`${this.apiUrl}/${id}`, { ...state, id });
   }
 
   deleteState(id: string): Observable<void> {

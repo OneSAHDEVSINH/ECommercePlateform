@@ -10,7 +10,7 @@ namespace ECommercePlatform.Application.Features.Cities.Commands.Update
         public required string Name { get; init; }
         public string? ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; } = DateTime.Now;
-        public bool IsActive { get; init; } = true;
+        public bool IsActive { get; init; }
         public Guid StateId { get; init; }
 
         public UpdateCityCommand(string name)

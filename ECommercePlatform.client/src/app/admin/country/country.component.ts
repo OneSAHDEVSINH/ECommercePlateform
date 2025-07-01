@@ -104,13 +104,14 @@ export class CountryComponent implements OnInit, OnDestroy {
   private initForm(): void {
     this.countryForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
-      code: ['', [Validators.required, Validators.maxLength(10), CustomValidatorsService.noWhitespaceValidator(), , CustomValidatorsService.lettersOnly()]]
+      code: ['', [Validators.required, Validators.maxLength(10), CustomValidatorsService.noWhitespaceValidator(), , CustomValidatorsService.lettersOnly()]],
+      isActive: [true]
     });
   }
 
   loadCountries(): void {
     this.loading = true;
-    this.countryService.getPagedCountries(this.pageRequest).subscribe({
+    this.countryService.getPagedCountries(this.pageRequest, false).subscribe({
       next: (response) => {
         this.pagedResponse = response;
         this.countries = response.items;
@@ -214,7 +215,7 @@ export class CountryComponent implements OnInit, OnDestroy {
       //createdBy: this.isEditMode ? undefined : this.getUserIdentifier(),
       modifiedOn: new Date(),
       modifiedBy: this.getUserIdentifier(),
-      isActive: true,
+      isActive: country.isActive !== undefined ? country.isActive : true,
       isDeleted: false
     });
 
@@ -250,9 +251,41 @@ export class CountryComponent implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.countryForm.reset();
+    this.countryForm.reset({ isActive: true });
     this.isEditMode = false;
     this.currentCountryId = null;
+  }
+
+  toggleStatus(country: Country): void {
+    if (!country.id || !this.authorizationService.hasPermission('countries', PermissionType.AddEdit)) return;
+
+    this.loading = true;
+
+    // Create a simple update object with just the toggled status
+    const update = {
+      name: country.name,
+      code: country.code,
+      isActive: !country.isActive
+    };
+
+    this.countryService.updateCountry(country.id, update).subscribe({
+      next: () => {
+        // Update the item in the local array to avoid a full reload
+        country.isActive = !country.isActive;
+        this.messageService.showMessage({
+          type: 'success',
+          text: `Country ${country.isActive ? 'activated' : 'deactivated'} successfully`
+        });
+        this.loadCountries();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error updating status:', error);
+        const errorMessage = error.error?.message || 'Failed to update status';
+        this.messageService.showMessage({ type: 'error', text: errorMessage });
+        this.loading = false;
+      }
+    });
   }
 
   // Helper method to get user identifier for creation/modification tracking

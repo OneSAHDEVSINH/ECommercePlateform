@@ -16,7 +16,7 @@ namespace ECommercePlatform.Application.Features.Countries.Queries.GetPagedCount
             {
                 var pagedResponse = await _unitOfWork.Countries.GetPagedCountryDtosAsync(
                     request,
-                    activeOnly: true,
+                    request.ActiveOnly,
                     cancellationToken);
 
                 return AppResult<PagedResponse<CountryDto>>.Success(pagedResponse);

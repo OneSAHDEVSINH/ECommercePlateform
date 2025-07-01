@@ -60,9 +60,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
                 if (request.IsActive.HasValue)
                     user.IsActive = request.IsActive.Value;
 
-                user.ModifiedBy = request.ModifiedBy;
-                user.ModifiedOn = request.ModifiedOn;
-
                 // Update user
                 var updateResult = await _unitOfWork.UserManager.UpdateAsync(user);
                 if (!updateResult.Succeeded)

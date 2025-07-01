@@ -146,7 +146,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
         // Handle specific error messages
         if (error.status === 401) {
-          this.errorMessage = 'Invalid email or password';
+          // Use the specific error message from the backend when available
+          this.errorMessage = error.error?.message || 'Invalid email or password';
         } else if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else {

@@ -34,8 +34,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.ChangePassword
                     return AppResult.Failure($"Failed to change password: {errors}");
                 }
 
-                // Update modification info
-                user.ModifiedOn = DateTime.UtcNow;
                 await _unitOfWork.UserManager.UpdateAsync(user);
 
                 return AppResult.Success();

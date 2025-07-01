@@ -123,12 +123,12 @@ namespace ECommercePlatform.Infrastructure.Repositories
 
         // Get paginated users
         public async Task<PagedResponse<User>> GetPagedUsersAsync(
-    PagedRequest request,
-    bool activeOnly = true,
-    bool includeRoles = true,
-    Guid? roleId = null,
-    CancellationToken cancellationToken = default)
-        {
+            PagedRequest request,
+            bool activeOnly = true,
+            bool includeRoles = true,
+            Guid? roleId = null,
+            CancellationToken cancellationToken = default)
+            {
             // Create base filter
             Expression<Func<User, bool>> baseFilter;
 
@@ -205,12 +205,12 @@ namespace ECommercePlatform.Infrastructure.Repositories
         }
 
         public async Task<PagedResponse<UserDto>> GetPagedUserDtosAsync(
-    PagedRequest request,
-    bool activeOnly = true,
-    bool includeRoles = true,
-    Guid? roleId = null,
-    CancellationToken cancellationToken = default)
-        {
+            PagedRequest request,
+            bool activeOnly = true,
+            bool includeRoles = true,
+            Guid? roleId = null,
+            CancellationToken cancellationToken = default)
+            {
             var pagedEntities = await GetPagedUsersAsync(
                 request,
                 activeOnly,

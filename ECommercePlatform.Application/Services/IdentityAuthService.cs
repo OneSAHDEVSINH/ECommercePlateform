@@ -1,3 +1,4 @@
+using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IServices;
@@ -22,18 +23,19 @@ namespace ECommercePlatform.Application.Services
         private readonly IPermissionService _permissionService = permissionService;
         private readonly ISuperAdminService _superAdminService = superAdminService;
 
-        public async Task<AuthResultDto> LoginAsync(LoginDto loginDto)
+        public async Task<AppResult<AuthResultDto>> LoginAsync(LoginDto loginDto)
         {
             if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
-                throw new ArgumentException("Email and password are required");
+                return AppResult<AuthResultDto>.Failure("Email and password are required");
 
             // Find user by email
-            var user = await _unitOfWork.UserManager.FindByEmailAsync(loginDto.Email)
-                ?? throw new KeyNotFoundException("Invalid email or password");
+            var user = await _unitOfWork.UserManager.FindByEmailAsync(loginDto.Email);
+            if (user == null)
+                return AppResult<AuthResultDto>.Failure("Invalid email or password");
 
             // Check if user account is active
             if (!user.IsActive || user.IsDeleted)
-                throw new KeyNotFoundException("User account is inactive or deleted");
+                return AppResult<AuthResultDto>.Failure("User account is inactive or deleted");
 
             // Check if user is superadmin - this should bypass role requirements
             bool isSuperAdmin = _superAdminService.IsSuperAdminEmail(user.Email!);
@@ -43,7 +45,7 @@ namespace ECommercePlatform.Application.Services
                 user, loginDto.Password, lockoutOnFailure: false);
 
             if (!result.Succeeded)
-                throw new KeyNotFoundException("Invalid email or password");
+                return AppResult<AuthResultDto>.Failure("Invalid email or password");
 
             // Get user roles
             var userRoles = await _unitOfWork.UserManager.GetRolesAsync(user);
@@ -51,7 +53,7 @@ namespace ECommercePlatform.Application.Services
             // CHECK: Non-superadmin users must have at least one role
             if (!isSuperAdmin && !userRoles.Any())
             {
-                throw new UnauthorizedAccessException(
+                return AppResult<AuthResultDto>.Failure(
                     "Access denied. You don't have any assigned roles. Please contact the administrator.");
             }
 
@@ -74,7 +76,7 @@ namespace ECommercePlatform.Application.Services
             // Check if non-superadmin user has any active roles
             if (!isSuperAdmin && roles.Count == 0)
             {
-                throw new UnauthorizedAccessException(
+                return AppResult<AuthResultDto>.Failure(
                     "Access denied. All your assigned roles are inactive. Please contact the administrator.");
             }
 
@@ -84,7 +86,7 @@ namespace ECommercePlatform.Application.Services
             // Generate JWT token
             var token = await GenerateJwtTokenAsync(user, userRoles);
 
-            return new AuthResultDto
+            return AppResult<AuthResultDto>.Success(new AuthResultDto
             {
                 Token = token,
                 User = new UserDto
@@ -102,7 +104,7 @@ namespace ECommercePlatform.Application.Services
                     CreatedOn = user.CreatedOn
                 },
                 Permissions = permissions
-            };
+            });
         }
 
         public async Task<List<UserPermissionDto>> GetUserPermissionsAsync(Guid userId)

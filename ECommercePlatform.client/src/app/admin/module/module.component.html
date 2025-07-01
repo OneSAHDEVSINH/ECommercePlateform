@@ -270,7 +270,11 @@
                   <small class="text-muted ml-2">{{ module.icon }}</small>
                 </td>
                 <td>
-                  <span [class]="module.isActive ? 'badge badge-success' : 'badge badge-danger'">
+                  <span class="badge"
+                        [ngClass]="module.isActive ? 'badge-success' : 'badge-danger'"
+                        [style.cursor]="authorizationService.hasPermission('modules', PermissionType.AddEdit) ? 'pointer' : 'default'"
+                        [title]="authorizationService.hasPermission('modules', PermissionType.AddEdit) ? 'Click to toggle status' : ''"
+                        (click)="authorizationService.hasPermission('modules', PermissionType.AddEdit) ? toggleStatus(module) : null">
                     {{ module.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>

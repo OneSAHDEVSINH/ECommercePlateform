@@ -25,7 +25,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.UploadAvatar
 
                 // Update user avatar
                 user.Avatar = avatarData;
-                user.ModifiedOn = DateTime.UtcNow;
 
                 await _unitOfWork.Users.UpdateAsync(user);
 

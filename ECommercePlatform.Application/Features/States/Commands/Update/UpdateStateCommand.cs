@@ -12,7 +12,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Update
         public string? ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; } = DateTime.Now;
         public Guid CountryId { get; init; }
-        public bool IsActive { get; init; } = true;
+        public bool IsActive { get; init; }
 
         public UpdateStateCommand(string name, string code)
         {
