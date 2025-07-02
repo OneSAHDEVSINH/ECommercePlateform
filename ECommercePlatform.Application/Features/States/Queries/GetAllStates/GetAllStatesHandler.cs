@@ -13,7 +13,11 @@ namespace ECommercePlatform.Application.Features.States.Queries.GetAllStates
         {
             try
             {
-                var states = await _unitOfWork.States.GetAllAsync();
+                var states = request.ActiveOnly
+                    ? await _unitOfWork.States.GetActiveAsync()
+                    : await _unitOfWork.States.GetAllAsync();
+
+                //var states = await _unitOfWork.States.GetAllAsync();
                 var stateDtos = states.Select(state => (StateDto)state).ToList();
 
                 return AppResult<List<StateDto>>.Success(stateDtos);

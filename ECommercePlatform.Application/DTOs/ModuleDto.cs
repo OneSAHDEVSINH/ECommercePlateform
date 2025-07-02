@@ -38,7 +38,7 @@ namespace ECommercePlatform.Application.DTOs
         public string? Route { get; init; }
         public string? Icon { get; init; }
         public int? DisplayOrder { get; init; }
-        public bool? IsActive { get; init; }
+        public bool IsActive { get; init; }
 
         public static explicit operator UpdateModuleDto(UpdateModuleCommand command)
         {

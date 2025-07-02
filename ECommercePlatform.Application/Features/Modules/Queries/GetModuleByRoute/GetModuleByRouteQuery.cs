@@ -4,5 +4,5 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRoute
 {
-    public record GetModuleByRouteQuery(string Route) : IRequest<AppResult<ModuleDto>>;
+    public record GetModuleByRouteQuery(string Route) : IRequest<AppResult<List<ModuleDto>>>;
 }

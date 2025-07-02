@@ -4,5 +4,5 @@ using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Queries.GetAllStates
 {
-    public record GetAllStatesQuery : IRequest<AppResult<List<StateDto>>>;
+    public record GetAllStatesQuery(bool ActiveOnly = true) : IRequest<AppResult<List<StateDto>>>;
 }

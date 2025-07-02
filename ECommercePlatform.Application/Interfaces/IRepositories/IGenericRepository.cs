@@ -7,6 +7,7 @@ namespace ECommercePlatform.Application.Interfaces.IRepositories
     {
         Task<T> GetByIdAsync(Guid id);
         Task<IReadOnlyList<T>> GetAllAsync();
+        Task<IReadOnlyList<T>> GetActiveAsync()
         Task<T> AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);

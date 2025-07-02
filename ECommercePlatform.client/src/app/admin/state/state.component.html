@@ -113,13 +113,12 @@
         <div class="card-footer">
           <button type="submit" class="btn btn-primary" [disabled]="stateForm.invalid || loading"
                   *appPermission="{ moduleRoute: 'states', type: PermissionType.AddEdit }">
-            <i class="fas fa-save"></i> {{ isEditMode ? 'Update' : 'Add' }} State
+            <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i> {{ isEditMode ? 'Update' : 'Add' }} State
           </button>
-          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
-                  *ngIf="isEditMode">
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()" *ngIf="isEditMode"><i class="fas fa-times"></i>
             Cancel
           </button>
-          <button type="button" class="btn btn-default float-right" (click)="resetForm()"
+          <button type="button" class="btn btn-default float-right mr-2" (click)="resetForm()"
                   *ngIf="!isEditMode && (stateForm.get('countryId')?.touched || stateForm.get('name')?.touched || stateForm.get('code')?.touched)">
             Reset
           </button>

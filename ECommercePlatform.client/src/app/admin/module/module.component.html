@@ -151,7 +151,7 @@
             <i class="fas fa-times"></i> Cancel
           </button>
           <button type="button" class="btn btn-default float-right mr-2" (click)="resetForm()"
-                  *ngIf="!isEditMode && moduleForm.dirty">
+                  *ngIf="!isEditMode && (moduleForm.get('name')?.touched ||moduleForm.get('route')?.touched || moduleForm.dirty)">
             <i class="fas fa-redo"></i> Reset
           </button>
         </div>
@@ -244,6 +244,7 @@
                      [class]="pageRequest.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
                 </th>
                 <th>Icon</th>
+                <th>Description</th>
                 <th class="sortable" (click)="onSortChange('isActive')">
                   Status
                   <i *ngIf="pageRequest.sortColumn === 'isActive'"
@@ -269,6 +270,7 @@
                   <i [class]="module.icon || 'fas fa-cube'" title="{{ module.icon }}"></i>
                   <small class="text-muted ml-2">{{ module.icon }}</small>
                 </td>
+                <td>{{ module.description }}</td>
                 <td>
                   <span class="badge"
                         [ngClass]="module.isActive ? 'badge-success' : 'badge-danger'"

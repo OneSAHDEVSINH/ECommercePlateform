@@ -1,51 +1,32 @@
-// Sidebar navigation
-//.nav-sidebar {
-//  .nav-item.has-treeview {
-    // Parent menu items
-//    > .nav-link {
-//      position: relative;
-//      cursor: pointer;
+ //Active routes
+.nav-link.active {
+  font-weight: bold;
+}
 
-//      .right {
-//        position: absolute;
-//        right: 1rem;
-//        top: 50%;
-//        transform: translateY(-50%);
-//        transition: transform 0.2s ease;
-//      }
-//    }
-    // When menu is open
-//    &.menu-open {
-//      > .nav-link .right {
-//        transform: translateY(-50%) rotate(-90deg);
-//      }
+ //Mobile overlay improvement
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999; // Higher than content, lower than sidebar
+  cursor: pointer;
+}
 
-//      > .nav-treeview {
-//        display: block;
-//      }
-//    }
-//  }
-  // Submenu list
-//  .nav-treeview {
-//    display: none;
-//    padding-left: 0.5rem;
+// Make sure sidebar is above overlay
+.main-sidebar {
+  z-index: 1000;
+}
 
-//    .nav-item {
-//      .nav-link {
-//        padding-left: 1rem;
-//        font-size: 0.9em;
-
-//        &.active {
-//          border-left: 3px solid #007bff;
-//          background-color: rgba(255, 255, 255, 0.1);
-//        }
-//      }
-//    }
-//  }
-//}
-
-// Highlight active routes
-//.nav-link.active {
-//  font-weight: 600;
-//  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-//}
+// Ensure mobile sidebar takes full height
+@media (max-width: 991.98px) {
+  .sidebar-open .main-sidebar {
+    transform: translateX(0);
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+  }
+}

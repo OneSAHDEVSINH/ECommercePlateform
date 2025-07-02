@@ -2,6 +2,7 @@
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Modules.Commands.Create
@@ -14,28 +15,46 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Create
         {
             try
             {
-                var result = await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(request.Name, request.Route, request.Icon!, request.DisplayOrder)
-                .Map(_ =>
+                //var result = await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(request.Name, request.Route, request.Icon!, request.DisplayOrder)
+                //.Map(_ =>
+                //    {
+                //        var module = Domain.Entities.Module.Create(
+                //            request.Name,
+                //            request.Description ?? string.Empty,
+                //            request.Route,
+                //            request.Icon ?? string.Empty,
+                //            request.DisplayOrder
+                //    );
+
+                //        if (!request.IsActive)
+                //            module.SetActive(false);
+
+                //        return module;
+                //    })
+                //.Tap(module => _unitOfWork.Modules.AddAsync(module))
+                //.Map(module => AppResult<ModuleDto>.Success((ModuleDto)module));
+
+                //return result.IsSuccess
+                //    ? result.Value
+                //    : AppResult<ModuleDto>.Failure(result.Error);
+
+                return await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(request.Name, request.Route, request.Icon!, request.DisplayOrder)
+                    .Bind(async tuple =>
                     {
-                        var module = Domain.Entities.Module.Create(
-                            request.Name,
+                        var module = Module.Create(request.Name,
                             request.Description ?? string.Empty,
                             request.Route,
                             request.Icon ?? string.Empty,
-                            request.DisplayOrder
-                    );
-
-                        if (!request.IsActive)
-                            module.SetActive(false);                       
-
-                        return module;
+                            request.DisplayOrder);
+                        module.IsActive = true;
+                        await _unitOfWork.Modules.AddAsync(module);
+                        return Result.Success(module);
                     })
-                .Tap(module => _unitOfWork.Modules.AddAsync(module))
-                .Map(module => AppResult<ModuleDto>.Success((ModuleDto)module));
-
-                return result.IsSuccess
-                    ? result.Value
-                    : AppResult<ModuleDto>.Failure(result.Error);
+                    .Map(module => AppResult<ModuleDto>.Success((ModuleDto)module))
+                    .Match(
+                        success => success,
+                        failure => AppResult<ModuleDto>.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {

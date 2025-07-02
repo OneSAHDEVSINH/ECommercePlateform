@@ -32,6 +32,15 @@ namespace ECommercePlatform.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IReadOnlyList<T>> GetActiveAsync()
+        {
+            return await _context.Set<T>()
+                .Where(e => EF.Property<bool>(e, "IsActive"))
+                .OrderBy(e => EF.Property<object>(e, "CreatedOn"))
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<T> GetByIdAsync(Guid id)
         {
             var entity = await _context.Set<T>().FindAsync(id)

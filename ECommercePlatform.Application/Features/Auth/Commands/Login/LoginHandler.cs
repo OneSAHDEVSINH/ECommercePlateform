@@ -14,18 +14,20 @@ namespace ECommercePlatform.Application.Features.Auth.Commands.Login
         {
             try
             {
-                var result = await Result.SuccessIf(!string.IsNullOrEmpty(request.Email) && !string.IsNullOrEmpty(request.Password),
-                    (request.Email, request.Password), "Email and password are required")
-                .Map(credentials => new LoginDto
+                if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+                    return AppResult<AuthResultDto>.Failure("Email and password are required");
+                
+
+                var loginDto = new LoginDto
                 {
-                    Email = credentials.Email,
-                    Password = credentials.Password
-                })
-                .Bind(loginDto => Result.Try(() => _authService.LoginAsync(loginDto), ex => ex.Message)) // Fix: Use Result.Try to handle the async call
-                .Map(authResult => AppResult<AuthResultDto>.Success(authResult));
+                    Email = request.Email,
+                    Password = request.Password
+                };
+
+                var result = await _authService.LoginAsync(loginDto);
 
                 return result.IsSuccess
-                    ? result.Value
+                    ? AppResult<AuthResultDto>.Success(result.Value)
                     : AppResult<AuthResultDto>.Failure(result.Error);
             }
             catch (UnauthorizedAccessException ex)
