@@ -8,6 +8,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
     {
         private static readonly Regex EmailRegex = GeneratedRegex.Email();
         private static readonly Regex NameRegex = GeneratedRegex.Name();
+        private static readonly Regex PhoneNumberRegex = GeneratedRegex.PhoneNumber();
 
         public CreateUserValidator()
         {
@@ -37,7 +38,9 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Create
 
             RuleFor(x => x.PhoneNumber!.Trim())
                 .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters")
-                .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
+                .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+                .Must(static value => PhoneNumberRegex.IsMatch(value))
+                    .WithMessage("Invalid Phone Number format");
 
             RuleFor(x => x.Bio)
                 .MaximumLength(500).WithMessage("Bio must not exceed 500 characters")

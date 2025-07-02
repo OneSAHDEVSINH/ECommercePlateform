@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
+using ECommercePlatform.Application.DTOs;
 //using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
@@ -70,7 +71,7 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                             request.Name ?? string.Empty,
                             request.Route ?? string.Empty,
                             request.Icon ?? string.Empty,
-                            request.DisplayOrder ?? module.DisplayOrder,
+                            request.DisplayOrder,
                             request.Id);
 
                         return validationResult.IsSuccess
@@ -84,7 +85,7 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                             request.Description ?? string.Empty,
                             request.Route ?? string.Empty,
                             request.Icon ?? string.Empty,
-                            request.DisplayOrder ?? module.DisplayOrder
+                            request.DisplayOrder
                         );
                         module.IsActive = request.IsActive;
 

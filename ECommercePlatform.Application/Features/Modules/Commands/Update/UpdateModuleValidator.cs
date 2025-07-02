@@ -42,10 +42,10 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Update
                     .MaximumLength(100).WithMessage("Icon class must not exceed 100 characters.");
             });
 
-            When(x => x.DisplayOrder.HasValue, () =>
+            When(x => x.DisplayOrder > 0, () =>
             {
-                RuleFor(x => x.DisplayOrder!.Value)
-                    .GreaterThanOrEqualTo(1).WithMessage("Display order must be a non-negative number except zero.");
+                RuleFor(x => x.DisplayOrder)
+                    .GreaterThan(0).WithMessage("Display order must be a positive number.");
             });
         }
     }

@@ -1,5 +1,7 @@
+using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.Delete
@@ -12,17 +14,33 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Delete
         {
             try
             {
-                var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
-                if (user == null)
-                    return AppResult.Failure($"User with ID {request.Id} not found.");
+                //var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
+                //if (user == null)
+                //    return AppResult.Failure($"User with ID {request.Id} not found.");
 
-                // First delete associated user roles
-                await _unitOfWork.UserRoles.DeleteByUserIdAsync(request.Id);
+                //// First delete associated user roles
+                //await _unitOfWork.UserRoles.DeleteByUserIdAsync(request.Id);
 
-                // Then delete the user
-                await _unitOfWork.Users.DeleteAsync(user);
+                //// Then delete the user
+                //await _unitOfWork.Users.DeleteAsync(user);
 
-                return AppResult.Success();
+                //return AppResult.Success();
+
+                return await Result.Success(request.Id)
+                    .Bind(async id =>
+                    {
+                        var user = await _unitOfWork.Users.GetByIdAsync(id);
+                        return user == null
+                            ? Result.Failure<User>($"User with ID {id} not found.")
+                            : Result.Success(user);
+                    })
+                    .Tap(async user => await _unitOfWork.UserRoles.DeleteByUserIdAsync(user.Id))
+                    .Tap(async user => await _unitOfWork.Users.DeleteAsync(user))
+                    .Map(_ => AppResult.Success())
+                    .Match(
+                        success => success,
+                        failure => AppResult.Failure(failure)
+                    );
             }
             catch (Exception ex)
             {

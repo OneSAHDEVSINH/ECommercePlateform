@@ -8,6 +8,7 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
     {
         private static readonly Regex EmailRegex = GeneratedRegex.Email();
         private static readonly Regex NameRegex = GeneratedRegex.Name();
+        private static readonly Regex PhoneNumberRegex = GeneratedRegex.PhoneNumber();
 
         public UpdateUserValidator()
         {
@@ -49,7 +50,9 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Update
             When(x => !string.IsNullOrEmpty(x.PhoneNumber), () =>
             {
                 RuleFor(x => x.PhoneNumber!.Trim())
-                    .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters");
+                    .MaximumLength(15).WithMessage("Phone number must not exceed 15 characters")
+                    .Must(static value => PhoneNumberRegex.IsMatch(value))
+                        .WithMessage("Invalid Phone Number format");
             });
 
             When(x => !string.IsNullOrEmpty(x.Bio), () =>

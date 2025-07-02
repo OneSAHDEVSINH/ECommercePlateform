@@ -14,7 +14,11 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetAllCities
         {
             try
             {
-                var cities = await _unitOfWork.Cities.GetAllAsync();
+                var cities = request.ActiveOnly
+                    ? await _unitOfWork.Cities.GetActiveAsync()
+                    : await _unitOfWork.Cities.GetAllAsync();
+
+                //var cities = await _unitOfWork.Cities.GetAllAsync();
                 var cityDtos = cities.Select(city => (CityDto)city).ToList();
 
                 return AppResult<List<CityDto>>.Success(cityDtos);

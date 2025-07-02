@@ -362,21 +362,30 @@ export class UserComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleStatus(item: any): void {
-    if (!item.id || !this.authorizationService.hasPermission('users', PermissionType.AddEdit)) return;
+  toggleStatus(user: any): void {
+    if (!user.id || !this.authorizationService.hasPermission('users', PermissionType.AddEdit)) return;
 
     this.loading = true;
 
     // Create a simple update object with just the toggled status
-    const update = { isActive: !item.isActive };
+    const update = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phoneNumber || '',
+      gender: genderToString(user.gender),
+      dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : null,
+      bio: user.bio || '',
+      isActive: !user.isActive
+    };
 
-    this.userService.updateUser(item.id, update).subscribe({
+    this.userService.updateUser(user.id, update).subscribe({
       next: () => {
         // Update the item in the local array to avoid a full reload
-        item.isActive = !item.isActive;
+        user.isActive = !user.isActive;
         this.messageService.showMessage({
           type: 'success',
-          text: `User ${item.isActive ? 'activated' : 'deactivated'} successfully`
+          text: `User ${user.isActive ? 'activated' : 'deactivated'} successfully`
         });
         this.loadUsers();
         this.loading = false;

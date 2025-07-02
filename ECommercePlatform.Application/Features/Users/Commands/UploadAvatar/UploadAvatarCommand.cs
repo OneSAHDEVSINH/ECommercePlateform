@@ -6,9 +6,8 @@ using System.Text.Json.Serialization;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.UploadAvatar
 {
-    public class UploadAvatarCommand : IRequest<AppResult<string>>, ITransactionalBehavior
+    public record UploadAvatarCommand : IRequest<AppResult<string>>, ITransactionalBehavior
     {
-        [JsonIgnore]
         public Guid UserId { get; set; }
 
         public required IFormFile File { get; init; }

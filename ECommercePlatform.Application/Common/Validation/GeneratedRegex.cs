@@ -52,5 +52,13 @@ namespace ECommercePlatform.Application.Common.Validation
 
         [GeneratedRegex("^[a-z0-9-]+$", RegexOptions.Compiled)]
         private static partial Regex RouteFormatRegex();
+
+        public static Regex PhoneNumber()
+        {
+            return PhoneNumberRegex();
+        }
+
+        [GeneratedRegex("^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$", RegexOptions.Compiled)]
+        private static partial Regex PhoneNumberRegex();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
+using ECommercePlatform.Domain.Entities;
 using MediatR;
 
 namespace ECommercePlatform.Application.Features.States.Commands.Delete
@@ -18,7 +19,7 @@ namespace ECommercePlatform.Application.Features.States.Commands.Delete
                 {
                     var state = await _unitOfWork.States.GetByIdAsync(id);
                     return state == null
-                        ? Result.Failure<Domain.Entities.State>($"State with ID {id} not found.")
+                        ? Result.Failure<State>($"State with ID {id} not found.")
                         : Result.Success(state);
                 })
                 .Tap(async state => await _unitOfWork.States.DeleteAsync(state))

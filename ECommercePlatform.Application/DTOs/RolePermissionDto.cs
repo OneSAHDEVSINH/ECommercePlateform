@@ -32,4 +32,12 @@ namespace ECommercePlatform.Application.DTOs
             };
         }
     }
+
+    public class ModulePermissionDto
+    {
+        public required Guid ModuleId { get; init; }
+        public bool CanView { get; init; }
+        public bool CanAddEdit { get; init; }
+        public bool CanDelete { get; init; }
+    }
 }

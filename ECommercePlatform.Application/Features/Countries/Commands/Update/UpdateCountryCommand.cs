@@ -1,21 +1,17 @@
 ﻿using ECommercePlatform.Application.Common.Interfaces;
 using ECommercePlatform.Application.Common.Models;
+using FluentAssertions.Equivalency;
 using MediatR;
+using System.Xml.Linq;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Update;
 
-public record UpdateCountryCommand : IRequest<AppResult>, ITransactionalBehavior, IAuditableUpdateRequest
+public record UpdateCountryCommand(string Name, string Code) : IRequest<AppResult>, ITransactionalBehavior, IAuditableUpdateRequest
 {
     public Guid Id { get; init; }
-    public string? Name { get; init; }
-    public string? Code { get; init; }
+    public string? Name { get; init; } = Name?.Trim() ?? string.Empty;
+    public string? Code { get; init; } = Code?.Trim() ?? string.Empty;
     public string? ModifiedBy { get; set; }
     public DateTime ModifiedOn { get; set; } = DateTime.Now;
     public bool IsActive { get; init; }
-
-    public UpdateCountryCommand(string name, string code)
-    {
-        Name = name?.Trim() ?? string.Empty;
-        Code = code?.Trim() ?? string.Empty;
-    }
 }

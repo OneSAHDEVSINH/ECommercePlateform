@@ -8,9 +8,8 @@ using System.Text.Json.Serialization;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile
 {
-    public class UpdateUserProfileCommand : IRequest<AppResult<UserProfileDto>>, ITransactionalBehavior
+    public record UpdateUserProfileCommand : IRequest<AppResult<UserProfileDto>>, ITransactionalBehavior
     {
-        [JsonIgnore]
         public Guid Id { get; set; }
         public string? FirstName { get; init; }
         public string? LastName { get; init; }

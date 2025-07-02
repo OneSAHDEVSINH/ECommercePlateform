@@ -13,7 +13,11 @@ namespace ECommercePlatform.Application.Features.Countries.Queries.GetAllCountri
         {
             try
             {
-                var countries = await _unitOfWork.Countries.GetAllAsync();
+                var countries = request.ActiveOnly
+                    ? await _unitOfWork.Countries.GetActiveAsync()
+                    : await _unitOfWork.Countries.GetAllAsync();
+
+                //var countries = await _unitOfWork.Countries.GetAllAsync();
                 var countryDtos = countries.Select(country => (CountryDto)country).ToList();
 
                 return AppResult<List<CountryDto>>.Success(countryDtos);
