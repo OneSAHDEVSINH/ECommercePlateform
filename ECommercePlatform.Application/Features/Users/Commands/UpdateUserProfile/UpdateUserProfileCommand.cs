@@ -4,7 +4,6 @@ using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Domain.Enums;
 using MediatR;
-using System.Text.Json.Serialization;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.UpdateUserProfile
 {

@@ -16,7 +16,8 @@ namespace ECommercePlatform.Application.Features.Cities.Queries.GetCityById
             try
             {
                 return await Result.Success(request)
-                    .Bind(async req => {
+                    .Bind(async req =>
+                    {
                         var city = await _unitOfWork.Cities.GetByIdAsync(req.Id);
                         return city == null
                             ? Result.Failure<City>($"City with this ID \"{req.Id}\" not found.")

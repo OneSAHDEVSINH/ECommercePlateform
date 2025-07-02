@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
 using ECommercePlatform.Application.Common.Models;
-using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Domain.Entities;
 using MediatR;

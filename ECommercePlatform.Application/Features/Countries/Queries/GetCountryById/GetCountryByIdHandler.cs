@@ -16,7 +16,8 @@ namespace ECommercePlatform.Application.Features.Countries.Queries.GetCountryByI
             try
             {
                 return await Result.Success(request)
-                    .Bind(async req => {
+                    .Bind(async req =>
+                    {
                         var country = await _unitOfWork.Countries.GetByIdAsync(req.Id);
                         return country == null
                             ? Result.Failure<Country>($"Country with this ID \"{req.Id}\" not found")

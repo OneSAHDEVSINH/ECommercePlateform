@@ -128,7 +128,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             bool includeRoles = true,
             Guid? roleId = null,
             CancellationToken cancellationToken = default)
-            {
+        {
             // Create base filter
             Expression<Func<User, bool>> baseFilter;
 
@@ -210,7 +210,7 @@ namespace ECommercePlatform.Infrastructure.Repositories
             bool includeRoles = true,
             Guid? roleId = null,
             CancellationToken cancellationToken = default)
-            {
+        {
             var pagedEntities = await GetPagedUsersAsync(
                 request,
                 activeOnly,

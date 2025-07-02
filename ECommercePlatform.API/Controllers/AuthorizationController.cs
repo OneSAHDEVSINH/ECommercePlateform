@@ -1,5 +1,6 @@
 ﻿using ECommercePlatform.Application.Interfaces;
 using ECommercePlatform.Application.Interfaces.IServices;
+using ECommercePlatform.Application.Models;
 using ECommercePlatform.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -126,8 +127,6 @@ namespace ECommercePlatform.API.Controllers
                     permissions = new
                     {
                         canView = true,
-                        //canAdd = true,
-                        //canEdit = true,
                         canAddEdit = true,
                         canDelete = true
                     }
@@ -194,8 +193,30 @@ namespace ECommercePlatform.API.Controllers
             });
         }
 
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.NewPassword))
+                return BadRequest("Email and new password are required");
+
+            var user = await _unitOfWork.UserManager.FindByEmailAsync(request.Email);
+            if (user == null)
+                return NotFound($"User with email '{request.Email}' not found");
+
+            var token = await _unitOfWork.UserManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _unitOfWork.UserManager.ResetPasswordAsync(user, token, request.NewPassword);
+
+            if (result.Succeeded)
+                return Ok($"Password for user '{request.Email}' reset successfully");
+
+            return BadRequest(result.Errors);
+        }
+
+        // Keep the existing method for backward compatibility but mark as obsolete
         [HttpPost("reset-admin-password")]
-        [AllowAnonymous] // Remove this in production!
+        [AllowAnonymous]
+        [Obsolete("This method is deprecated. Use reset-password instead.")]
         public async Task<IActionResult> ResetAdminPassword()
         {
             var user = await _unitOfWork.UserManager.FindByEmailAsync("admin@admin.com");

@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using ECommercePlatform.Application.Interfaces.IUserAuth;
 using MediatR;
@@ -16,7 +15,7 @@ namespace ECommercePlatform.Application.Features.Auth.Commands.Login
             {
                 if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
                     return AppResult<AuthResultDto>.Failure("Email and password are required");
-                
+
 
                 var loginDto = new LoginDto
                 {

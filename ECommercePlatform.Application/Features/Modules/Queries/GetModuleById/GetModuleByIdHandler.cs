@@ -13,17 +13,17 @@ namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleById
 
         public async Task<AppResult<ModuleDto>> Handle(GetModuleByIdQuery request, CancellationToken cancellationToken)
         {
-            try 
+            try
             {
-            //{
-            //    var module = await _unitOfWork.Modules.GetByIdAsync(request.Id);
-            //    if (module == null)
-            //        return AppResult<ModuleDto>.Failure($"Module with ID {request.Id} not found.");
+                //{
+                //    var module = await _unitOfWork.Modules.GetByIdAsync(request.Id);
+                //    if (module == null)
+                //        return AppResult<ModuleDto>.Failure($"Module with ID {request.Id} not found.");
 
-            //    // Map to DTO using the explicit operator
-            //    var moduleDto = (ModuleDto)module;
+                //    // Map to DTO using the explicit operator
+                //    var moduleDto = (ModuleDto)module;
 
-            //    return AppResult<ModuleDto>.Success(moduleDto);
+                //    return AppResult<ModuleDto>.Success(moduleDto);
 
                 return await Result.Success(request)
                     .Bind(async req =>

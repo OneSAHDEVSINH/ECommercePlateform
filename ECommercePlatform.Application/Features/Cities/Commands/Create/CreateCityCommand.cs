@@ -2,7 +2,6 @@
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
 using MediatR;
-using System.Xml.Linq;
 
 namespace ECommercePlatform.Application.Features.Cities.Commands.Create
 {

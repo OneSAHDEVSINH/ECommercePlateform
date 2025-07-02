@@ -1,9 +1,7 @@
 ﻿using ECommercePlatform.Application.Common.Interfaces;
 using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.DTOs;
-using FluentAssertions.Equivalency;
 using MediatR;
-using System.Text.Json.Serialization;
 
 namespace ECommercePlatform.Application.Features.Modules.Commands.Create
 {

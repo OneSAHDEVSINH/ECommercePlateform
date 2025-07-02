@@ -53,7 +53,7 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Delete
                             : Result.Success(module);
                     })
                     .Tap(async module =>
-                    
+
                         // Soft delete the module
                         //module.MarkAsDeleted(request.DeletedBy ?? "system"); // Need to add DeletedBy to command
                         await _unitOfWork.Modules.DeleteAsync(module))

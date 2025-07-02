@@ -1,8 +1,6 @@
 ﻿using ECommercePlatform.Application.Common.Interfaces;
 using ECommercePlatform.Application.Common.Models;
-using FluentAssertions.Equivalency;
 using MediatR;
-using System.Xml.Linq;
 
 namespace ECommercePlatform.Application.Features.Countries.Commands.Update;
 

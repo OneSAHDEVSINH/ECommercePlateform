@@ -16,7 +16,7 @@ namespace ECommercePlatform.Application.Features.States.Queries.GetStatesById
             try
             {
                 return await Result.Success(request)
-                    .Bind(async req => 
+                    .Bind(async req =>
                     {
                         var state = await _unitOfWork.States.GetByIdAsync(req.Id);
                         return state == null

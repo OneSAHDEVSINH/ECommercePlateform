@@ -2,7 +2,6 @@
 using ECommercePlatform.Application.Common.Models;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using System.Text.Json.Serialization;
 
 namespace ECommercePlatform.Application.Features.Users.Commands.UploadAvatar
 {
