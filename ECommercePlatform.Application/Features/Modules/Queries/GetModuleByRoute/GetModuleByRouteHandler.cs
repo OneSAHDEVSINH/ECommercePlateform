@@ -15,15 +15,6 @@ namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRout
         {
             try
             {
-                //var module = await _unitOfWork.Modules.GetByRouteAsync(request.Route);
-                //if (module == null)
-                //    return AppResult<ModuleDto>.Failure($"Module with route '{request.Route}' not found.");
-
-                //// Map to DTO using the explicit operator
-                //var moduleDto = (ModuleDto)module;
-
-                //return AppResult<ModuleDto>.Success(moduleDto);
-
                 return await Result.Success(request)
                     .Bind(async req =>
                     {
@@ -50,3 +41,13 @@ namespace ECommercePlatform.Application.Features.Modules.Queries.GetModuleByRout
         }
     }
 }
+
+
+//var module = await _unitOfWork.Modules.GetByRouteAsync(request.Route);
+//if (module == null)
+//    return AppResult<ModuleDto>.Failure($"Module with route '{request.Route}' not found.");
+
+//// Map to DTO using the explicit operator
+//var moduleDto = (ModuleDto)module;
+
+//return AppResult<ModuleDto>.Success(moduleDto);

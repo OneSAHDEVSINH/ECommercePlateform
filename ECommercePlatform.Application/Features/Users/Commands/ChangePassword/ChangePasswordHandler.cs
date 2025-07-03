@@ -1,5 +1,4 @@
-﻿// Application/Features/Users/Commands/ChangePassword/ChangePasswordHandler.cs
-using ECommercePlatform.Application.Common.Models;
+﻿using ECommercePlatform.Application.Common.Models;
 using ECommercePlatform.Application.Interfaces;
 using MediatR;
 

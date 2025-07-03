@@ -15,54 +15,6 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Create
         {
             try
             {
-                //// Validate role name uniqueness
-                //var nameResult = await _unitOfWork.Roles.EnsureNameIsUniqueAsync(request.Name);
-                //if (nameResult.IsFailure)
-                //    return AppResult<RoleDto>.Failure(nameResult.Error);
-
-                //// Create the role entity
-                //var role = Role.Create(
-                //    Guid.NewGuid(),
-                //    request.Name,
-                //    request.Description ?? string.Empty,
-                //    request.CreatedBy ?? "system");
-
-                //role.IsActive = request.IsActive;
-
-                //await _unitOfWork.Roles.AddAsync(role);
-
-                //// Process permissions if provided
-                //if (request.Permissions != null && request.Permissions.Count != 0)
-                //{
-                //    foreach (var perm in request.Permissions)
-                //    {
-                //        // Verify module exists
-                //        var module = await _unitOfWork.Modules.GetByIdAsync(perm.ModuleId);
-                //        if (module == null) continue;
-
-                //        var rolePermission = RolePermission.Create(
-                //            role.Id,
-                //            perm.ModuleId,
-                //            perm.CanView,
-                //            perm.CanAddEdit,
-                //            perm.CanDelete
-                //        );
-
-                //        rolePermission.SetCreatedBy(request.CreatedBy ?? "system");
-                //        await _unitOfWork.RolePermissions.AddAsync(rolePermission);
-                //    }
-                //}
-
-                //// Reload the role with permissions for return
-                //var createdRole = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);
-                //if (createdRole == null)
-                //    return AppResult<RoleDto>.Failure("Role was created but could not be retrieved.");
-
-                //// Map to DTO using explicit operator
-                //var roleDto = (RoleDto)createdRole;
-
-                //return AppResult<RoleDto>.Success(roleDto);
-
                 return await _unitOfWork.Roles.EnsureNameIsUniqueAsync(request.Name)
             .Bind(_ =>
             {
@@ -122,3 +74,52 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Create
         }
     }
 }
+
+
+//// Validate role name uniqueness
+//var nameResult = await _unitOfWork.Roles.EnsureNameIsUniqueAsync(request.Name);
+//if (nameResult.IsFailure)
+//    return AppResult<RoleDto>.Failure(nameResult.Error);
+
+//// Create the role entity
+//var role = Role.Create(
+//    Guid.NewGuid(),
+//    request.Name,
+//    request.Description ?? string.Empty,
+//    request.CreatedBy ?? "system");
+
+//role.IsActive = request.IsActive;
+
+//await _unitOfWork.Roles.AddAsync(role);
+
+//// Process permissions if provided
+//if (request.Permissions != null && request.Permissions.Count != 0)
+//{
+//    foreach (var perm in request.Permissions)
+//    {
+//        // Verify module exists
+//        var module = await _unitOfWork.Modules.GetByIdAsync(perm.ModuleId);
+//        if (module == null) continue;
+
+//        var rolePermission = RolePermission.Create(
+//            role.Id,
+//            perm.ModuleId,
+//            perm.CanView,
+//            perm.CanAddEdit,
+//            perm.CanDelete
+//        );
+
+//        rolePermission.SetCreatedBy(request.CreatedBy ?? "system");
+//        await _unitOfWork.RolePermissions.AddAsync(rolePermission);
+//    }
+//}
+
+//// Reload the role with permissions for return
+//var createdRole = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);
+//if (createdRole == null)
+//    return AppResult<RoleDto>.Failure("Role was created but could not be retrieved.");
+
+//// Map to DTO using explicit operator
+//var roleDto = (RoleDto)createdRole;
+
+//return AppResult<RoleDto>.Success(roleDto);

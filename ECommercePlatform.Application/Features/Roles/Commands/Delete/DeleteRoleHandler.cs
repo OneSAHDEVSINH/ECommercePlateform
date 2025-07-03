@@ -14,23 +14,6 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Delete
         {
             try
             {
-                //var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
-                //if (role == null)
-                //    return AppResult.Failure($"Role with ID {request.Id} not found.");
-
-                //// Check if role is used by users
-                //var userRoles = await _unitOfWork.UserRoles.GetByRoleIdAsync(role.Id);
-                //if (userRoles.Count != 0)
-                //    return AppResult.Failure("Cannot delete role. It is currently assigned to one or more users.");
-
-                //// First delete all role permissions
-                //await _unitOfWork.RolePermissions.DeleteByRoleIdAsync(role.Id);
-
-                //// Then delete the role itself
-                //await _unitOfWork.Roles.DeleteAsync(role);
-
-                //return AppResult.Success();
-
                 return await Result.Success(request.Id)
                     .Bind(async id =>
                     {
@@ -61,3 +44,21 @@ namespace ECommercePlatform.Application.Features.Roles.Commands.Delete
         }
     }
 }
+
+
+//var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
+//if (role == null)
+//    return AppResult.Failure($"Role with ID {request.Id} not found.");
+
+//// Check if role is used by users
+//var userRoles = await _unitOfWork.UserRoles.GetByRoleIdAsync(role.Id);
+//if (userRoles.Count != 0)
+//    return AppResult.Failure("Cannot delete role. It is currently assigned to one or more users.");
+
+//// First delete all role permissions
+//await _unitOfWork.RolePermissions.DeleteByRoleIdAsync(role.Id);
+
+//// Then delete the role itself
+//await _unitOfWork.Roles.DeleteAsync(role);
+
+//return AppResult.Success();

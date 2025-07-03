@@ -14,18 +14,6 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Delete
         {
             try
             {
-                //var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
-                //if (user == null)
-                //    return AppResult.Failure($"User with ID {request.Id} not found.");
-
-                //// First delete associated user roles
-                //await _unitOfWork.UserRoles.DeleteByUserIdAsync(request.Id);
-
-                //// Then delete the user
-                //await _unitOfWork.Users.DeleteAsync(user);
-
-                //return AppResult.Success();
-
                 return await Result.Success(request.Id)
                     .Bind(async id =>
                     {
@@ -50,6 +38,22 @@ namespace ECommercePlatform.Application.Features.Users.Commands.Delete
     }
 }
 
+
+
+
+//old method
+
+//var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
+//if (user == null)
+//    return AppResult.Failure($"User with ID {request.Id} not found.");
+
+//// First delete associated user roles
+//await _unitOfWork.UserRoles.DeleteByUserIdAsync(request.Id);
+
+//// Then delete the user
+//await _unitOfWork.Users.DeleteAsync(user);
+
+//return AppResult.Success();
 
 //soft delete
 

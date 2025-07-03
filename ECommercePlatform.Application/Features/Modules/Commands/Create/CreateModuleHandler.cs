@@ -15,29 +15,6 @@ namespace ECommercePlatform.Application.Features.Modules.Commands.Create
         {
             try
             {
-                //var result = await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(request.Name, request.Route, request.Icon!, request.DisplayOrder)
-                //.Map(_ =>
-                //    {
-                //        var module = Domain.Entities.Module.Create(
-                //            request.Name,
-                //            request.Description ?? string.Empty,
-                //            request.Route,
-                //            request.Icon ?? string.Empty,
-                //            request.DisplayOrder
-                //    );
-
-                //        if (!request.IsActive)
-                //            module.SetActive(false);
-
-                //        return module;
-                //    })
-                //.Tap(module => _unitOfWork.Modules.AddAsync(module))
-                //.Map(module => AppResult<ModuleDto>.Success((ModuleDto)module));
-
-                //return result.IsSuccess
-                //    ? result.Value
-                //    : AppResult<ModuleDto>.Failure(result.Error);
-
                 return await _unitOfWork.Modules.EnsureNameRouteIconDPAreUniqueAsync(request.Name, request.Route, request.Icon!, request.DisplayOrder)
                     .Bind(async tuple =>
                     {
