@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -25,7 +25,6 @@ import { ListService } from '../../services/general/list.service';
     ReactiveFormsModule,
     FormsModule,
     PaginationComponent,
-    PermissionDirective,
     RouterModule,
     DateRangeFilterComponent
   ]
@@ -39,6 +38,15 @@ export class ModuleComponent implements OnInit, OnDestroy {
   message: Message | null = null;
   PermissionType = PermissionType;
   Math = Math;
+  private subscriptions: Subscription[] = [];
+  private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
+  private permissionSubscription!: Subscription;
+
+  // Permission-dependent UI state
+  canAddEdit: boolean = false;
+  canDelete: boolean = false;
+  canView: boolean = false;
 
   // Filter properties
   selectedStatusFilter: string = 'all';
@@ -53,22 +61,28 @@ export class ModuleComponent implements OnInit, OnDestroy {
     sortDirection: 'asc'
   };
 
-  private subscriptions: Subscription[] = [];
-  private searchSubscription!: Subscription;
-  private dateRangeSubscription!: Subscription;
-
   constructor(
     private moduleService: ModuleService,
     public authorizationService: AuthorizationService,
     private messageService: MessageService,
     private dateFilterService: DateFilterService,
     private listService: ListService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.initForm();
     this.loadModules();
+
+    // Initial permission check
+    this.checkPermissions();
+
+    // Subscribe to global permission changes
+    this.permissionSubscription = this.authorizationService.globalPermissionChange$.subscribe(() => {
+      this.checkPermissions(); // Refresh permission-dependent state
+      this.cdr.detectChanges(); // Force change detection
+    });
 
     const messageSub = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
@@ -102,10 +116,21 @@ export class ModuleComponent implements OnInit, OnDestroy {
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
     }
-
     if (this.dateRangeSubscription) {
       this.dateRangeSubscription.unsubscribe();
     }
+    if (this.permissionSubscription) {
+      this.permissionSubscription.unsubscribe();
+    }
+  }
+
+  // method to check permissions
+  private checkPermissions(): void {
+    this.canView = this.authorizationService.hasPermission('modules', PermissionType.View);
+    this.canAddEdit = this.authorizationService.hasPermission('modules', PermissionType.AddEdit);
+    this.canDelete = this.authorizationService.hasPermission('modules', PermissionType.Delete);
+
+    console.log('Modules permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
 
   private initForm(): void {

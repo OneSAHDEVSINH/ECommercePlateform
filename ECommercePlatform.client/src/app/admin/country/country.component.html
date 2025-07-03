@@ -32,7 +32,7 @@
     </div>
 
     <!-- Country Form Card -->
-    <div class="card card-primary" *appPermission="{ moduleRoute: 'countries', type: PermissionType.AddEdit }">
+    <div class="card card-primary" *ngIf="canAddEdit">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Country' : 'Add New Country' }}</h3>
       </div>
@@ -93,12 +93,13 @@
         </div>
         <!-- Card Footer -->
         <div class="card-footer">
-          <button type="submit" class="btn btn-primary" [disabled]="countryForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'countries', type: PermissionType.AddEdit }">
+          <button type="submit" class="btn btn-primary" [disabled]="countryForm.invalid || loading" *ngIf="canAddEdit">
             <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i> {{ isEditMode ? 'Update' : 'Add' }} Country
           </button>
-          <button type="button" class="btn btn-default float-right" (click)="resetForm()" *ngIf="isEditMode"><i class="fas fa-times"></i>
-          Cancel </button>
+          <button type="button" class="btn btn-default float-right" (click)="resetForm()" *ngIf="isEditMode">
+            <i class="fas fa-times"></i>
+            Cancel
+          </button>
           <button type="button" class="btn btn-default float-right mr-2" (click)="resetForm()"
                   *ngIf="!isEditMode && (countryForm.get('name')?.touched || countryForm.get('code')?.touched)">
             Reset
@@ -108,7 +109,7 @@
     </div>
 
     <!-- Countries List Card -->
-    <div class="card" *appPermission="{ moduleRoute: 'countries', type: PermissionType.View }">
+    <div class="card" *ngIf="canView">
       <div class="card-header">
         <h3 class="card-title">Countries List</h3>
         <div class="card-tools">
@@ -204,11 +205,11 @@
                 <td>{{ country.createdOn | date:'medium' }}</td>
                 <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('countries')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editCountry(country)"
-                          *appPermission="{ moduleRoute: 'countries', type: PermissionType.AddEdit }">
+                          *ngIf="canAddEdit">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deleteCountry(country.id!)"
-                          *appPermission="{ moduleRoute: 'countries', type: PermissionType.Delete }">
+                          *ngIf="canDelete">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>

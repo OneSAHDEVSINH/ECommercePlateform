@@ -12,6 +12,7 @@ import { PermissionGuard } from './guards/permission.guard';
 import { PermissionType } from './models/role.model';
 import { ModuleComponent } from './admin/module/module.component';
 import { AccessDeniedComponent } from './shared/access-denied/access-denied.component';
+import { ProfileComponent } from './admin/profile/profile.component';
 
 // Custom matcher to catch malformed URLs
 function malformedUrlMatcher(url: UrlSegment[]) {
@@ -121,6 +122,17 @@ export const routes: Routes = [
             path: 'users',
             component: UserComponent,
             title: 'User Management',
+            canActivate: [PermissionGuard],
+            data: {
+              moduleRoute: 'users',
+              permission: PermissionType.View,
+              adminOnly: true
+            }
+          },
+          {
+            path: 'user/profile/:id',
+            component: ProfileComponent,
+            title: 'User Profile',
             canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'users',

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -29,7 +29,6 @@ import { AuthorizationService } from '../../services/authorization/authorization
     RouterModule,
     PaginationComponent,
     DateRangeFilterComponent,
-    PermissionDirective
   ]
 })
 export class UserComponent implements OnInit, OnDestroy {
@@ -47,6 +46,16 @@ export class UserComponent implements OnInit, OnDestroy {
   selectedRoleId: string = 'all';
   Math = Math;
   PermissionType = PermissionType;
+  // Subscriptions for clean up
+  private messageSubscription!: Subscription;
+  private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
+  private permissionSubscription!: Subscription;
+
+  // Permission-dependent UI state
+  canAddEdit: boolean = false;
+  canDelete: boolean = false;
+  canView: boolean = false;
 
   // Pagination properties
   pagedResponse: PagedResponse<User> | null = null;
@@ -58,11 +67,6 @@ export class UserComponent implements OnInit, OnDestroy {
     sortDirection: 'asc'
   };
 
-  // Subscriptions for clean up
-  private messageSubscription!: Subscription;
-  private searchSubscription!: Subscription;
-  private dateRangeSubscription!: Subscription;
-
   constructor(
     private userService: UserService,
     private roleService: RoleService,
@@ -70,13 +74,23 @@ export class UserComponent implements OnInit, OnDestroy {
     private dateFilterService: DateFilterService,
     private listService: ListService,
     public authorizationService: AuthorizationService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.initForm();
     this.loadUsers();
     this.loadRoles();
+
+    // Initial permission check
+    this.checkPermissions();
+
+    // Subscribe to global permission changes
+    this.permissionSubscription = this.authorizationService.globalPermissionChange$.subscribe(() => {
+      this.checkPermissions(); // Refresh permission-dependent state
+      this.cdr.detectChanges(); // Force change detection
+    });
 
     // Subscribe to messages
     this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
@@ -111,6 +125,18 @@ export class UserComponent implements OnInit, OnDestroy {
     if (this.dateRangeSubscription) {
       this.dateRangeSubscription.unsubscribe();
     }
+    if (this.permissionSubscription) {
+      this.permissionSubscription.unsubscribe();
+    }
+  }
+
+  // method to check permissions
+  private checkPermissions(): void {
+    this.canView = this.authorizationService.hasPermission('users', PermissionType.View);
+    this.canAddEdit = this.authorizationService.hasPermission('users', PermissionType.AddEdit);
+    this.canDelete = this.authorizationService.hasPermission('users', PermissionType.Delete);
+
+    console.log('Users permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
 
   private initForm(): void {

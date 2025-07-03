@@ -1,8 +1,8 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
-import { filter, switchMap } from 'rxjs/operators';
+import { filter, switchMap, debounceTime } from 'rxjs/operators';
 import { AuthService } from '../../services/auth/auth.service';
 import { PermissionType } from '../../models/role.model';
 import { AuthorizationService } from '../../services/authorization/authorization.service';
@@ -16,8 +16,9 @@ import { PermissionRefreshService } from '../../services/general/permission-refr
   standalone: true,
   imports: [CommonModule, RouterModule]
 })
-export class AdminLayoutComponent implements OnInit {
+export class AdminLayoutComponent implements OnInit, OnDestroy {
   userName: string = 'Admin';
+  email: string = '';
   currentTheme: string = 'light-mode';
   isUserDropdownOpen: boolean = false;
   isQuickActionsOpen: boolean = false;
@@ -30,6 +31,7 @@ export class AdminLayoutComponent implements OnInit {
   isRefreshing = false;
   private permissionCheckInterval: Subscription | null = null;
   private currentModuleRoute: string = '';
+  private subscriptions: Subscription[] = [];
 
   constructor(
     public authService: AuthService,
@@ -37,18 +39,34 @@ export class AdminLayoutComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private permissionNotificationService: PermissionNotificationService,
-    private permissionRefreshService: PermissionRefreshService
+    private permissionRefreshService: PermissionRefreshService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     // Get user info
-    this.authService.currentUser$.subscribe(user => {
+    const userSub = this.authService.currentUser$.subscribe(user => {
       if (user) {
+        this.email = user.email;
         const firstName = user.firstName || user['firstName'] || '';
         const lastName = user.lastName || user['lastName'] || '';
         this.userName = `${firstName} ${lastName}`.trim() || user.email || 'Admin';
       }
     });
+
+    // Listen to global permission changes
+    const permissionSub = this.authorizationService.globalPermissionChange$.pipe(
+      debounceTime(200)
+    ).subscribe(() => {
+      this.cdr.detectChanges(); // Force change detection
+    });
+
+    // Subscribe to refresh state
+    const refreshSub = this.permissionRefreshService.isRefreshing$.subscribe(isRefreshing => {
+      this.isRefreshing = isRefreshing;
+    });
+
+    this.subscriptions.push(userSub, permissionSub, refreshSub);
 
     // Initialize theme
     const savedTheme = localStorage.getItem('admin-theme');
@@ -66,15 +84,17 @@ export class AdminLayoutComponent implements OnInit {
     }
 
     // Subscribe to permission errors
-    this.permissionNotificationService.error$.subscribe(error => {
+    const errorSub = this.permissionNotificationService.error$.subscribe(error => {
       this.permissionError = error;
     });
+
+    this.subscriptions.push(errorSub);
 
     // Initialize dropdown state based on current URL first
     this.initializeDropdownStateFromUrl(this.router.url);
 
     // Detect current route to know which module user is on
-    this.router.events.pipe(
+    const routerSub = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       const urlParts = event.url.split('/');
@@ -92,12 +112,13 @@ export class AdminLayoutComponent implements OnInit {
       }
     });
 
+    this.subscriptions.push(routerSub);
+
     // Handle access denied messages from query params
-    this.route.queryParams.subscribe(params => {
+    const paramsSub = this.route.queryParams.subscribe(params => {
       if (params['accessDenied']) {
         const module = params['module'] || 'the requested page';
         const permission = params['permission'] || 'required';
-        //this.accessDeniedMessage = `Access denied: You don't have ${permission} permission for ${module}.`;
 
         // Clear the message after 5 seconds
         setTimeout(() => {
@@ -113,12 +134,15 @@ export class AdminLayoutComponent implements OnInit {
       }
     });
 
+    this.subscriptions.push(paramsSub);
+
     // Initialize active dropdown based on current route
     this.updateActiveDropdown(this.currentModuleRoute);
   }
 
-  updateActiveDropdown(route: string): void {
-    this.initializeDropdownStateFromUrl(`/admin/${route}`);
+  ngOnDestroy() {
+    this.stopPermissionCheck();
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   @HostListener('window:resize', ['$event'])
@@ -160,10 +184,6 @@ export class AdminLayoutComponent implements OnInit {
     }
   }
 
-  ngOnDestroy() {
-    this.stopPermissionCheck();
-  }
-
   toggleTheme(): void {
     this.currentTheme = this.currentTheme === 'light-mode' ? 'dark-mode' : 'light-mode';
     localStorage.setItem('admin-theme', this.currentTheme);
@@ -176,11 +196,8 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   refreshPermissions(): void {
-    this.isRefreshing = true;
-    this.permissionRefreshService.refreshPermissions().subscribe({
+    this.permissionRefreshService.forceRefresh().subscribe({
       next: () => {
-        this.isRefreshing = false;
-
         // Check if still have permission for current route after refresh
         if (this.currentModuleRoute && this.currentModuleRoute !== 'dashboard' &&
           this.currentModuleRoute !== 'access-denied') {
@@ -204,7 +221,6 @@ export class AdminLayoutComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to refresh permissions', err);
-        this.isRefreshing = false;
       }
     });
   }
@@ -219,9 +235,8 @@ export class AdminLayoutComponent implements OnInit {
       return;
     }
 
-    // Check every 15 seconds if still have view permission for the current module
-    this.permissionCheckInterval = interval(1000).pipe(
-      switchMap(() => this.permissionRefreshService.refreshPermissions()),
+    // Check every 5 seconds instead of 15 for faster response (you can adjust this)
+    this.permissionCheckInterval = interval(5000).pipe(
       switchMap(() => this.authorizationService.checkPermission(this.currentModuleRoute, PermissionType.View))
     ).subscribe(hasPermission => {
       if (!hasPermission && !this.authorizationService.isAdmin()) {
@@ -269,6 +284,10 @@ export class AdminLayoutComponent implements OnInit {
         this.isQuickActionsOpen = false;
       }
     }
+  }
+
+  updateActiveDropdown(route: string): void {
+    this.initializeDropdownStateFromUrl(`/admin/${route}`);
   }
 
   @HostListener('document:click')

@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MessageService } from '../../services/general/message.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-access-denied',
@@ -32,23 +33,33 @@ import { trigger, transition, style, animate } from '@angular/animations';
   templateUrl: './access-denied.component.html',
   styleUrls: ['./access-denied.component.scss']
 })
-export class AccessDeniedComponent implements OnInit {
+export class AccessDeniedComponent implements OnInit, OnDestroy {
   errorMessage: string = 'You do not have permission to access this resource.';
   troubleshootingMessage: string = '';
   returnUrl: string | null = null;
   isLoggedIn: boolean = false;
+  referenceId: string = ''; // Store the reference ID
+  private userSubscription?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private messageService: MessageService,
-    private authService: AuthService
-  ) { }
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Generate reference ID once in constructor
+    this.referenceId = this.generateReferenceId();
+  }
 
   ngOnInit() {
     // Check if user is logged in
-    this.authService.currentUser$.subscribe(user => {
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.isLoggedIn = !!user;
+      // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      });
     });
 
     // Process query params
@@ -75,7 +86,18 @@ export class AccessDeniedComponent implements OnInit {
           text: this.errorMessage
         });
       }
+
+      // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      });
     });
+  }
+
+  ngOnDestroy() {
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
 
   private setTroubleshootingMessage(module: string, permission: string): void {
@@ -84,7 +106,7 @@ export class AccessDeniedComponent implements OnInit {
     } else if (module === 'users' || module === 'roles' || module === 'modules') {
       this.troubleshootingMessage = `Administrative privileges required. Contact your system administrator.`;
     } else {
-      this.troubleshootingMessage = `Contact your administrator to grant ${permission} permissionfor ${module}.`;
+      this.troubleshootingMessage = `Contact your administrator to grant ${permission} permission for ${module}.`;
     }
   }
 
@@ -97,7 +119,13 @@ export class AccessDeniedComponent implements OnInit {
     window.history.back();
   }
 
+  // Use the stored reference ID instead of generating a new one each time
   generateReferenceId(): string {
     return Date.now().toString(36).toUpperCase();
+  }
+
+  // Getter method to return the stored reference ID
+  getReferenceId(): string {
+    return this.referenceId;
   }
 }

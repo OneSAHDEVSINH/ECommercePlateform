@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -24,7 +24,7 @@ import { AuthorizationService } from '../../services/authorization/authorization
   templateUrl: './state.component.html',
   styleUrls: ['./state.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent, PermissionDirective]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent]
 })
 export class StateComponent implements OnInit, OnDestroy {
   states: State[] = [];
@@ -38,9 +38,15 @@ export class StateComponent implements OnInit, OnDestroy {
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
   private dateRangeSubscription!: Subscription;
+  private permissionSubscription!: Subscription;
   Math = Math;
   selectedCountryId = 'all';
   PermissionType = PermissionType;
+
+  // Permission-dependent UI state
+  canAddEdit: boolean = false;
+  canDelete: boolean = false;
+  canView: boolean = false;
 
   // Pagination properties
   pagedResponse: PagedResponse<State> | null = null;
@@ -60,13 +66,24 @@ export class StateComponent implements OnInit, OnDestroy {
     private listService: ListService,
     private dateFilterService: DateFilterService,
     public authorizationService: AuthorizationService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.initForm();
     this.loadCountries();
     this.loadStates();
+
+    // Initial permission check
+    this.checkPermissions();
+
+    // Subscribe to global permission changes
+    this.permissionSubscription = this.authorizationService.globalPermissionChange$.subscribe(() => {
+      this.checkPermissions(); // Refresh permission-dependent state
+      this.cdr.detectChanges(); // Force change detection
+    });
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
@@ -104,6 +121,18 @@ export class StateComponent implements OnInit, OnDestroy {
     if (this.dateRangeSubscription) {
       this.dateRangeSubscription.unsubscribe();
     }
+    if (this.permissionSubscription) {
+      this.permissionSubscription.unsubscribe();
+    }
+  }
+
+  // method to check permissions
+  private checkPermissions(): void {
+    this.canView = this.authorizationService.hasPermission('states', PermissionType.View);
+    this.canAddEdit = this.authorizationService.hasPermission('states', PermissionType.AddEdit);
+    this.canDelete = this.authorizationService.hasPermission('states', PermissionType.Delete);
+
+    console.log('States permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
 
   private initForm(): void {

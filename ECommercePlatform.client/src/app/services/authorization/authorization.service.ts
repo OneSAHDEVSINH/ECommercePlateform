@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
-import { Observable, of, map, catchError, shareReplay, BehaviorSubject, tap, forkJoin } from 'rxjs';
+import { Observable, of, map, catchError, shareReplay, BehaviorSubject, tap, forkJoin, combineLatest } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { PermissionType } from '../../models/role.model';
 
@@ -14,15 +15,32 @@ export class AuthorizationService {
   private readonly CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes in milliseconds
   private permissionCacheExpiry = new Map<string, number>();
 
+  // Add reactive permission updates
+  private permissionUpdateSubject = new BehaviorSubject<{ moduleRoute: string, permissionType: PermissionType } | null>(null);
+  public permissionUpdated$ = this.permissionUpdateSubject.asObservable();
+
+  // Global permission state change notifier
+  private globalPermissionChangeSubject = new BehaviorSubject<boolean>(false);
+  public globalPermissionChange$ = this.globalPermissionChangeSubject.asObservable();
+
   constructor(
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router
+
   ) {
     // Clear cache on auth state change
     this.authService.authStateChange$.subscribe(isLoggedIn => {
       if (!isLoggedIn) {
         this.permissionsCache.clear();
+        this.permissionCacheExpiry.clear();
       }
+    });
+
+    // Listen to permission updates from auth service
+    this.authService.permissions$.subscribe(() => {
+      this.clearCache();
+      this.notifyGlobalPermissionChange();
     });
   }
 
@@ -80,7 +98,6 @@ export class AuthorizationService {
   }
 
   checkPermission(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
-
     // If user is superadmin, always return true without checking cache
     if (this.authService.isSuperAdmin()) {
       return of(true);
@@ -94,17 +111,12 @@ export class AuthorizationService {
       return of(this.permissionsCache.get(cacheKey)!);
     }
 
-    // Check memory cache first
-    if (this.permissionsCache.has(cacheKey)) {
-      return of(this.permissionsCache.get(cacheKey)!);
-    }
-
-    // Check local permissions
+    // Check local permissions first
     const hasLocalPermission = this.hasPermission(moduleRoute, permissionType);
-    if (hasLocalPermission) {
-      this.permissionsCache.set(cacheKey, true);
+    if (hasLocalPermission !== undefined) {
+      this.permissionsCache.set(cacheKey, hasLocalPermission);
       this.permissionCacheExpiry.set(cacheKey, Date.now() + this.CACHE_MAX_AGE);
-      return of(true);
+      return of(hasLocalPermission);
     }
 
     // If not found locally, check with server
@@ -125,12 +137,24 @@ export class AuthorizationService {
     );
   }
 
+  // Enhanced reactive permission checking
+  checkPermissionReactive(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
+    return combineLatest([
+      this.checkPermission(moduleRoute, permissionType),
+      this.globalPermissionChange$
+    ]).pipe(
+      map(([hasPermission]) => hasPermission),
+      shareReplay(1)
+    );
+  }
+
   getUserAccessibleModules(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/modules`);
   }
 
   clearCache(): void {
     this.permissionsCache.clear();
+    this.permissionCacheExpiry.clear();
 
     // Optionally, might want to reload permissions from the server
     // This ensures the cache is refreshed with latest data
@@ -140,7 +164,7 @@ export class AuthorizationService {
     }
   }
 
-  // Optionally, helper methods for better cache management
+  // Enhanced cache management
   clearCacheForModule(moduleRoute: string): void {
     // Clear all cached permissions for a specific module
     const keysToDelete: string[] = [];
@@ -149,7 +173,13 @@ export class AuthorizationService {
         keysToDelete.push(key);
       }
     });
-    keysToDelete.forEach(key => this.permissionsCache.delete(key));
+    keysToDelete.forEach(key => {
+      this.permissionsCache.delete(key);
+      this.permissionCacheExpiry.delete(key);
+    });
+
+    // Notify components about permission changes for this module
+    this.notifyPermissionUpdate(moduleRoute, PermissionType.View);
   }
 
   // Check if user has ANY permission for a module
@@ -178,25 +208,30 @@ export class AuthorizationService {
   public hasPermissionSync(moduleRoute: string, permission: PermissionType): boolean {
     if (this.isAdmin()) return true;
 
-    // Use cached permissions from the initial load
-    const cachedPermissions = this.getCachedPermissions();
-    const permissionKey = `${moduleRoute}:${this.permissionTypeToString(permission)}`;
+    // Use local permissions first, then cached
+    const localHasPermission = this.hasPermission(moduleRoute, permission);
+    if (localHasPermission !== undefined) {
+      return localHasPermission;
+    }
 
-    return cachedPermissions.includes(permissionKey);
+    // Fall back to cache
+    const cacheKey = `${moduleRoute}-${permission}`;
+    return this.permissionsCache.get(cacheKey) || false;
   }
 
-  private getCachedPermissions(): string[] {
-    const cachedPermissions: string[] = [];
-    this.permissionsCache.forEach((hasPermission, key) => {
-      if (hasPermission) {
-        // Convert from cache key format (moduleRoute-permissionType) to permission string format (moduleRoute:permissionType)
-        const [moduleRoute, permType] = key.split('-');
-        if (moduleRoute && permType) {
-          cachedPermissions.push(`${moduleRoute}:${permType}`);
-        }
-      }
-    });
-    return cachedPermissions;
+  // Notification methods for reactive updates
+  private notifyPermissionUpdate(moduleRoute: string, permissionType: PermissionType): void {
+    this.permissionUpdateSubject.next({ moduleRoute, permissionType });
+  }
+
+  private notifyGlobalPermissionChange(): void {
+    this.globalPermissionChangeSubject.next(true);
+  }
+
+  // Public method to trigger permission refresh
+  public refreshPermissions(): void {
+    this.clearCache();
+    this.notifyGlobalPermissionChange();
   }
 
   private permissionTypeToString(permission: PermissionType): string {
@@ -205,6 +240,32 @@ export class AuthorizationService {
       case PermissionType.AddEdit: return 'AddEdit';
       case PermissionType.Delete: return 'Delete';
       default: return '';
+    }
+  }
+
+  public checkAndRedirectOnPermissionLoss(moduleRoute: string, permissionType: PermissionType): void {
+    if (!this.hasPermissionSync(moduleRoute, permissionType) && !this.isAdmin()) {
+      // Use router to navigate immediately
+      if (!this.router.url.includes('/admin/access-denied')) {
+        this.router.navigate(['/admin/access-denied'], {
+          queryParams: {
+            accessDenied: 'true',
+            module: moduleRoute,
+            permission: this.getPermissionTypeString(permissionType),
+            returnUrl: this.router.url
+          }
+        });
+      }
+    }
+  }
+
+
+  private getPermissionTypeString(type: PermissionType): string {
+    switch (type) {
+      case PermissionType.View: return 'View';
+      case PermissionType.AddEdit: return 'AddEdit';
+      case PermissionType.Delete: return 'Delete';
+      default: return 'required';
     }
   }
 

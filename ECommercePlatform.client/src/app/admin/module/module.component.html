@@ -32,7 +32,7 @@
     </div>
 
     <!-- Module Form Card -->
-    <div class="card card-primary" *appPermission="{ moduleRoute: 'modules', type: PermissionType.AddEdit }">
+    <div class="card card-primary" *ngIf="canAddEdit">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Module' : 'Add New Module' }}</h3>
       </div>
@@ -142,7 +142,7 @@
           <button type="submit"
                   class="btn btn-primary"
                   [disabled]="moduleForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'modules', type: PermissionType.AddEdit }">
+                  *ngIf="canAddEdit">
             <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
             {{ isEditMode ? 'Update' : 'Add' }} Module
           </button>
@@ -159,7 +159,7 @@
     </div>
 
     <!-- Module List Card -->
-    <div class="card" *appPermission="{ moduleRoute: 'modules', type: PermissionType.View }">
+    <div class="card" *ngIf="canView">
       <div class="card-header">
         <h3 class="card-title">Module List</h3>
         <div class="card-tools">
@@ -284,12 +284,12 @@
                 <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('modules')">
                   <button class="btn btn-sm btn-info mr-1"
                           (click)="editModule(module)"
-                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.AddEdit }">
+                          *ngIf="canAddEdit">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger"
                           (click)="deleteModule(module.id)"
-                          *appPermission="{ moduleRoute: 'modules', type: PermissionType.Delete }">
+                          *ngIf="canDelete">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>

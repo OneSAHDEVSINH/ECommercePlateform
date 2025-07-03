@@ -32,7 +32,7 @@
     </div>
 
     <!-- User Form Card -->
-    <div class="card card-primary" *appPermission="{ moduleRoute: 'users', type: PermissionType.AddEdit }">
+    <div class="card card-primary" *ngIf="canAddEdit">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit User' : 'Add New User' }}</h3>
       </div>
@@ -231,7 +231,7 @@
           <button type="submit"
                   class="btn btn-primary"
                   [disabled]="userForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'users', type: PermissionType.AddEdit }">
+                  *ngIf="canAddEdit">
             <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
             {{ isEditMode ? 'Update' : 'Add' }} User
           </button>
@@ -248,7 +248,7 @@
     </div>
 
     <!-- Users List Card -->
-    <div class="card" *appPermission="{ moduleRoute: 'users', type: PermissionType.View }">
+    <div class="card" *ngIf="canView">
       <div class="card-header">
         <h3 class="card-title">Users List</h3>
         <div class="card-tools">
@@ -395,11 +395,11 @@
                 <td>{{ user.createdOn | date:'medium' }} </td>
                 <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('users')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editUser(user)"
-                          *appPermission="{ moduleRoute: 'users', type: PermissionType.AddEdit }">
+                          *ngIf="canAddEdit">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="user.id && deleteUser(user.id)"
-                          *appPermission="{ moduleRoute: 'users', type: PermissionType.Delete }">
+                          *ngIf="canDelete">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>

@@ -32,7 +32,7 @@
     </div>
 
     <!-- State Form Card -->
-    <div class="card card-primary" *appPermission="{ moduleRoute: 'states', type: PermissionType.AddEdit }">
+    <div class="card card-primary" *ngIf="canAddEdit">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit State' : 'Add New State' }}</h3>
       </div>
@@ -112,7 +112,7 @@
         <!-- Card Footer -->
         <div class="card-footer">
           <button type="submit" class="btn btn-primary" [disabled]="stateForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'states', type: PermissionType.AddEdit }">
+                  *ngIf="canAddEdit">
             <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i> {{ isEditMode ? 'Update' : 'Add' }} State
           </button>
           <button type="button" class="btn btn-default float-right" (click)="resetForm()" *ngIf="isEditMode"><i class="fas fa-times"></i>
@@ -127,7 +127,7 @@
     </div>
 
     <!-- States List Card -->
-    <div class="card" *appPermission="{ moduleRoute: 'states', type: PermissionType.View }">
+    <div class="card" *ngIf="canView">
       <div class="card-header">
         <h3 class="card-title">States List</h3>
         <div class="card-tools">
@@ -240,11 +240,11 @@
                 <td>{{ state.createdOn | date:'medium' }}</td>
                 <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('states')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editState(state)"
-                          *appPermission="{ moduleRoute: 'states', type: PermissionType.AddEdit }">
+                          *ngIf="canAddEdit">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deleteState(state.id!)"
-                          *appPermission="{ moduleRoute: 'states', type: PermissionType.Delete }">
+                          *ngIf="canDelete">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>

@@ -1,7 +1,7 @@
 import { Directive, Input, TemplateRef, ViewContainerRef, OnInit, OnDestroy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, combineLatest } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { PermissionType } from '../models/role.model';
 import { AuthorizationService } from '../services/authorization/authorization.service';
 import { AuthService } from '../services/auth/auth.service';
@@ -26,8 +26,15 @@ export class PermissionDirective implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    // Subscribe to auth state changes
-    this.subscription = this.authService.authStateChange$.subscribe(isLoggedIn => {
+    // Enhanced reactive subscription
+    this.subscription = combineLatest([
+      this.authService.authStateChange$,
+      this.authService.permissions$,
+      this.authorizationService.globalPermissionChange$
+    ]).pipe(
+      debounceTime(100), // Prevent excessive updates
+      distinctUntilChanged()
+    ).subscribe(([isLoggedIn]) => {
       if (isLoggedIn) {
         this.updateView();
       } else {
@@ -35,7 +42,7 @@ export class PermissionDirective implements OnInit, OnDestroy {
       }
     });
 
-    // Initial check copy
+    // Initial check
     if (this.authService.isAuthenticated()) {
       this.updateView();
     }
@@ -47,7 +54,8 @@ export class PermissionDirective implements OnInit, OnDestroy {
       return;
     }
 
-    const hasPermission = this.authorizationService.hasPermission(
+    // Use synchronous check for immediate response
+    const hasPermission = this.authorizationService.hasPermissionSync(
       this.appPermission.moduleRoute,
       this.appPermission.type
     );

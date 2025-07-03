@@ -34,6 +34,7 @@
             <i class="fas" [ngClass]="currentTheme === 'light-mode' ? 'fa-moon' : 'fa-sun'"></i>
           </a>
         </li>
+        
         <!-- User Menu - Fixed dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link" (click)="toggleUserDropdown($event)" role="button">
@@ -41,10 +42,10 @@
             <i class="fas fa-angle-down ml-1"></i>
           </a>
           <div class="dropdown-menu dropdown-menu-right" [ngClass]="{'show': isUserDropdownOpen}">
-            <a class="dropdown-item" href="#"><i class="fas fa-user"></i> Profile</a>
+            <p class="dropdown-item alert-link"><i class="fas fa-user"></i> &nbsp; {{ email }}</p>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" style="cursor: pointer;" (click)="logout()">
-              <i class="fas fa-sign-out-alt"></i> Logout
+              <i class="fas fa-sign-out-alt"></i> &nbsp; <i class="btn btn-danger">Logout</i>
             </a>
           </div>
         </li>

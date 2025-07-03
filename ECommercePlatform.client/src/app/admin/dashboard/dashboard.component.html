@@ -14,6 +14,7 @@
     </div>
   </div>
 </div>
+
 <!-- Main content -->
 <section class="content">
   <div class="container-fluid">
@@ -22,68 +23,18 @@
       <div class="col-12">
         <div class="callout callout-info">
           <h5><i class="fas fa-info"></i> Welcome to the Admin Dashboard!</h5>
-          Select a section from the sidebar to manage your data
+          <p class="mb-0">Hello {{ userName }}! Select a section from the sidebar to manage your data.</p>
         </div>
       </div>
     </div>
 
-    <!-- Small boxes (Stat box) -->
-    <!--<div class="row">-->
-    <!-- Countries Box -->
-    <!--<div class="col-lg-4 col-md-6 col-sm-12">
-    <div class="small-box bg-info">
-      <div class="inner">
-        <h3>Countries</h3>
-        <p>Manage countries</p>
-      </div>
-      <div class="icon">
-        <i class="fas fa-globe"></i>
-      </div>
-      <a routerLink="/admin/countries" class="small-box-footer">
-        View Countries <i class="fas fa-arrow-circle-right"></i>
-      </a>
-    </div>
-  </div>-->
-    <!-- States Box -->
-    <!--<div class="col-lg-4 col-md-6 col-sm-12">
-    <div class="small-box bg-success">
-      <div class="inner">
-        <h3>States</h3>
-        <p>Manage states</p>
-      </div>
-      <div class="icon">
-        <i class="fas fa-map"></i>
-      </div>
-      <a routerLink="/admin/states" class="small-box-footer">
-        View States <i class="fas fa-arrow-circle-right"></i>
-      </a>
-    </div>
-  </div>-->
-    <!-- Cities Box -->
-    <!--<div class="col-lg-4 col-md-6 col-sm-12">
-      <div class="small-box bg-warning">
-        <div class="inner">
-          <h3>Cities</h3>
-          <p>Manage cities</p>
-        </div>
-        <div class="icon">
-          <i class="fas fa-city"></i>
-        </div>
-        <a routerLink="/admin/cities" class="small-box-footer">
-          View Cities <i class="fas fa-arrow-circle-right"></i>
-        </a>
-      </div>
-    </div>
-  </div>-->
-    <!-- Alternative Card Design (if prefer cards over small-boxes) -->
-    <div class="row mt-4" *ngIf="authorizationService.hasViewPermission('countries') ||
-                        authorizationService.hasViewPermission('states') ||
-                        authorizationService.hasViewPermission('cities')">
+    <!-- Quick Actions Section -->
+    <div class="row mt-4" *ngIf="canViewCountries || canViewStates || canViewCities">
       <div class="col-12">
         <h5 class="mb-3">Quick Actions</h5>
       </div>
 
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewPermission('countries')">
+      <div class="col-lg-4 col-md-6" *ngIf="canViewCountries">
         <div class="card card-primary card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -98,7 +49,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewPermission('states')">
+      <div class="col-lg-4 col-md-6" *ngIf="canViewStates">
         <div class="card card-success card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -113,7 +64,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewPermission('cities')">
+      <div class="col-lg-4 col-md-6" *ngIf="canViewCities">
         <div class="card card-warning card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -129,16 +80,14 @@
       </div>
     </div>
 
-    <!-- Add below the existing Cards section -->
-    <div class="row mt-4" *ngIf="authorizationService.hasViewPermission('users') ||
-                            authorizationService.hasViewPermission('roles') ||
-                            authorizationService.hasViewPermission('modules')">
+    <!-- Access Management Section -->
+    <div class="row mt-4" *ngIf="canViewUsers || canViewRoles || canViewModules">
       <div class="col-12">
         <h5 class="mb-3">Access Management</h5>
       </div>
 
       <!-- Users Management Card -->
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewPermission('users')">
+      <div class="col-lg-4 col-md-6" *ngIf="canViewUsers">
         <div class="card card-primary card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -154,7 +103,7 @@
       </div>
 
       <!-- Roles Management Card -->
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewPermission('roles')">
+      <div class="col-lg-4 col-md-6" *ngIf="canViewRoles">
         <div class="card card-danger card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -169,8 +118,8 @@
         </div>
       </div>
 
-      <!-- Add Module Management Card to Access Management section -->
-      <div class="col-lg-4 col-md-6" *ngIf="authorizationService.hasViewPermission('modules')">
+      <!-- Module Management Card -->
+      <div class="col-lg-4 col-md-6" *ngIf="canViewModules">
         <div class="card card-info card-outline">
           <div class="card-body box-profile">
             <div class="text-center">
@@ -182,6 +131,16 @@
               <i class="fas fa-eye"></i> Manage Modules
             </a>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Access Message -->
+    <div class="row mt-4" *ngIf="!canViewCountries && !canViewStates && !canViewCities && !canViewUsers && !canViewRoles && !canViewModules">
+      <div class="col-12">
+        <div class="alert alert-warning">
+          <h4><i class="icon fas fa-exclamation-triangle"></i> Limited Access</h4>
+          You currently don't have permission to access any management modules. Please contact your administrator for access.
         </div>
       </div>
     </div>

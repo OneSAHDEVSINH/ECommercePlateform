@@ -32,7 +32,7 @@
     </div>
 
     <!-- Role Form Card -->
-    <div class="card card-primary" *appPermission="{ moduleRoute: 'roles', type: PermissionType.AddEdit }">
+    <div class="card card-primary" *ngIf="canAddEdit">
       <div class="card-header">
         <h3 class="card-title">{{ isEditMode ? 'Edit Role' : 'Add New Role' }}</h3>
       </div>
@@ -172,7 +172,7 @@
           <button type="submit"
                   class="btn btn-primary"
                   [disabled]="roleForm.invalid || loading"
-                  *appPermission="{ moduleRoute: 'roles', type: PermissionType.AddEdit }">
+                  *ngIf="canAddEdit">
             <i class="fas" [ngClass]="{'fa-save': !loading, 'fa-spinner fa-spin': loading}"></i>
             {{ isEditMode ? 'Update' : 'Save' }} Role
           </button>
@@ -190,7 +190,7 @@
     </div>
 
     <!-- Roles List Card -->
-    <div class="card" *appPermission="{ moduleRoute: 'roles', type: PermissionType.View }">
+    <div class="card" *ngIf="canView">
       <div class="card-header">
         <h3 class="card-title">Roles List</h3>
         <div class="card-tools">
@@ -297,11 +297,11 @@
                 <td>{{ role.createdOn | date: 'medium' }}</td>
                 <td *ngIf="authorizationService.hasDeleteOrAddEditPermission('roles')">
                   <button class="btn btn-sm btn-info mr-1" (click)="editRole(role)"
-                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.AddEdit }">
+                          *ngIf="canAddEdit">
                     <i class="fas fa-edit"></i> Edit
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deleteRole(role.id!)"
-                          *appPermission="{ moduleRoute: 'roles', type: PermissionType.Delete }">
+                          *ngIf="canDelete">
                     <i class="fas fa-trash"></i> Delete
                   </button>
                 </td>

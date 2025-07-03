@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -22,7 +22,7 @@ import { AuthorizationService } from '../../services/authorization/authorization
   templateUrl: './country.component.html',
   styleUrls: ['./country.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, PaginationComponent, DateRangeFilterComponent, PermissionDirective]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, PaginationComponent, DateRangeFilterComponent]
 })
 
 export class CountryComponent implements OnInit, OnDestroy {
@@ -36,8 +36,14 @@ export class CountryComponent implements OnInit, OnDestroy {
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
   private dateRangeSubscription!: Subscription;
+  private permissionSubscription!: Subscription;
   Math = Math;
   PermissionType = PermissionType;
+
+  // Permission-dependent UI state
+  canAddEdit: boolean = false;
+  canDelete: boolean = false;
+  canView: boolean = false;
 
   // Pagination properties
   pagedResponse: PagedResponse<Country> | null = null;
@@ -56,12 +62,23 @@ export class CountryComponent implements OnInit, OnDestroy {
     private listService: ListService,
     private dateFilterService: DateFilterService,
     public authorizationService: AuthorizationService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.initForm();
     this.loadCountries();
+
+    // Initial permission check
+    this.checkPermissions();
+
+    // Subscribe to global permission changes
+    this.permissionSubscription = this.authorizationService.globalPermissionChange$.subscribe(() => {
+      this.checkPermissions(); // Refresh permission-dependent state
+      this.cdr.detectChanges(); // Force change detection
+    });
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
@@ -99,6 +116,18 @@ export class CountryComponent implements OnInit, OnDestroy {
     if (this.dateRangeSubscription) {
       this.dateRangeSubscription.unsubscribe();
     }
+    if (this.permissionSubscription) {
+      this.permissionSubscription.unsubscribe();
+    }
+  }
+
+  // method to check permissions
+  private checkPermissions(): void {
+    this.canView = this.authorizationService.hasPermission('countries', PermissionType.View);
+    this.canAddEdit = this.authorizationService.hasPermission('countries', PermissionType.AddEdit);
+    this.canDelete = this.authorizationService.hasPermission('countries', PermissionType.Delete);
+
+    console.log('Countries permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
 
   private initForm(): void {

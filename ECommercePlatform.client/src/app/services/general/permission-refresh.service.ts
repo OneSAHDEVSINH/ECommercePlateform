@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Observable, Subject, interval, of } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Observable, Subject, interval, of, BehaviorSubject } from 'rxjs';
+import { filter, switchMap, takeUntil, tap, catchError } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { AuthorizationService } from '../authorization/authorization.service';
 import { HttpClient } from '@angular/common/http';
@@ -13,6 +13,10 @@ export class PermissionRefreshService implements OnDestroy {
   private destroy$ = new Subject<void>();
   private refreshInterval = 30000; // Check every 30 seconds
   private apiUrl = `${environment.apiUrl}/authorization`;
+
+  // Add refresh state tracking
+  private isRefreshingSubject = new BehaviorSubject<boolean>(false);
+  public isRefreshing$ = this.isRefreshingSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -42,7 +46,7 @@ export class PermissionRefreshService implements OnDestroy {
     interval(this.refreshInterval)
       .pipe(
         takeUntil(this.destroy$),
-        filter(() => this.authService.isAuthenticated()),
+        filter(() => this.authService.isAuthenticated() && !this.isRefreshingSubject.value),
         switchMap(() => this.refreshPermissions())
       )
       .subscribe();
@@ -53,15 +57,33 @@ export class PermissionRefreshService implements OnDestroy {
     if (this.authService.isSuperAdmin()) {
       return of(true);
     }
-    this.authorizationService.clearCache();
+
+    this.isRefreshingSubject.next(true);
+
     return this.http.get<any>(`${this.apiUrl}/user-permissions`).pipe(
       tap(response => {
+        // Update permissions in auth service
         this.authService.updatePermissionsData(response.permissions);
+
+        // Clear and refresh authorization cache
         this.authorizationService.clearCache();
+        this.authorizationService.refreshPermissions();
+
+        console.log('Permissions refreshed from server');
       }),
-      // Force a delay to ensure all subscribers receive the updates
-      tap(() => console.log('Permissions refreshed from server')),
-      switchMap(() => of(true))
+      switchMap(() => of(true)),
+      catchError(error => {
+        console.error('Failed to refresh permissions:', error);
+        return of(false);
+      }),
+      tap(() => {
+        this.isRefreshingSubject.next(false);
+      })
     );
+  }
+
+  // Force immediate refresh
+  forceRefresh(): Observable<boolean> {
+    return this.refreshPermissions();
   }
 }

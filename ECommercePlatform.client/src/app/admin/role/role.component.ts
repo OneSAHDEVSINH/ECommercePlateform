@@ -1,5 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RoleService } from '../../services/role/role.service';
@@ -27,7 +26,6 @@ import { AuthorizationService } from '../../services/authorization/authorization
     ReactiveFormsModule,
     FormsModule,
     PaginationComponent,
-    PermissionDirective,
     RouterModule,
     DateRangeFilterComponent
   ]
@@ -43,6 +41,15 @@ export class RoleComponent implements OnInit, OnDestroy {
   PermissionType = PermissionType;
   modulePermissions: Map<string, Map<PermissionType, boolean>> = new Map();
   Math = Math;
+  private subscriptions: Subscription[] = [];
+  private searchSubscription!: Subscription;
+  private dateRangeSubscription!: Subscription;
+  private permissionSubscription!: Subscription;
+
+  // Permission-dependent UI state
+  canAddEdit: boolean = false;
+  canDelete: boolean = false;
+  canView: boolean = false;
 
   // Filter properties
   selectedStatusFilter: string = 'all';
@@ -57,10 +64,6 @@ export class RoleComponent implements OnInit, OnDestroy {
     sortDirection: 'asc'
   };
 
-  private subscriptions: Subscription[] = [];
-  private searchSubscription!: Subscription;
-  private dateRangeSubscription!: Subscription;
-
   constructor(
     private roleService: RoleService,
     private moduleService: ModuleService,
@@ -69,13 +72,23 @@ export class RoleComponent implements OnInit, OnDestroy {
     private dateFilterService: DateFilterService,
     private listService: ListService,
     public authorizationService: AuthorizationService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.initForm();
     this.loadRoles();
     this.loadModules();
+
+    // Initial permission check
+    this.checkPermissions();
+
+    // Subscribe to global permission changes
+    this.permissionSubscription = this.authorizationService.globalPermissionChange$.subscribe(() => {
+      this.checkPermissions(); // Refresh permission-dependent state
+      this.cdr.detectChanges(); // Force change detection
+    });
 
     const messageSub = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
@@ -106,10 +119,21 @@ export class RoleComponent implements OnInit, OnDestroy {
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
     }
-
     if (this.dateRangeSubscription) {
       this.dateRangeSubscription.unsubscribe();
     }
+    if (this.permissionSubscription) {
+      this.permissionSubscription.unsubscribe();
+    }
+  }
+
+  // method to check permissions
+  private checkPermissions(): void {
+    this.canView = this.authorizationService.hasPermission('roles', PermissionType.View);
+    this.canAddEdit = this.authorizationService.hasPermission('roles', PermissionType.AddEdit);
+    this.canDelete = this.authorizationService.hasPermission('roles', PermissionType.Delete);
+
+    console.log('Roles permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
 
   private initForm(): void {
@@ -354,21 +378,25 @@ export class RoleComponent implements OnInit, OnDestroy {
     this.initializeModulePermissions();
   }
 
-  toggleStatus(item: any): void {
-    if (!item.id || !this.authorizationService.hasPermission('roles', PermissionType.AddEdit)) return;
+  toggleStatus(role: any): void {
+    if (!role.id || !this.authorizationService.hasPermission('roles', PermissionType.AddEdit)) return;
 
     this.loading = true;
 
     // Create a simple update object with just the toggled status
-    const update = { isActive: !item.isActive };
+    const update = {
+      name: role.name,
+      description: role.description,
+      isActive: !role.isActive
+    };
 
-    this.roleService.updateRole(item.id, update).subscribe({
+    this.roleService.updateRole(role.id, update).subscribe({
       next: () => {
-        // Update the item in the local array to avoid a full reload
-        item.isActive = !item.isActive;
+        // Update the role in the local array to avoid a full reload
+        role.isActive = !role.isActive;
         this.messageService.showMessage({
           type: 'success',
-          text: `Role ${item.isActive ? 'activated' : 'deactivated'} successfully`
+          text: `Role ${role.isActive ? 'activated' : 'deactivated'} successfully`
         });
         this.loadRoles();
         this.loading = false;

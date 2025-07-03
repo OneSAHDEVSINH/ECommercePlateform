@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -26,8 +26,9 @@ import { AuthorizationService } from '../../services/authorization/authorization
   templateUrl: './city.component.html',
   styleUrls: ['./city.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent, PermissionDirective]
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, FormsModule, PaginationComponent, DateRangeFilterComponent]
 })
+
 export class CityComponent implements OnInit, OnDestroy {
   cities: City[] = [];
   states: State[] = [];
@@ -42,12 +43,18 @@ export class CityComponent implements OnInit, OnDestroy {
   private messageSubscription!: Subscription;
   private searchSubscription!: Subscription;
   private dateRangeSubscription!: Subscription;
+  private permissionSubscription!: Subscription;
   Math = Math;
   selectedStateId = 'all';
   selectedCountryIdFilter: string = 'all';
   filteredStates: State[] = [];
   allStates: State[] = [];
   PermissionType = PermissionType;
+
+  // Permission-dependent UI state
+  canAddEdit: boolean = false;
+  canDelete: boolean = false;
+  canView: boolean = false;
 
   // Pagination properties
   pagedResponse: PagedResponse<City> | null = null;
@@ -68,19 +75,29 @@ export class CityComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private listService: ListService,
     private dateFilterService: DateFilterService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.initForm();
     this.loadCountries();
     this.loadAllStates();
-    //this.loadStates();
     this.loadCities();
+
+    // Initial permission check
+    this.checkPermissions();
+
+    // Subscribe to global permission changes
+    this.permissionSubscription = this.authorizationService.globalPermissionChange$.subscribe(() => {
+      this.checkPermissions(); // Refresh permission-dependent state
+      this.cdr.detectChanges(); // Force change detection
+    });
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
-    //this.cityForm.get('stateId')?.disable(); // Disable the state dropdown
+
     // Subscribe to message changes
     this.messageSubscription = this.messageService.currentMessage.subscribe(message => {
       this.message = message;
@@ -89,7 +106,7 @@ export class CityComponent implements OnInit, OnDestroy {
     // Subscribe to search changes with debounce
     this.searchSubscription = this.listService.getSearchObservable().subscribe(term => {
       this.pageRequest.searchText = term;
-      this.pageRequest.pageNumber = 1; // Reset to first page when search changes
+      this.pageRequest.pageNumber = 1;
       this.loadCities();
     });
 
@@ -98,7 +115,7 @@ export class CityComponent implements OnInit, OnDestroy {
       .subscribe((dateRange: DateRange) => {
         this.pageRequest.startDate = dateRange.startDate ? dateRange.startDate.toISOString() : null;
         this.pageRequest.endDate = dateRange.endDate ? dateRange.endDate.toISOString() : null;
-        this.pageRequest.pageNumber = 1; // Reset to first page when date filter changes
+        this.pageRequest.pageNumber = 1;
         this.loadCities();
       });
   }
@@ -114,6 +131,25 @@ export class CityComponent implements OnInit, OnDestroy {
     if (this.dateRangeSubscription) {
       this.dateRangeSubscription.unsubscribe();
     }
+    if (this.permissionSubscription) {
+      this.permissionSubscription.unsubscribe();
+    }
+  }
+
+  // method to check permissions
+  private checkPermissions(): void {
+    const wasViewable = this.canView;
+
+    this.canView = this.authorizationService.hasPermission('cities', PermissionType.View);
+    this.canAddEdit = this.authorizationService.hasPermission('cities', PermissionType.AddEdit);
+    this.canDelete = this.authorizationService.hasPermission('cities', PermissionType.Delete);
+
+    // If view permission was lost, redirect immediately
+    if (wasViewable && !this.canView && !this.authorizationService.isAdmin()) {
+      this.authorizationService.checkAndRedirectOnPermissionLoss('cities', PermissionType.View);
+    }
+
+    console.log('Cities permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
 
   private initForm(): void {
