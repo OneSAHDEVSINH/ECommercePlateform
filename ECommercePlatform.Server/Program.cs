@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -42,7 +43,7 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")).ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // Configure Identity
 builder.Services.AddIdentity<User, Role>(options =>
@@ -105,7 +106,8 @@ builder.Services.AddAuthentication(options =>
 {
     var jwtKey = builder.Configuration["Jwt:Key"] ??
     throw new InvalidOperationException("JWT key is not configured");
-    o.RequireHttpsMetadata = true;
+    //o.RequireHttpsMetadata = true;
+    o.RequireHttpsMetadata = !builder.Environment.IsDevelopment(); // Allow HTTP in development
     o.SaveToken = true;
     o.TokenValidationParameters = new TokenValidationParameters
     {
@@ -113,9 +115,9 @@ builder.Services.AddAuthentication(options =>
         //IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "MyTemporarySecretKeyForDevelopment12345")),
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtKey)),
         ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "YourApp",
+        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "ECommercePlatform",
         ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "YourApp",
+        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "ECommerceUsers",
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
@@ -138,8 +140,6 @@ builder.Services.AddAuthorizationBuilder()
         .RequireAuthenticatedUser()
         .Build());
 
-
-builder.Services.AddCors();
 
 builder.Services.AddCors(options =>
 {
@@ -282,18 +282,17 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommercePlatform API V1");
+    });
 }
 else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommercePlatform API V1");
-});
 
 app.MapControllerRoute(
     name: "default",

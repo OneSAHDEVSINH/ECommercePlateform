@@ -137,7 +137,7 @@ export class AuthorizationService {
     );
   }
 
-  // Enhanced reactive permission checking
+  // Reactive permission checking
   checkPermissionReactive(moduleRoute: string, permissionType: PermissionType): Observable<boolean> {
     return combineLatest([
       this.checkPermission(moduleRoute, permissionType),
@@ -258,7 +258,6 @@ export class AuthorizationService {
       }
     }
   }
-
 
   private getPermissionTypeString(type: PermissionType): string {
     switch (type) {

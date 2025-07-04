@@ -41,7 +41,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'admin/login',
+    redirectTo: '/admin/login',
     pathMatch: 'full'
   },
   {
@@ -82,9 +82,7 @@ export const routes: Routes = [
             canActivate: [PermissionGuard],
             data: {
               moduleRoute: 'countries',
-              permission: [PermissionType.View,
-                PermissionType.AddEdit,
-                PermissionType.Delete]
+              permission: PermissionType.View
             }
           },
           {

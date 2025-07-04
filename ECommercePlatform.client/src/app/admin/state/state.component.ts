@@ -15,7 +15,7 @@ import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { ListService } from '../../services/general/list.service';
 import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
-import { PermissionDirective } from '../../directives/permission.directive';
+//import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
 import { AuthorizationService } from '../../services/authorization/authorization.service';
 
@@ -128,9 +128,16 @@ export class StateComponent implements OnInit, OnDestroy {
 
   // method to check permissions
   private checkPermissions(): void {
+    const wasViewable = this.canView;
+
     this.canView = this.authorizationService.hasPermission('states', PermissionType.View);
     this.canAddEdit = this.authorizationService.hasPermission('states', PermissionType.AddEdit);
     this.canDelete = this.authorizationService.hasPermission('states', PermissionType.Delete);
+
+    // If view permission was lost, redirect immediately
+    if (wasViewable && !this.canView && !this.authorizationService.isAdmin()) {
+      this.authorizationService.checkAndRedirectOnPermissionLoss('states', PermissionType.View);
+    }
 
     console.log('States permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth/auth.service';
-import { PermissionDirective } from '../../directives/permission.directive';
+//import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
 import { AuthorizationService } from '../../services/authorization/authorization.service';
 import { Subscription } from 'rxjs';

@@ -13,7 +13,7 @@ import { DateFilterService, DateRange } from '../../services/general/date-filter
 import { ListService } from '../../services/general/list.service';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
-import { PermissionDirective } from '../../directives/permission.directive';
+//import { PermissionDirective } from '../../directives/permission.directive';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthorizationService } from '../../services/authorization/authorization.service';
 
@@ -56,6 +56,7 @@ export class UserComponent implements OnInit, OnDestroy {
   canAddEdit: boolean = false;
   canDelete: boolean = false;
   canView: boolean = false;
+  canAddEditRoles: boolean = false;
 
   // Pagination properties
   pagedResponse: PagedResponse<User> | null = null;
@@ -132,9 +133,17 @@ export class UserComponent implements OnInit, OnDestroy {
 
   // method to check permissions
   private checkPermissions(): void {
+    const wasViewable = this.canView;
+
     this.canView = this.authorizationService.hasPermission('users', PermissionType.View);
     this.canAddEdit = this.authorizationService.hasPermission('users', PermissionType.AddEdit);
     this.canDelete = this.authorizationService.hasPermission('users', PermissionType.Delete);
+    this.canAddEditRoles = this.authorizationService.hasPermission('roles', PermissionType.AddEdit);
+
+    // If view permission was lost, redirect immediately
+    if (wasViewable && !this.canView && !this.authorizationService.isAdmin()) {
+      this.authorizationService.checkAndRedirectOnPermissionLoss('users', PermissionType.View);
+    }
 
     console.log('Users permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }

@@ -13,7 +13,7 @@ import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { ListService } from '../../services/general/list.service';
 import { DateFilterService, DateRange } from '../../services/general/date-filter.service';
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
-import { PermissionDirective } from '../../directives/permission.directive';
+//import { PermissionDirective } from '../../directives/permission.directive';
 import { PermissionType } from '../../models/role.model';
 import { AuthorizationService } from '../../services/authorization/authorization.service';
 
@@ -123,9 +123,16 @@ export class CountryComponent implements OnInit, OnDestroy {
 
   // method to check permissions
   private checkPermissions(): void {
+    const wasViewable = this.canView;
+
     this.canView = this.authorizationService.hasPermission('countries', PermissionType.View);
     this.canAddEdit = this.authorizationService.hasPermission('countries', PermissionType.AddEdit);
     this.canDelete = this.authorizationService.hasPermission('countries', PermissionType.Delete);
+
+    // If view permission was lost, redirect immediately
+    if (wasViewable && !this.canView && !this.authorizationService.isAdmin()) {
+      this.authorizationService.checkAndRedirectOnPermissionLoss('countries', PermissionType.View);
+    }
 
     console.log('Countries permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
@@ -133,7 +140,7 @@ export class CountryComponent implements OnInit, OnDestroy {
   private initForm(): void {
     this.countryForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(100), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
-      code: ['', [Validators.required, Validators.maxLength(10), CustomValidatorsService.noWhitespaceValidator(), , CustomValidatorsService.lettersOnly()]],
+      code: ['', [Validators.required, Validators.maxLength(10), CustomValidatorsService.noWhitespaceValidator(), CustomValidatorsService.lettersOnly()]],
       isActive: [true]
     });
   }

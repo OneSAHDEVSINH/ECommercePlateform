@@ -179,7 +179,7 @@ namespace ECommercePlatform.Infrastructure
             ApplyEntityConfigurations(modelBuilder);
 
             // Seed data
-            SeedData(modelBuilder);
+            //SeedData(modelBuilder);
         }
 
         private static void ApplyEntityConfigurations(ModelBuilder modelBuilder)
@@ -428,151 +428,151 @@ namespace ECommercePlatform.Infrastructure
             });
         }
 
-        private static void SeedData(ModelBuilder modelBuilder)
-        {
-            // Fixed IDs and date
-            var adminUserId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F");
-            var adminRoleId = Guid.Parse("D4DE1B4D-B43B-4A55-B47A-1E92E71C3143");
-            var fixedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    //    private static void SeedData(ModelBuilder modelBuilder)
+    //    {
+    //        // Fixed IDs and date
+    //        var adminUserId = Guid.Parse("E65A3A8A-2407-4965-9B71-B9A1D8E2C34F");
+    //        var adminRoleId = Guid.Parse("D4DE1B4D-B43B-4A55-B47A-1E92E71C3143");
+    //        var fixedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-            // Seed SuperAdmin role
-            modelBuilder.Entity<Role>().HasData(
-                new
-                {
-                    Id = adminRoleId,
-                    Name = "SuperAdmin",
-                    NormalizedName = "SUPERADMIN",
-                    Description = "Super Administrator with all permissions",
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false,
-                    ConcurrencyStamp = "1c078e6d-2fb7-4a5d-b170-4a4eced5c4d5" // Fixed value
-                }
-            );
+    //        // Seed SuperAdmin role
+    //        modelBuilder.Entity<Role>().HasData(
+    //            new
+    //            {
+    //                Id = adminRoleId,
+    //                Name = "SuperAdmin",
+    //                NormalizedName = "SUPERADMIN",
+    //                Description = "Super Administrator with all permissions",
+    //                IsActive = true,
+    //                CreatedBy = "System",
+    //                CreatedOn = fixedDate,
+    //                ModifiedBy = "System",
+    //                ModifiedOn = fixedDate,
+    //                IsDeleted = false,
+    //                ConcurrencyStamp = "1c078e6d-2fb7-4a5d-b170-4a4eced5c4d5" // Fixed value
+    //            }
+    //        );
 
 
-            // Seed SuperAdmin user with pre-computed password hash
-            var superAdmin = new User
-            {
-                Id = adminUserId,
-                UserName = "admin@admin.com",
-                NormalizedUserName = "ADMIN@ADMIN.COM",
-                Email = "admin@admin.com",
-                NormalizedEmail = "ADMIN@ADMIN.COM",
-                EmailConfirmed = true,
-                FirstName = "Super",
-                LastName = "Admin",
-                Gender = Gender.Other,
-                DateOfBirth = new DateOnly(1990, 1, 1),
-                PhoneNumber = "1234567890",
-                PhoneNumberConfirmed = true,
-                Bio = "System Administrator",
-                IsActive = true,
-                CreatedBy = "System",
-                CreatedOn = fixedDate,
-                ModifiedBy = "System",
-                ModifiedOn = fixedDate,
-                IsDeleted = false,
-                SecurityStamp = "f7426c48-c7c4-4c44-a30c-adcb4d1c8636",
-                ConcurrencyStamp = "6e8b9d2c-79f8-4c0d-8c5b-b7e3d2e0fcc8",
-                // Pre-computed password hash for "Admin@123" - fixed for seeding purposes only
-                PasswordHash = "AQAAAAIAAYagAAAAEByw51YzuzngglBl/L2IhnXzbcYD217ogwcvO0NTporKYSbAUtKe7NOeNIHr4vzYKA=="
-            };
+    //        // Seed SuperAdmin user with pre-computed password hash
+    //        var superAdmin = new User
+    //        {
+    //            Id = adminUserId,
+    //            UserName = "admin@admin.com",
+    //            NormalizedUserName = "ADMIN@ADMIN.COM",
+    //            Email = "admin@admin.com",
+    //            NormalizedEmail = "ADMIN@ADMIN.COM",
+    //            EmailConfirmed = true,
+    //            FirstName = "Super",
+    //            LastName = "Admin",
+    //            Gender = Gender.Other,
+    //            DateOfBirth = new DateOnly(1990, 1, 1),
+    //            PhoneNumber = "1234567890",
+    //            PhoneNumberConfirmed = true,
+    //            Bio = "System Administrator",
+    //            IsActive = true,
+    //            CreatedBy = "System",
+    //            CreatedOn = fixedDate,
+    //            ModifiedBy = "System",
+    //            ModifiedOn = fixedDate,
+    //            IsDeleted = false,
+    //            SecurityStamp = "f7426c48-c7c4-4c44-a30c-adcb4d1c8636",
+    //            ConcurrencyStamp = "6e8b9d2c-79f8-4c0d-8c5b-b7e3d2e0fcc8",
+    //            // Pre-computed password hash for "Admin@123" - fixed for seeding purposes only
+    //            PasswordHash = "AQAAAAIAAYagAAAAEByw51YzuzngglBl/L2IhnXzbcYD217ogwcvO0NTporKYSbAUtKe7NOeNIHr4vzYKA=="
+    //        };
 
-            modelBuilder.Entity<User>().HasData(superAdmin);
+    //        modelBuilder.Entity<User>().HasData(superAdmin);
 
-            // Seed UserRole
-            modelBuilder.Entity<UserRole>().HasData(
-                new
-                {
-                    UserId = adminUserId,
-                    RoleId = adminRoleId,
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                }
-            );
+    //        // Seed UserRole
+    //        modelBuilder.Entity<UserRole>().HasData(
+    //            new
+    //            {
+    //                UserId = adminUserId,
+    //                RoleId = adminRoleId,
+    //                IsActive = true,
+    //                CreatedBy = "System",
+    //                CreatedOn = fixedDate,
+    //                ModifiedBy = "System",
+    //                ModifiedOn = fixedDate,
+    //                IsDeleted = false
+    //            }
+    //        );
 
-            // Use fixed GUIDs for modules
-            var moduleIds = new[]
-            {
-        Guid.Parse("9A3D7141-4E96-4A5A-B1C5-B6B757ABC0E7"), // Dashboard
-        Guid.Parse("D5C05957-17E5-46F7-B32D-BE1D81E317AE"), // Users
-        Guid.Parse("52136BB4-EE50-4175-9B40-836CAC5D587C"), // Roles
-        Guid.Parse("4EA6364A-7F9E-4B3B-A138-BB9CAA2653A7"), // Modules
-        Guid.Parse("F86A8772-D8E8-4256-9A17-453A9A65015F"), // Cities
-        Guid.Parse("24203E63-035E-4119-9E6A-27B2CCBF5C79"), // States
-        Guid.Parse("A095A01D-9E88-4570-BDFD-9E0BC05F14F4")  // Countries
-    };
+    //        // Use fixed GUIDs for modules
+    //        var moduleIds = new[]
+    //        {
+    //    Guid.Parse("9A3D7141-4E96-4A5A-B1C5-B6B757ABC0E7"), // Dashboard
+    //    Guid.Parse("D5C05957-17E5-46F7-B32D-BE1D81E317AE"), // Users
+    //    Guid.Parse("52136BB4-EE50-4175-9B40-836CAC5D587C"), // Roles
+    //    Guid.Parse("4EA6364A-7F9E-4B3B-A138-BB9CAA2653A7"), // Modules
+    //    Guid.Parse("F86A8772-D8E8-4256-9A17-453A9A65015F"), // Cities
+    //    Guid.Parse("24203E63-035E-4119-9E6A-27B2CCBF5C79"), // States
+    //    Guid.Parse("A095A01D-9E88-4570-BDFD-9E0BC05F14F4")  // Countries
+    //};
 
-            var modules = new[]
-            {
-        new { Id = moduleIds[0], Name = "Dashboard", Route = "dashboard", Description = "Main dashboard", DisplayOrder = 1, Icon = "fas fa-tachometer-alt" },
-        new { Id = moduleIds[1], Name = "Users", Route = "users", Description = "User management", DisplayOrder = 2, Icon = "fas fa-users" },
-        new { Id = moduleIds[2], Name = "Roles", Route = "roles", Description = "Role management", DisplayOrder = 3, Icon = "fas fa-user-shield" },
-        new { Id = moduleIds[3], Name = "Modules", Route = "modules", Description = "Module management", DisplayOrder = 4, Icon = "fas fa-cubes" },
-        new { Id = moduleIds[4], Name = "Cities", Route = "cities", Description = "City management", DisplayOrder = 5, Icon = "fas fa-city" },
-        new { Id = moduleIds[5], Name = "States", Route = "states", Description = "State management", DisplayOrder = 6, Icon = "fas fa-map" },
-        new { Id = moduleIds[6], Name = "Countries", Route = "countries", Description = "Country management", DisplayOrder = 7, Icon = "fas fa-globe" }
-    };
+    //        var modules = new[]
+    //        {
+    //    new { Id = moduleIds[0], Name = "Dashboard", Route = "dashboard", Description = "Main dashboard", DisplayOrder = 1, Icon = "fas fa-tachometer-alt" },
+    //    new { Id = moduleIds[1], Name = "Users", Route = "users", Description = "User management", DisplayOrder = 2, Icon = "fas fa-users" },
+    //    new { Id = moduleIds[2], Name = "Roles", Route = "roles", Description = "Role management", DisplayOrder = 3, Icon = "fas fa-user-shield" },
+    //    new { Id = moduleIds[3], Name = "Modules", Route = "modules", Description = "Module management", DisplayOrder = 4, Icon = "fas fa-cubes" },
+    //    new { Id = moduleIds[4], Name = "Cities", Route = "cities", Description = "City management", DisplayOrder = 5, Icon = "fas fa-city" },
+    //    new { Id = moduleIds[5], Name = "States", Route = "states", Description = "State management", DisplayOrder = 6, Icon = "fas fa-map" },
+    //    new { Id = moduleIds[6], Name = "Countries", Route = "countries", Description = "Country management", DisplayOrder = 7, Icon = "fas fa-globe" }
+    //};
 
-            // Fixed role permission GUIDs
-            var permissionIds = new[]
-            {
-        Guid.Parse("E536A58D-09A3-4A69-8436-5725BF7FFBAD"), // Dashboard permission
-        Guid.Parse("12D57212-45AC-4420-A202-7FF04DE2709E"), // Users permission
-        Guid.Parse("4CF71F31-FB3F-4960-A352-4D29299B5D6F"), // Roles permission
-        Guid.Parse("33EB3761-CE64-4720-9E0F-434887D40261"), // Modules permission
-        Guid.Parse("D28F26B6-55D1-45A4-A69B-7D26A293D945"), // Cities permission
-        Guid.Parse("86ACD9E0-16F1-474F-A85D-A4BDBBF27E8C"), // States permission
-        Guid.Parse("B2CDAFC8-599B-45B5-AC32-FB84B0C896A5")  // Countries permission
-    };
+    //        // Fixed role permission GUIDs
+    //        var permissionIds = new[]
+    //        {
+    //    Guid.Parse("E536A58D-09A3-4A69-8436-5725BF7FFBAD"), // Dashboard permission
+    //    Guid.Parse("12D57212-45AC-4420-A202-7FF04DE2709E"), // Users permission
+    //    Guid.Parse("4CF71F31-FB3F-4960-A352-4D29299B5D6F"), // Roles permission
+    //    Guid.Parse("33EB3761-CE64-4720-9E0F-434887D40261"), // Modules permission
+    //    Guid.Parse("D28F26B6-55D1-45A4-A69B-7D26A293D945"), // Cities permission
+    //    Guid.Parse("86ACD9E0-16F1-474F-A85D-A4BDBBF27E8C"), // States permission
+    //    Guid.Parse("B2CDAFC8-599B-45B5-AC32-FB84B0C896A5")  // Countries permission
+    //};
 
-            for (int i = 0; i < modules.Length; i++)
-            {
-                var module = modules[i];
+    //        for (int i = 0; i < modules.Length; i++)
+    //        {
+    //            var module = modules[i];
 
-                modelBuilder.Entity<Module>().HasData(new
-                {
-                    module.Id,
-                    module.Name,
-                    module.Route,
-                    module.Description,
-                    module.DisplayOrder,
-                    module.Icon,
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                });
+    //            modelBuilder.Entity<Module>().HasData(new
+    //            {
+    //                module.Id,
+    //                module.Name,
+    //                module.Route,
+    //                module.Description,
+    //                module.DisplayOrder,
+    //                module.Icon,
+    //                IsActive = true,
+    //                CreatedBy = "System",
+    //                CreatedOn = fixedDate,
+    //                ModifiedBy = "System",
+    //                ModifiedOn = fixedDate,
+    //                IsDeleted = false
+    //            });
 
-                // Seed RolePermissions with fixed GUIDs
-                modelBuilder.Entity<RolePermission>().HasData(new
-                {
-                    Id = permissionIds[i],
-                    RoleId = adminRoleId,
-                    ModuleId = module.Id,
-                    CanView = true,
-                    //CanAdd = true,
-                    //CanEdit = true,
-                    CanAddEdit = true,
-                    CanDelete = true,
-                    IsActive = true,
-                    CreatedBy = "System",
-                    CreatedOn = fixedDate,
-                    ModifiedBy = "System",
-                    ModifiedOn = fixedDate,
-                    IsDeleted = false
-                });
-            }
-        }
+    //            // Seed RolePermissions with fixed GUIDs
+    //            modelBuilder.Entity<RolePermission>().HasData(new
+    //            {
+    //                Id = permissionIds[i],
+    //                RoleId = adminRoleId,
+    //                ModuleId = module.Id,
+    //                CanView = true,
+    //                //CanAdd = true,
+    //                //CanEdit = true,
+    //                CanAddEdit = true,
+    //                CanDelete = true,
+    //                IsActive = true,
+    //                CreatedBy = "System",
+    //                CreatedOn = fixedDate,
+    //                ModifiedBy = "System",
+    //                ModifiedOn = fixedDate,
+    //                IsDeleted = false
+    //            });
+    //        }
+    //    }
     }
 }

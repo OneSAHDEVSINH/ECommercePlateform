@@ -8,7 +8,7 @@ import { MessageService, Message } from '../../services/general/message.service'
 import { Module, PermissionType } from '../../models/role.model';
 import { Subscription } from 'rxjs';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
-import { PermissionDirective } from '../../directives/permission.directive';
+//import { PermissionDirective } from '../../directives/permission.directive';
 import { PagedResponse, PagedRequest } from '../../models/pagination.model';
 import { FormsModule } from '@angular/forms';
 import { DateRangeFilterComponent } from '../../shared/date-range-filter/date-range-filter.component';
@@ -126,9 +126,16 @@ export class ModuleComponent implements OnInit, OnDestroy {
 
   // method to check permissions
   private checkPermissions(): void {
+    const wasViewable = this.canView;
+
     this.canView = this.authorizationService.hasPermission('modules', PermissionType.View);
     this.canAddEdit = this.authorizationService.hasPermission('modules', PermissionType.AddEdit);
     this.canDelete = this.authorizationService.hasPermission('modules', PermissionType.Delete);
+
+    // If view permission was lost, redirect immediately
+    if (wasViewable && !this.canView && !this.authorizationService.isAdmin()) {
+      this.authorizationService.checkAndRedirectOnPermissionLoss('modules', PermissionType.View);
+    }
 
     console.log('Modules permissions updated:', { canView: this.canView, canAddEdit: this.canAddEdit, canDelete: this.canDelete });
   }
